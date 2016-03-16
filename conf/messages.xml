@@ -2165,6 +2165,9 @@
 
   <!-- 251 is free -->
   <!-- 252 is free -->
+  <message name="GROUP_NINE" id="252">
+      <field name="myvar" type="double" />
+  </message>
 
   <message name="I2C_ERRORS" id="253">
     <field name="wd_reset_cnt"                type="uint16"/>
@@ -2208,7 +2211,6 @@
   </message>
 
 </msg_class>
-
 
 
 <msg_class name="datalink">

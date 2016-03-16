@@ -1,0 +1,16 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="adam" dir="test">
+  <doc>
+    <description>a module for foreplay with paparazzi</description>
+  </doc>
+  <header>
+    <file name="adam.h"/>
+  </header>
+  <init fun="init_adam()"/>
+  <periodic fun="print_data()" freq="1" autorun="TRUE"/>
+  <makefile>
+    <file name="adam.c"/>
+  </makefile>
+</module>
+
