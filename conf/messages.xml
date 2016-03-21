@@ -2166,7 +2166,7 @@
   <!-- 251 is free -->
   <!-- 252 is free -->
   <message name="GROUP_NINE" id="252">
-      <field name="myvar" type="double" />
+      <field name="Heading" type="int32" unit="IDK?" />
   </message>
 
   <message name="I2C_ERRORS" id="253">

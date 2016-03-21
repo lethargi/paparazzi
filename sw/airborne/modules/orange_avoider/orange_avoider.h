@@ -16,11 +16,18 @@
 
 extern uint8_t safeToGoForwards;
 extern int32_t incrementForAvoidance;
+extern int32_t incrementForBehind;
+
 extern void orange_avoider_init(void);
 extern void orange_avoider_periodic(void);
-extern uint8_t moveWaypointForwards(uint8_t waypoint, float distanceMeters);
 extern uint8_t increase_nav_heading(int32_t *heading, int32_t increment);
+extern uint8_t increase_nav_heading_deg(int32_t *heading, int32_t increment);
 extern uint8_t chooseRandomIncrementAvoidance(void);
 
+
+extern uint8_t moveWaypointForwards(uint8_t waypoint, float distanceMeters);
+extern uint8_t moveWaypointBackwards(uint8_t waypoint, float distanceMeters);
+extern uint8_t moveWaypointLeftwards(uint8_t waypoint, float distanceMeters);
+extern uint8_t moveWaypointRightwards(uint8_t waypoint, float distanceMeters);
 #endif
 

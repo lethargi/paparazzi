@@ -36,7 +36,9 @@
     <load name="geo_mag.xml"/>
     <load name="air_data.xml"/>
     <load name="send_imu_mag_current.xml"/>
+    <!--
     <load name="adam.xml"/>
+-->
     <!--load name="logger_file.xml">
       <define name="FILE_LOGGER_PATH" value="/data/ftp/internal_000"/>
     </load-->
@@ -148,11 +150,21 @@
     <!-- feedback -->
     <define name="GAIN_P" value="400"/>
     <define name="GAIN_Q" value="400"/>
+    <define name="GAIN_R" value="400"/>
+
+    <define name="IGAIN_P" value="125"/>
+    <define name="IGAIN_Q" value="125"/>
+    <define name="IGAIN_R" value="200"/>
+
+    <!--
+    <define name="GAIN_P" value="400"/>
+    <define name="GAIN_Q" value="400"/>
     <define name="GAIN_R" value="350"/>
 
     <define name="IGAIN_P" value="75"/>
     <define name="IGAIN_Q" value="75"/>
     <define name="IGAIN_R" value="50"/>
+-->
   </section>
 
   <section name="ATTITUDE_REFERENCE" prefix="STABILIZATION_ATTITUDE_">
@@ -216,10 +228,16 @@
   </section>
 
   <section name="GUIDANCE_H" prefix="GUIDANCE_H_">
+      <!--
     <define name="MAX_BANK" value="32" unit="deg"/>
     <define name="PGAIN" value="79"/>
     <define name="DGAIN" value="100"/>
     <define name="IGAIN" value="30"/>
+-->
+    <define name="MAX_BANK" value="3" unit="deg"/>
+    <define name="PGAIN" value="40"/>
+    <define name="DGAIN" value="600"/>
+    <define name="IGAIN" value="50"/>
   </section>
 
   <section name="NAVIGATION" prefix="NAV_">
