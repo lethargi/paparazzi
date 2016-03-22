@@ -59,7 +59,6 @@ void orange_avoider_periodic() {
  * Increases the NAV heading. Assumes heading is an INT32_ANGLE. It is bound in this function.
  */
 
-
 uint8_t increase_nav_heading(int32_t *heading, int32_t increment)
 {
   *heading = *heading + increment;
@@ -183,4 +182,3 @@ uint8_t chooseRandomIncrementAvoidance(){
 	}
 	return FALSE;
 }
-

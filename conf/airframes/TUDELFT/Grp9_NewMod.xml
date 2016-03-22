@@ -152,10 +152,9 @@
     <define name="GAIN_Q" value="400"/>
     <define name="GAIN_R" value="400"/>
 
-    <define name="IGAIN_P" value="125"/>
-    <define name="IGAIN_Q" value="125"/>
-    <define name="IGAIN_R" value="200"/>
-
+    <define name="IGAIN_P" value="75"/>
+    <define name="IGAIN_Q" value="75"/>
+    <define name="IGAIN_R" value="50"/>
     <!--
     <define name="GAIN_P" value="400"/>
     <define name="GAIN_Q" value="400"/>
@@ -164,6 +163,10 @@
     <define name="IGAIN_P" value="75"/>
     <define name="IGAIN_Q" value="75"/>
     <define name="IGAIN_R" value="50"/>
+
+    <define name="IGAIN_P" value="125"/>
+    <define name="IGAIN_Q" value="125"/>
+    <define name="IGAIN_R" value="200"/>
 -->
   </section>
 
@@ -233,11 +236,16 @@
     <define name="PGAIN" value="79"/>
     <define name="DGAIN" value="100"/>
     <define name="IGAIN" value="30"/>
--->
+
     <define name="MAX_BANK" value="3" unit="deg"/>
     <define name="PGAIN" value="40"/>
     <define name="DGAIN" value="600"/>
     <define name="IGAIN" value="50"/>
+-->
+    <define name="MAX_BANK" value="32" unit="deg"/>
+    <define name="PGAIN" value="79"/>
+    <define name="DGAIN" value="100"/>
+    <define name="IGAIN" value="30"/>
   </section>
 
   <section name="NAVIGATION" prefix="NAV_">
