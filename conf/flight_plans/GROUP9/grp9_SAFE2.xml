@@ -6,6 +6,7 @@
         #include "subsystems/ahrs.h"
         #include "subsystems/electrical.h"
         #include "subsystems/datalink/datalink.h"
+	#include "modules/computer_vision/opencv_example.h"
     </header>
     <waypoints>
         <waypoint name="HOME" x="0.0" y="0.0"/>
@@ -88,7 +89,7 @@
         <go wp="GOAL"/>
         <stay wp="GOAL"/>
         <exception cond="block_time > 3" deroute="MoveGoalForward"/>
-        <exception cond="!safeToGoForwards" deroute="TurnAround"/>
+        <exception cond="!isSafeToGoForwards" deroute="TurnAround"/>
 	<exception cond="!InsideObstacleZone(GetPosX(),GetPosY())" deroute="GoBackToZone_TurnAround"/>
     </block>
     <block name="MoveGoalForward">

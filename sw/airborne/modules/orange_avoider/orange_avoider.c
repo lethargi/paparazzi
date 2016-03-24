@@ -22,6 +22,7 @@
 
 // FOR ALGEBRA WITH HEADING ANGLES
 #include "math/pprz_algebra_int.h"
+#include "modules/computer_vision/opencv_example.h"
 
 uint8_t safeToGoForwards=FALSE;
 int tresholdColorCount = 4000;
@@ -30,26 +31,26 @@ int32_t incrementForBehind = 180;
 
 void send_msg(struct transport_tx *trans, struct link_device *dev)
 {
-    pprz_msg_send_GROUP_NINE(trans, dev, AC_ID, &color_count);
+    pprz_msg_send_GROUP_NINE(trans, dev, AC_ID, &isSafeToGoForwards);
 }
 
 void orange_avoider_init() {
 	// Initialise the variables of the colorfilter to accept orange
-	color_lum_min=0;
-	color_lum_max=131;
-	color_cb_min=93;
-	color_cb_max=255;
-	color_cr_min=134;
-	color_cr_max=255;
-	// Initialise random values
-	srand(time(NULL));
-	chooseRandomIncrementAvoidance();
+	// color_lum_min=0;
+	// color_lum_max=131;
+	// color_cb_min=93;
+	// color_cb_max=255;
+	// color_cr_min=134;
+	// color_cr_max=255;
+	// // Initialise random values
+	// srand(time(NULL));
+	// chooseRandomIncrementAvoidance();
     register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_GROUP_NINE, send_msg);
 }
 void orange_avoider_periodic() {
 	// Check the amount of orange. If this is above a threshold
 	// you want to turn a certain amount of degrees
-	safeToGoForwards = color_count < tresholdColorCount;
+	// safeToGoForwards = color_count < tresholdColorCount;
     // printf("Heading: %d", nav_heading);
 	// printf("Checking if this funciton is called %d treshold: %d now: %d \n", color_count, tresholdColorCount, safeToGoForwards);
 }

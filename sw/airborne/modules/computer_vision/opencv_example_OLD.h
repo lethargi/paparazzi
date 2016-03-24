@@ -31,7 +31,6 @@ extern "C" {
 #endif
 
 int opencv_example(char* img, int width, int height);
-int isSafeToGoForwards;
 
 #ifdef __cplusplus
 }
