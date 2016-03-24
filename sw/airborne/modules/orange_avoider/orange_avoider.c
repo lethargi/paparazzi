@@ -24,13 +24,13 @@
 #include "math/pprz_algebra_int.h"
 
 uint8_t safeToGoForwards=FALSE;
-int tresholdColorCount = 200;
+int tresholdColorCount = 4000;
 int32_t incrementForAvoidance;
 int32_t incrementForBehind = 180;
 
 void send_msg(struct transport_tx *trans, struct link_device *dev)
 {
-    pprz_msg_send_GROUP_NINE(trans, dev, AC_ID, &nav_heading);
+    pprz_msg_send_GROUP_NINE(trans, dev, AC_ID, &color_count);
 }
 
 void orange_avoider_init() {

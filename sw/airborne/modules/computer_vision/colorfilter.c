@@ -52,12 +52,46 @@ bool_t colorfilter_func(struct image_t* img)
       color_cb_min,color_cb_max,
       color_cr_min,color_cr_max
       );
+  printf("ColorCount: %d\n", color_count);
   DOWNLINK_SEND_COLORFILTER(DefaultChannel, DefaultDevice, &color_count);
+  return FALSE;
+}
+
+
+// downsample [[Manan 22 march 2016]]
+int isintialised = 0;
+struct image_t grady;
+bool_t downsampling_func(struct image_t* img);
+bool_t downsampling_func(struct image_t* img)
+{
+  if(isintialised == 0){
+    image_create(&grady, img->w/2, img->h/2, IMAGE_YUV422);
+    isintialised = 1;
+  }
+  image_yuv422_downsample(img,&grady,2);
+  // image_free(&grady);
+  // printf("I am in downsampling in colorfilter\n");
+  return FALSE;
+}
+
+// image gradient [[Manan 22 march 2016]]
+bool_t gradient_func(struct image_t* img);
+bool_t gradient_func(struct image_t* img)
+{
+  struct image_t grady;
+  struct image_t gradx;
+  image_create(&grady, img->w-2, img->h, IMAGE_YUV422);
+  image_create(&gradx, img->w-2, img->h, IMAGE_YUV422);
+  // printf("I am in gradient\n");
+  image_gradients(img,&gradx,&grady);
+  // image_free(&trash);
   return FALSE;
 }
 
 void colorfilter_init(void)
 {
+  // printf("I am  in colorfilter_init(void)");
+  // cv_add(downsampling_func);
+  // cv_add(gradient_func);
   cv_add(colorfilter_func);
 }
-

@@ -306,13 +306,17 @@ void image_gradients(struct image_t *input, struct image_t *dx, struct image_t *
   int16_t *dx_buf = (int16_t *)dx->buf;
   int16_t *dy_buf = (int16_t *)dy->buf;
 
+  // printf("Image.c : did init\n");
   // Go trough all pixels except the borders
   for (uint16_t x = 1; x < input->w - 1; x++) {
     for (uint16_t y = 1; y < input->h - 1; y++) {
+      // printf("Image.c : inner loop\n");
       dx_buf[(y - 1)*dx->w + (x - 1)] = (int16_t)input_buf[y * input->w + x + 1] - (int16_t)input_buf[y * input->w + x - 1];
       dy_buf[(y - 1)*dy->w + (x - 1)] = (int16_t)input_buf[(y + 1) * input->w + x] - (int16_t)input_buf[(y - 1) * input->w + x];
     }
+    // printf("Image.c : finished looping x\n");
   }
+  // printf("Image.c : DONE GRADIENT\n");
 }
 
 /**
