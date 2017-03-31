@@ -1,0 +1,236 @@
+<!DOCTYPE flight_plan SYSTEM "flight_plan.dtd">
+<!-- stdby 60.2948404	5.2250930
+p1 60.2950532	5.2245440
+p2 60.2950305	5.2255602
+p3 60.2947578	5.2255819
+p4 60.2947389	5.2245349 -->
+<flight_plan alt="55" ground_alt="49.03" lat0="60.2948404" lon0="5.2250930" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="4">
+<!--flight_plan alt="70" ground_alt="50" lat0="60.2919" lon0="5.2221" max_dist_from_home="150" name="Rotorcraft Basic (Enac)" security_height="10"-->
+  <header>
+	#include "autopilot.h"
+        #include "subsystems/ahrs.h"
+        #include "subsystems/electrical.h"
+        #include "subsystems/datalink/datalink.h"
+	#include "modules/manan_test/manan_test.h"
+  </header>
+  <waypoints>
+    <waypoint name="HOME" x="0.0" y="0.0"/>
+    <waypoint name="CLIMB" x="0.0" y="2.5"/>
+    <waypoint name="STDBY" lat="60.2948404" lon="5.2250930"/>
+    <waypoint name="GOAL" lat="60.2948404" lon="5.2250930"/>
+    <waypoint name="p1" lat="60.2950532" lon="5.2245440"/>
+    <waypoint name="p2" lat="60.2950305" lon="5.2255602"/>
+    <waypoint name="p3" lat="60.2947578" lon="5.2255819"/>
+    <waypoint name="p4" lat="60.2947389" lon="5.2245349"/>
+    <waypoint name="CAM" x="-20" y="-50" height="12."/>
+    <waypoint name="TD" x="5.6" y="-10.9"/>
+  </waypoints>
+  <blocks>
+    <block name="Wait GPS">
+      <call fun="NavKillThrottle()"/>
+      <while cond="!GpsFixValid()"/>
+    </block>
+    <block name="Geo init">
+      <while cond="LessThan(NavBlockTime(), 10)"/>
+      <call fun="NavSetGroundReferenceHere()"/>
+      <!--<call fun="NavSetAltitudeReferenceHere()"/>-->
+    </block>
+    <block name="Holding point">
+      <call fun="NavKillThrottle()"/>
+      <attitude pitch="0" roll="0" throttle="0" vmode="throttle" until="FALSE"/>
+    </block>
+
+    <!--
+    <block name="Start Engine">
+      <call fun="NavResurrect()"/>
+      <attitude pitch="0" roll="0" throttle="0" vmode="throttle" until="FALSE"/>
+    </block>
+    <block name="Takeoff" strip_button="Takeoff" strip_icon="takeoff.png">
+      <exception cond="stateGetPositionEnu_f()->z > 2.0" deroute="Standby"/>
+      <call fun="NavSetWaypointHere(WP_CLIMB)"/>
+      <stay vmode="climb" climb="nav_climb_vspeed" wp="CLIMB"/>
+    </block>
+    <block name="Standby" strip_button="Standby" strip_icon="home.png">
+      <stay wp="STDBY"/>
+    </block>
+-->
+
+<block name="MyTakeoff">
+      <call fun="NavResurrect()"/>
+      <exception cond="stateGetPositionEnu_f()->z > 2.0" deroute="Standby"/>
+      <call fun="NavSetWaypointHere(WP_CLIMB)"/>
+      <stay vmode="climb" climb="nav_climb_vspeed" wp="CLIMB"/>
+      <deroute block="Standby"/>
+</block>
+    <block name="Standby" strip_button="Standby" strip_icon="home.png">
+      <stay wp="STDBY"/>
+    </block>
+<!--
+    <block name="stay_p1">
+      <stay wp="p1"/>
+    </block>
+    <block name="go_p2">
+      <call fun="nav_set_heading_deg(90)"/>
+      <go wp="p2"/>
+      <deroute block="stay_p1"/>
+    </block>
+    <block name="line_p1_p2">
+      <go from="p1" hmode="route" wp="p2"/>
+      <stay wp="p2" until="stage_time>10"/>
+      <go from="p2" hmode="route" wp="p1"/>
+      <deroute block="stay_p1"/>
+    </block>
+    <block name="route">
+      <go from="p1" hmode="route" wp="p3"/>
+      <go from="p3" hmode="route" wp="p4"/>
+      <go from="p4" hmode="route" wp="p1"/>
+      <deroute block="stay_p1"/>
+    </block>
+
+    <block name="Oval">
+      <oval p1="p1" p2="p2" radius="-1"/>
+    </block>
+    <block name="test yaw">
+      <go wp="p1"/>
+      <for var="i" from="1" to="16">
+        <heading alt="WaypointAlt(WP_p1)" course="90 * $i" until="stage_time > 3"/>
+      </for>
+      <deroute block="Standby"/>
+    </block>
+-->
+        <!--
+    <block name="StayGoal">
+
+        <exception cond="block_time > 3" deroute="MoveGoalForward"/>
+
+	<exception cond="!isSafeToGoForwards" deroute="TurnAround"/>
+	<exception cond="!InsideObstacleZone(GetPosX(),GetPosY())" deroute="GoBackToZone_TurnAround"/>
+
+    </block>
+	-->
+    <block name="For">
+        <call fun="moveWaypointForwards(WP_GOAL,5)"/>
+        <go wp="GOAL"/>
+        <stay wp="GOAL"/>
+    </block>
+    <block name="Bac">
+        <call fun="moveWaypointBackwards(WP_GOAL,5)"/>
+        <go wp="GOAL"/>
+        <stay wp="GOAL"/>
+    </block>
+    <block name="Lef">
+        <call fun="moveWaypointLeftwards(WP_GOAL,5)"/>
+        <go wp="GOAL"/>
+        <stay wp="GOAL"/>
+    </block>
+    <block name="Rig">
+        <call fun="moveWaypointRightwards(WP_GOAL,5)"/>
+        <go wp="GOAL"/>
+        <stay wp="GOAL"/>
+    </block>
+
+    <block name="YawRight">
+        <call fun="NavSetWaypointHere(WP_STDBY)"/>
+        <call fun="increase_nav_heading_deg(&nav_heading, 45)"/>
+        <stay wp="STDBY"/>
+    </block>
+    <block name="YawLeft">
+        <call fun="NavSetWaypointHere(WP_STDBY)"/>
+        <call fun="increase_nav_heading_deg(&nav_heading, -45)"/>
+        <stay wp="STDBY"/>
+    </block>
+<!--
+    <block name="TEST">
+        <call fun="a()"/>
+    </block>
+-->
+    <block name="PrintHeadingAndReds">
+        <call fun="NavSetWaypointHere(WP_STDBY)"/>
+        <!--call fun="printme()"/-->
+        <call fun="printheading(&nav_heading)"/>
+        <call fun="runcurltomem()"/>
+        <stay wp="STDBY"/>
+    </block>
+
+    <block name="TurnAndLook">
+        <call fun="NavSetWaypointHere(WP_STDBY)"/>
+        <call fun="increase_nav_heading_deg(&nav_heading, 45)"/>
+        <stay wp="STDBY" until="stage_time>3"/>
+        <call fun="printheading(&nav_heading)"/>
+        <call fun="runcurltomem()"/>
+        <stay wp="STDBY"/>
+    </block>
+
+    <block name="NAV_TEST">
+        <call fun="nav_set_heading_deg(45)"/>
+        <call fun="printheading(&GetCurHeading())"/>
+        <call fun="printheading(&nav_heading)"/>
+        <stay wp="STDBY" until="stage_time>3"/>
+        <call fun="printheading(&GetCurHeading())"/>
+        <stay wp="STDBY"/>
+    </block>
+
+    <block name="PRINT_HEADING">
+        <call fun="printheading(&GetCurHeading())"/>
+        <stay wp="STDBY"/>
+    </block>
+
+    <block name="Ballerina">
+        <call fun="printheading(&nav_heading)"/>
+        <call fun="NavSetWaypointHere(WP_STDBY)"/>
+        <for var="i" from="0" to="35" >
+	    <!--call fun="nav_set_heading_deg((i+1)*10)"/-->
+	    <heading alt="WaypointAlt(WP_STDBY)" course="($i+1)*10" until="stage_time>2"/>
+            <call fun="update_redsatheading()"/>
+            <call fun="printheading(&GetCurHeading())"/>
+            <stay wp="STDBY" until="stage_time>2"/>
+	    <!--call fun="printheading(&GetCurHeading())"/-->
+        </for>
+        <stay wp="STDBY"/>
+    </block>
+
+    <block name="Print_redsatheading">
+        <call fun="printredsatheading()"/>
+        <stay wp="STDBY"/>
+    </block>
+
+
+    <!--
+    <block name="Turn">
+        <call fun="NavSetWaypointHere(WP_STDBY)"/>
+        <call fun="increase_nav_heading_deg(&nav_heading, 45)"/>
+        <stay wp="STDBY" until="stage_time>3"/>
+    </block>
+    <block name="Look">
+        <call fun="NavSetWaypointHere(WP_STDBY)"/>
+        <call fun="printheading(&nav_heading)"/>
+        <call fun="runcurltomem()"/>
+        <stay wp="STDBY"/>
+    </block>
+-->
+<!--
+    <block name="TEST">
+        <call fun="a(void)"/>
+    </block>
+
+    <block name="circle CAM" pre_call="nav_set_heading_towards_waypoint(WP_CAM)">
+      <circle radius="nav_radius" wp="CAM"/>
+    </block>-->
+    <block name="land here" strip_button="Land Here" strip_icon="land-right.png">
+      <call fun="NavSetWaypointHere(WP_TD)"/>
+    </block>
+    <block name="land">
+      <go wp="TD"/>
+    </block>
+    <block name="flare">
+      <exception cond="NavDetectGround()" deroute="Holding point"/>
+      <exception cond="!nav_is_in_flight()" deroute="landed"/>
+      <call fun="NavStartDetectGround()"/>
+      <stay climb="nav_descend_vspeed" vmode="climb" wp="TD"/>
+    </block>
+    <block name="landed">
+      <attitude pitch="0" roll="0" throttle="0" vmode="throttle" until="FALSE"/>
+    </block>
+  </blocks>
+
+</flight_plan>

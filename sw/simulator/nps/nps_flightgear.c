@@ -25,6 +25,9 @@ static struct  {
   unsigned int time_offset;
 } flightgear;
 
+// defining time structure to hold the time i want sim to be at
+static struct tm mysimtime_struct;
+static time_t mysimtime;
 
 double htond(double x)
 {
@@ -98,6 +101,13 @@ void nps_flightgear_init(const char *host,  unsigned int port, unsigned int port
   time_t t = time(NULL);
   flightgear.initial_time = t;
   flightgear.time_offset = time_offset;
+
+  // some variables to set my simulation time at 1200 1st jan 1970
+  // For some reason, 6 corresponds to ~ midday in FG. in the timeformat it
+  // corresponds to 6 hours after 0000, so 6 am. Dont know whats not working,
+  // dont care as long as it works.
+  mysimtime_struct.tm_hour = 6;
+  mysimtime = mktime(&mysimtime_struct);
 }
 
 /**
@@ -130,6 +140,8 @@ void nps_flightgear_send_fdm()
   fgfdm.fuel_quantity[0] = htonf(0.);
 
   fgfdm.cur_time = htonl(flightgear.initial_time + rint(fdm.time));
+  // fgfdm.cur_time = 0; //for setting papato my time
+  // printf("Inside nps_flightgeaer: %d \n", htonl(flightgear.initial_time + rint(fdm.time)));
   // if cur_time is zero, flightgear would take the real current time
   //gui.cur_time = 0;
   // warp is used as an offset to the current time in seconds
@@ -194,9 +206,21 @@ void nps_flightgear_send()
   gui.num_tanks = 1;
   gui.fuel_quantity[0] = 0.;
 
-  gui.cur_time = flightgear.initial_time + rint(fdm.time);
+  // printf("Inside nps_flightgeaer: %d \n", htonl(flightgear.initial_time + rint(fdm.time)));
+  // gui.cur_time = flightgear.initial_time + rint(fdm.time);
+//   printf("Fg init time: %d \n", flightgear.initial_time);
+//   printf("Fdm time: %f \n", rint(fdm.time));
+//   printf("HTONL... \n");
+//   printf("Fg init time: %d \n", htonl(flightgear.initial_time));
+//   printf("Fdm time: %d \n", htonl(rint(fdm.time)));
+//   printf("============================ \n");
+  // gui.cur_time = 1490943215; // this mod holds the time static at 
+  gui.cur_time = mysimtime;
+
+  // The defaults; the line below uncommented in original
+  // gui.cur_time = flightgear.initial_time + rint(fdm.time);
   // if cur_time is zero, flightgear would take the real current time
-  //gui.cur_time = 0;
+  // gui.cur_time = 0;
   // warp is used as an offset to the current time in seconds
   gui.warp = flightgear.time_offset;
 

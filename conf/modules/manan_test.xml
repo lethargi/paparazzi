@@ -1,0 +1,26 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="manan_test">
+  <doc>
+    <description>testing if nps can compile custom modules</description>
+  </doc>
+  <header>
+    <file name="manan_test.h"/>
+  </header>
+  <init fun="my_init()"/>
+  <!--<periodic fun="a" freq="0.5" autorun="TRUE"/>-->
+  <makefile>
+    <file name="manan_test.c"/>
+    <!--<raw>$(TARGET).CFLAGS += -lcurl</raw>-->
+    <!--raw>
+     ap.CFLAGS += "-I/usr/include/
+     ap.LDFLAGS += "-L/usr/lib/ -lcurl"
+    </raw-->
+<!--> QUESTION STILL REMAINS HOW TO COMPILE TO AP<-->
+    <raw>
+        nps.LDFLAGS += -lcurl
+        nps.LDFLAGS += -ljpeg
+    </raw>
+  </makefile>
+</module>
+
