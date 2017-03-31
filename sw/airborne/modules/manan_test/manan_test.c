@@ -39,15 +39,15 @@ struct BmpStruct
 {
     unsigned char *buffer;
     unsigned long size;
-    int width;
-    int height;
-    int pixel_size;
+    uint16_t width;
+    uint16_t height;
+    uint8_t pixel_size;
     int row_stride;
 };
 
-int heading_ind = 0;
-unsigned long redsatheading[36];
-unsigned long curredcount;
+uint16_t heading_ind = 0;
+uint32_t redsatheading[36];
+uint32_t curredcount;
 // struct BmpStruct curbmp;
 
 void my_init()
@@ -303,12 +303,12 @@ long sumpixels_box(unsigned char *startpointer , int row1, int col1, int row2, i
     return sumred;
 }
 
-unsigned long count_redpixels(struct BmpStruct *bmpstructPtr)
+uint32_t count_redpixels(struct BmpStruct *bmpstructPtr)
 {
-    unsigned long redcounter = 0;
+    uint32_t redcounter = 0;
     unsigned char *curpx, *pxr, *pxg, *pxb;
-    int height = bmpstructPtr->height;
-    int width = bmpstructPtr->width;
+    uint16_t height = bmpstructPtr->height;
+    uint16_t width = bmpstructPtr->width;
     unsigned char *bmp_buffer = bmpstructPtr->buffer;
 
     int colvalsum;
@@ -328,7 +328,7 @@ unsigned long count_redpixels(struct BmpStruct *bmpstructPtr)
             }
         }
     }
-    printf("Redcount: %6ld \n", redcounter);
+    printf("Redcount: %6d \n", redcounter);
     return redcounter;
 }
 
@@ -339,14 +339,14 @@ unsigned long threshold_pixels(struct BmpStruct *bmpstructPtr, unsigned char red
     unsigned long redcounter = 0;
     unsigned char *curpx, *pxr, *pxg, *pxb;
     // int height = (*bmp).height;
-    int height = bmpstructPtr->height;
-    int width = bmpstructPtr->width;
+    uint16_t height = bmpstructPtr->height;
+    uint16_t width = bmpstructPtr->width;
     unsigned char *bmp_buffer = bmpstructPtr->buffer;
     // printf("Height %d \n", height);
 
-    for(int rowi = 0; rowi < height; rowi++) {
+    for(uint16_t rowi = 0; rowi < height; rowi++) {
         // printf("Row: %d \n", rowi);
-        for(int coli = 0; coli < width; coli++) {
+        for(uint16_t coli = 0; coli < width; coli++) {
             // curpx = locinbmpbuffer + 3*pxi; // RGB stored consequtively
             curpx = get_pointertopix(bmp_buffer, rowi, coli, width);
             pxr = curpx;
@@ -466,6 +466,8 @@ uint8_t cv_task(void)
     return 0;
 }
 
+// uint32_t cv_get_redcount
+
 uint8_t update_redsatheading(void)
 {
     redsatheading[heading_ind] = curredcount;
@@ -476,7 +478,7 @@ uint8_t update_redsatheading(void)
 uint8_t print_redsatheading(void)
 {
     for(int i = 0; i < 35; i++) {
-        printf("H: %3d; redcount: %6lu \n", (i)*10, redsatheading[i]);
+        printf("H: %3d; redcount: %6d \n", (i)*10, redsatheading[i]);
     }
     return 0;
 }

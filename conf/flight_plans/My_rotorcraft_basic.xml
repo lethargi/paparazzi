@@ -4,7 +4,7 @@ p1 60.2950532	5.2245440
 p2 60.2950305	5.2255602
 p3 60.2947578	5.2255819
 p4 60.2947389	5.2245349 -->
-<flight_plan alt="55" ground_alt="49.03" lat0="60.2948404" lon0="5.2250930" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="4">
+<flight_plan alt="57" ground_alt="49.03" lat0="60.2948404" lon0="5.2250930" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="4">
 <!--flight_plan alt="70" ground_alt="50" lat0="60.2919" lon0="5.2221" max_dist_from_home="150" name="Rotorcraft Basic (Enac)" security_height="10"-->
   <header>
 	#include "autopilot.h"
@@ -12,6 +12,7 @@ p4 60.2947389	5.2245349 -->
         #include "subsystems/electrical.h"
         #include "subsystems/datalink/datalink.h"
 	#include "modules/manan_test/manan_test.h"
+	#include "modules/manan_test/visrl.h"
   </header>
   <waypoints>
     <waypoint name="HOME" x="0.0" y="0.0"/>
@@ -200,6 +201,12 @@ p4 60.2947389	5.2245349 -->
         <call fun="cv_task()"/>
         <stay wp="GOAL"/>
     </block>
+
+    <block name="VisRL">
+        <call fun="do_visrl()"/>
+        <stay wp="GOAL"/>
+    </block>
+
 
     <!--
     <block name="Turn">
