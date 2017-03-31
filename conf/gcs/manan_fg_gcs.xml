@@ -1,0 +1,8 @@
+<layout width="200" height="500">
+  <rows>
+    <widget NAME="map2d" size="200"/>
+    <widget NAME="aircraft" size="300"/>
+    <!-- <widget NAME="alarms" size="100"/> -->
+    <!-- <widget NAME="strips" size="100"/> -->
+  </rows>
+</layout>

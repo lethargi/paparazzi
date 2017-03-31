@@ -109,44 +109,44 @@ p4 60.2947389	5.2245349 -->
     </block>
 	-->
     <block name="For">
-        <call fun="moveWaypointForwards(WP_GOAL,5)"/>
+        <call fun="moveWaypointForwards(WP_GOAL,4)"/>
         <go wp="GOAL"/>
         <stay wp="GOAL"/>
     </block>
     <block name="Bac">
-        <call fun="moveWaypointBackwards(WP_GOAL,5)"/>
+        <call fun="moveWaypointBackwards(WP_GOAL,4)"/>
         <go wp="GOAL"/>
         <stay wp="GOAL"/>
     </block>
     <block name="Lef">
-        <call fun="moveWaypointLeftwards(WP_GOAL,5)"/>
+        <call fun="moveWaypointLeftwards(WP_GOAL,4)"/>
         <go wp="GOAL"/>
         <stay wp="GOAL"/>
     </block>
     <block name="Rig">
-        <call fun="moveWaypointRightwards(WP_GOAL,5)"/>
+        <call fun="moveWaypointRightwards(WP_GOAL,4)"/>
         <go wp="GOAL"/>
         <stay wp="GOAL"/>
     </block>
 
     <block name="YawRight">
-        <call fun="NavSetWaypointHere(WP_STDBY)"/>
+        <call fun="NavSetWaypointHere(WP_GOAL)"/>
         <call fun="increase_nav_heading_deg(&nav_heading, 45)"/>
-        <stay wp="STDBY"/>
+        <stay wp="GOAL"/>
     </block>
     <block name="YawLeft">
-        <call fun="NavSetWaypointHere(WP_STDBY)"/>
+        <call fun="NavSetWaypointHere(WP_GOAL)"/>
         <call fun="increase_nav_heading_deg(&nav_heading, -45)"/>
-        <stay wp="STDBY"/>
+        <stay wp="GOAL"/>
     </block>
+
 <!--
     <block name="TEST">
         <call fun="a()"/>
     </block>
--->
+
     <block name="PrintHeadingAndReds">
         <call fun="NavSetWaypointHere(WP_STDBY)"/>
-        <!--call fun="printme()"/-->
         <call fun="printheading(&nav_heading)"/>
         <call fun="runcurltomem()"/>
         <stay wp="STDBY"/>
@@ -174,26 +174,32 @@ p4 60.2947389	5.2245349 -->
         <call fun="printheading(&GetCurHeading())"/>
         <stay wp="STDBY"/>
     </block>
+-->
 
     <block name="Ballerina">
         <call fun="printheading(&nav_heading)"/>
-        <call fun="NavSetWaypointHere(WP_STDBY)"/>
+        <call fun="NavSetWaypointHere(WP_GOAL)"/>
         <for var="i" from="0" to="35" >
 	    <!--call fun="nav_set_heading_deg((i+1)*10)"/-->
-	    <heading alt="WaypointAlt(WP_STDBY)" course="($i+1)*10" until="stage_time>2"/>
+	    <heading alt="WaypointAlt(WP_GOAL)" course="($i+1)*10" until="stage_time>1"/>
+            <call fun="cv_task()"/>
             <call fun="update_redsatheading()"/>
             <call fun="printheading(&GetCurHeading())"/>
-            <stay wp="STDBY" until="stage_time>2"/>
+            <!--stay wp="STDBY" until="stage_time>1"/-->
 	    <!--call fun="printheading(&GetCurHeading())"/-->
         </for>
-        <stay wp="STDBY"/>
+        <stay wp="GOAL"/>
     </block>
 
-    <block name="Print_redsatheading">
-        <call fun="printredsatheading()"/>
-        <stay wp="STDBY"/>
+    <block name="PrintRedsAtHeading">
+        <call fun="print_redsatheading()"/>
+        <stay wp="GOAL"/>
     </block>
 
+    <block name="CurRedcount">
+        <call fun="cv_task()"/>
+        <stay wp="GOAL"/>
+    </block>
 
     <!--
     <block name="Turn">

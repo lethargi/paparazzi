@@ -29,23 +29,26 @@
 
 #include <jpeglib.h>
 
-struct MemoryStruct 
+struct MemoryStruct
 {
   char *memory;
   size_t size;
 };
 
-struct BmpStruct {
-    unsigned char *bmp_buffer;
+struct BmpStruct
+{
+    unsigned char *buffer;
     unsigned long size;
     int width;
     int height;
     int pixel_size;
+    int row_stride;
 };
 
 int heading_ind = 0;
 unsigned long redsatheading[36];
 unsigned long curredcount;
+// struct BmpStruct curbmp;
 
 void my_init()
 {
@@ -170,12 +173,6 @@ uint8_t moveWaypointRightwards(uint8_t waypoint, float distanceMeters)
 	  return FALSE;
 }
 
-uint8_t printme(void) 
-{
-    printf("THIS IS THE MESSAGE\n");
-    return FALSE;
-}
-
 static size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -196,7 +193,7 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
   return realsize;
 }
 
-int curl2mem(struct MemoryStruct* chunk)
+void curl2mem(struct MemoryStruct* chunk)
 {
   CURL *curl_handle;
   CURLcode res;
@@ -257,7 +254,7 @@ int curl2mem(struct MemoryStruct* chunk)
   /* we're done with libcurl, so clean it up */
   curl_global_cleanup();
 
-  return 0;
+  // return 0;
 }
 
 unsigned char* get_pointertopix(unsigned char *startpointer , int row, int col, int rowwidth)
@@ -306,20 +303,45 @@ long sumpixels_box(unsigned char *startpointer , int row1, int col1, int row2, i
     return sumred;
 }
 
-unsigned long countredpixels(struct BmpStruct *bmpstructPtr, unsigned char redthresh, \
-        unsigned char bluethresh, unsigned char greenthresh)
+unsigned long count_redpixels(struct BmpStruct *bmpstructPtr)
 {
-    // printf("Counting reds; R > %u, G < %u, B < %u \n", redthresh, bluethresh, greenthresh);
-
     unsigned long redcounter = 0;
     unsigned char *curpx, *pxr, *pxg, *pxb;
-//     unsigned char redthresh = 245;
-//     unsigned char greenthresh = 175;
-//     unsigned char bluethresh = 175;
+    int height = bmpstructPtr->height;
+    int width = bmpstructPtr->width;
+    unsigned char *bmp_buffer = bmpstructPtr->buffer;
+
+    int colvalsum;
+    float redfrac;
+
+    for(int rowi = 0; rowi < height; rowi++) {
+        for(int coli = 0; coli < width; coli++) {
+            curpx = get_pointertopix(bmp_buffer, rowi, coli, width);
+            pxr = curpx;
+            pxg = curpx + 1;
+            pxb = curpx + 2;
+
+            colvalsum = *pxr + *pxg + *pxb;
+            redfrac = (float) *pxr / (float) colvalsum;
+            if (redfrac > 0.75) {
+                redcounter++;
+            }
+        }
+    }
+    printf("Redcount: %6ld \n", redcounter);
+    return redcounter;
+}
+
+/* Counts the number of pixels above provided threshold values of RGB */
+unsigned long threshold_pixels(struct BmpStruct *bmpstructPtr, unsigned char redthresh, \
+        unsigned char bluethresh, unsigned char greenthresh)
+{
+    unsigned long redcounter = 0;
+    unsigned char *curpx, *pxr, *pxg, *pxb;
     // int height = (*bmp).height;
     int height = bmpstructPtr->height;
     int width = bmpstructPtr->width;
-    unsigned char *bmp_buffer = bmpstructPtr->bmp_buffer;
+    unsigned char *bmp_buffer = bmpstructPtr->buffer;
     // printf("Height %d \n", height);
 
     for(int rowi = 0; rowi < height; rowi++) {
@@ -331,19 +353,20 @@ unsigned long countredpixels(struct BmpStruct *bmpstructPtr, unsigned char redth
             pxg = curpx + 1;
             pxb = curpx + 2;
 
-            if(*pxr > redthresh && *pxg < greenthresh && *pxb < bluethresh) {
+            //  Implementing new logic for finding red
+            if(*pxr > redthresh && *pxg > greenthresh && *pxb > bluethresh) {
                 // printf("(x,,y):%3d %3d. RGB: %3u, %3u, %3u \n", rowi, coli, *pxr, *pxg, *pxb);
                 redcounter++;
             }
         }
     }
     printf("Total reds above %u: %ld \n", redthresh, redcounter);
-    curredcount = redcounter;
+    // curredcount = redcounter;
     return redcounter;
 
 }
 
-int do_cv(unsigned char *jpg_buffer, unsigned long jpg_size)
+uint8_t get_bmp(unsigned char *jpg_buffer, unsigned long jpg_size, struct BmpStruct *bmp)
 {
     // // INTIALIZE
     int rc;
@@ -356,6 +379,8 @@ int do_cv(unsigned char *jpg_buffer, unsigned long jpg_size)
 	unsigned char *bmp_buffer;
 	int row_stride, width, height, pixel_size;
 
+    // holds the output bmp and its metadata
+
     // printf("jpeg; Settting up \n");
     // // SETUP AND CHECK
 	cinfo.err = jpeg_std_error(&jerr);
@@ -363,11 +388,13 @@ int do_cv(unsigned char *jpg_buffer, unsigned long jpg_size)
 
 	jpeg_mem_src(&cinfo, jpg_buffer, jpg_size);
 
+    // 	skipping error check for now. file should be JPEG
 	rc = jpeg_read_header(&cinfo, TRUE);
+	// jpeg_read_header(&cinfo, TRUE);
 	if (rc != 1) {
-        printf("FILE IS PROBABLY NOT JPEG");
-		// exit(EXIT_FAILURE);
-        return 0;
+// 		// exit(EXIT_FAILURE);
+        printf("File to get_bmp() not JPEG");
+        return 1;
 	}
 
 	jpeg_start_decompress(&cinfo);
@@ -393,91 +420,60 @@ int do_cv(unsigned char *jpg_buffer, unsigned long jpg_size)
 
 	}
 
-    struct BmpStruct bmp;
+    bmp->buffer = bmp_buffer;
+    bmp->size = bmp_size;
+    bmp->width = width;
+    bmp->height = height;
+    bmp->pixel_size = pixel_size;
 
-    bmp.bmp_buffer = bmp_buffer;
-    bmp.size = bmp_size;
-    bmp.width = width;
-    bmp.height = height;
-    bmp.pixel_size = pixel_size;
-
-    // unsigned long redcount = countredpixels(&bmp, 200,175,175);
-    countredpixels(&bmp, 200,175,175);
-
-    // printf("jpeg; destroying jpeg \n");
-    // // DESTROY CREATED OBJECT
 	jpeg_finish_decompress(&cinfo);
 	jpeg_destroy_decompress(&cinfo);
 
-    // printf("jpeg; writing to file \n");
-    // // WRITE TO FILE
-    int output = 0;
-    if (output == 1) {
-        int fd;
-        fd = open("output.ppm", O_CREAT | O_WRONLY, 0666);
-        char buf[1024];
-
-        rc = sprintf(buf, "P6 %d %d 255\n", width, height);
-        write(fd, buf, rc); // Write the PPM image header before data
-        write(fd, bmp_buffer, bmp_size); // Write out all RGB pixel data
-
-        // printf("jpeg; closing deleting \n");
-        close(fd);
-    }
-
-	return 1;
+    return 0;
 }
 
-int runcurltomem(void)
-{
-  struct MemoryStruct chunk;
-  chunk.memory = malloc(1);
-  chunk.size = 0;
-
-  // printf("Downloading \n");
-  curl2mem(&chunk);
-
-  // printf("Jpegging \n");
-  do_cv((unsigned char*)chunk.memory, chunk.size);
-
-  // FILE *fp;
-  // fp = fopen("myout","wb");
-  // fwrite((const void *)chunk.memory, sizeof(char),chunk.size,fp);
-
-  // printf("Size of char: %lu; size of memory: %lu \n", sizeof(char),chunk.size);
-  //
-  free(chunk.memory);
-  // printf("Done \n");
-
-  return 0;
-}
-
-int update_redsatheading(void)
+uint8_t cv_task(void)
 {
     struct MemoryStruct chunk;
     chunk.memory = malloc(1);
     chunk.size = 0;
 
+    struct BmpStruct bmp;
+
     // printf("Downloading \n");
     curl2mem(&chunk);
 
     // printf("Jpegging \n");
-    do_cv((unsigned char*)chunk.memory, chunk.size);
-    redsatheading[heading_ind] = curredcount;
-    heading_ind++;
+    // do_cv((unsigned char*)chunk.memory, chunk.size);
+    get_bmp((unsigned char*)chunk.memory, chunk.size, &bmp);
+    // free up memory of downloaded jpeg
+    free(chunk.memory);
+
+    curredcount = count_redpixels(&bmp);
+    // free up memory of the bmp
+    free(bmp.buffer);
+    
+    update_redsatheading();
+
     // FILE *fp;
     // fp = fopen("myout","wb");
     // fwrite((const void *)chunk.memory, sizeof(char),chunk.size,fp);
 
     // printf("Size of char: %lu; size of memory: %lu \n", sizeof(char),chunk.size);
     //
-    free(chunk.memory);
     // printf("Done \n");
 
     return 0;
 }
 
-int printredsatheading(void)
+uint8_t update_redsatheading(void)
+{
+    redsatheading[heading_ind] = curredcount;
+    heading_ind++;
+    return 0;
+}
+
+uint8_t print_redsatheading(void)
 {
     for(int i = 0; i < 35; i++) {
         printf("H: %3d; redcount: %6lu \n", (i)*10, redsatheading[i]);
