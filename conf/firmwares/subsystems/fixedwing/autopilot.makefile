@@ -115,6 +115,10 @@ ifeq ($(ARCH), chibios)
   ns_srcs       += $(SRC_ARCH)/mcu_periph/gpio_arch.c
 endif
 
+ifeq ($(ARCH), linux)
+  ns_srcs       += $(SRC_ARCH)/mcu_periph/gpio_arch.c
+endif
+
 
 #
 # Main
@@ -143,6 +147,9 @@ endif
 #
 ns_srcs 		+= mcu_periph/uart.c
 ns_srcs 		+= $(SRC_ARCH)/mcu_periph/uart_arch.c
+ifeq ($(ARCH), linux)
+ns_srcs			+= $(SRC_ARCH)/serial_port.c
+endif
 
 
 #
@@ -169,7 +176,14 @@ fbw_srcs 		+= subsystems/actuators.c
 
 ap_CFLAGS 		+= -DAP
 ap_srcs 		+= $(SRC_FIRMWARE)/main_ap.c
-ap_srcs 		+= $(SRC_FIRMWARE)/autopilot.c
+ap_srcs 		+= autopilot.c
+ap_srcs 		+= $(SRC_FIRMWARE)/autopilot_firmware.c
+ifeq ($(USE_GENERATED_AUTOPILOT), TRUE)
+ap_srcs 		+= $(SRC_FIRMWARE)/autopilot_generated.c
+ap_CFLAGS 	+= -DUSE_GENERATED_AUTOPILOT=1
+else
+ap_srcs 		+= $(SRC_FIRMWARE)/autopilot_static.c
+endif
 ap_srcs 		+= state.c
 ap_srcs 		+= subsystems/settings.c
 ap_srcs 		+= $(SRC_ARCH)/subsystems/settings_arch.c
@@ -236,8 +250,6 @@ ap.srcs 		+= $(ap_srcs) $(ns_srcs)
 ##
 include $(CFG_SHARED)/nps.makefile
 nps.srcs += nps/nps_autopilot_fixedwing.c
-nps.srcs += subsystems/datalink/datalink.c $(SRC_FIRMWARE)/fixedwing_datalink.c
-nps.srcs += $(SRC_FIRMWARE)/ap_downlink.c $(SRC_FIRMWARE)/fbw_downlink.c
 
 # add normal ap and fbw sources
 nps.CFLAGS  += $(fbw_CFLAGS) $(ap_CFLAGS)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2010 The Paparazzi Team
+ * Copyright (C) 2017 Gautier Hattenberger <gautier.hattenberger@enac.fr>
  *
  * This file is part of Paparazzi.
  *
@@ -14,18 +14,21 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Paparazzi; see the file COPYING.  If not, write to
- * the Free Software Foundation, 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * along with paparazzi; see the file COPYING.  If not, see
+ * <http://www.gnu.org/licenses/>.
  *
  */
 
 /**
  * @file firmwares/rotorcraft/main.c
  *
- * Rotorcraft main loop.
+ * Program main function
+ * AP + FBW on single MCU
+ * AP or FBW on dual MCU
+ * None on SITL
  */
 
+<<<<<<< HEAD
 #define MODULES_C
 
 #define ABI_C
@@ -110,17 +113,15 @@ PRINT_CONFIG_VAR(BARO_PERIODIC_FREQUENCY)
 #warning "PERIODIC_FREQUENCY should be least equal or greater than AHRS_PROPAGATE_FREQUENCY"
 INFO_VALUE("it is recommended to configure in your airframe PERIODIC_FREQUENCY to at least ", AHRS_PROPAGATE_FREQUENCY)
 #endif
+=======
+#if FBW
+#include "firmwares/rotorcraft/main_fbw.h"
+#else
+#include "firmwares/rotorcraft/main_ap.h"
+>>>>>>> upstream/master
 #endif
 
-tid_t main_periodic_tid; ///< id for main_periodic() timer
-tid_t modules_tid;       ///< id for modules_periodic_task() timer
-tid_t failsafe_tid;      ///< id for failsafe_check() timer
-tid_t radio_control_tid; ///< id for radio_control_periodic_task() timer
-tid_t electrical_tid;    ///< id for electrical_periodic() timer
-tid_t telemetry_tid;     ///< id for telemetry_periodic() timer
-#if USE_BARO_BOARD
-tid_t baro_tid;          ///< id for baro_periodic() timer
-#endif
+#include "mcu_periph/sys_time.h"
 
 #ifndef SITL
 int main(void)
@@ -159,6 +160,7 @@ int main(void)
 }
 #endif /* SITL */
 
+<<<<<<< HEAD
 STATIC_INLINE void main_init(void)
 {
   mcu_init();
@@ -375,3 +377,5 @@ STATIC_INLINE void main_event(void)
 
   modules_event_task();
 }
+=======
+>>>>>>> upstream/master

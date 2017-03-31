@@ -71,7 +71,7 @@ endif
 
 # pprz downlink/datalink
 COMMON_TELEMETRY_CFLAGS = -DDOWNLINK -DDOWNLINK_TRANSPORT=pprz_tp -DDATALINK=PPRZ
-COMMON_TELEMETRY_SRCS   = subsystems/datalink/downlink.c pprzlink/src/pprz_transport.c
+COMMON_TELEMETRY_SRCS   = subsystems/datalink/downlink.c pprzlink/src/pprz_transport.c modules/datalink/pprz_dl.c
 
 # check if we are using UDP
 ifneq (,$(findstring UDP, $(MODEM_DEV)))
@@ -141,7 +141,7 @@ endif
 ifeq ($(BOARD), naze32)
 LED_DEFINES = -DLED_RED=1 -DLED_GREEN=2
 endif
-LED_DEFINES ?= -DLED_RED=2 -DLED_GREEN=3
+//LED_DEFINES ?= -DLED_RED=2 -DLED_GREEN=3
 
 test_sys_time_timer.ARCHDIR = $(ARCH)
 test_sys_time_timer.CFLAGS += $(COMMON_TEST_CFLAGS) $(LED_DEFINES)

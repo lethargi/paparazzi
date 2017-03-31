@@ -50,7 +50,7 @@ def bebop_status():
     #config_ini = parrot_utils.execute_command(tn, 'cat /data/config.ini')
 
     print('======================== Bebop Status ========================')
-    print('Version:\t\t' + parrot_utils.check_version(tn, ''))
+    print('Version:\t\t' + str(parrot_utils.check_version(tn, '')))
     # Request the filesystem status
     print('\n=================== Filesystem Status =======================')
     print(parrot_utils.check_filesystem(tn))
@@ -60,6 +60,10 @@ def bebop_status():
 parser = argparse.ArgumentParser(description='Bebop helper tool. Use bebop.py -h for help')
 parser.add_argument('--host', metavar='HOST', default='192.168.42.1',
                     help='the ip address of bebop')
+parser.add_argument('--min_version', metavar='MIN', default='3.2.0',
+                    help='force minimum version allowed')
+parser.add_argument('--max_version', metavar='MAX', default='3.9.0',
+                    help='force maximum version allowed')
 subparsers = parser.add_subparsers(title='Command to execute', metavar='command', dest='command')
 
 # All the subcommands and arguments
@@ -123,10 +127,10 @@ elif args.command == 'upload_file_and_run':
     f = parrot_utils.split_into_path_and_file(args.file)
 
     #check firmware version
-    v = parrot_utils.check_version(tn, '').strip()
-    print("Checking Bebop firmware version... " + v )
-    if ((v < '3.2.0') or (v > '3.4.0-RC2')):
-        print("Error: please upgrade your Bebop firmware to version between 3.2.0 and 3.4.0!")
+    v = parrot_utils.check_version(tn, '')
+    print("Checking Bebop firmware version... " + str(v) )
+    if ((v < parrot_utils.ParrotVersion(args.min_version)) or (v > parrot_utils.ParrotVersion(args.max_version))):
+        print("Error: please upgrade your Bebop firmware to version between " + args.min_version + " and " + args.max_version + "!")
     else:
         print("Kill running " + f[1] + " and make folder " + args.folder)
         parrot_utils.execute_command(tn,"killall -9 " + f[1])
@@ -135,9 +139,15 @@ elif args.command == 'upload_file_and_run':
         print('Uploading \'' + f[1] + "\' from " + f[0] + " to " + args.folder)
         parrot_utils.uploadfile(ftp, args.folder + "/" + f[1], file(args.file, "rb"))
         sleep(0.5)
+        
+        from datetime import datetime
+        parrot_utils.execute_command(tn, "date --set '" + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + "'")
+        print("Set date on Bebop to " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        
         parrot_utils.execute_command(tn, "chmod 777 /data/ftp/" + args.folder + "/" + f[1])
         parrot_utils.execute_command(tn, "/data/ftp/" + args.folder + "/" + f[1] + " > /dev/null 2>&1 &")
         print("#pragma message: Upload and Start of ap.elf to Bebop succesful !")
+        
 
 elif args.command == 'upload_file':
     # Split filename and path
