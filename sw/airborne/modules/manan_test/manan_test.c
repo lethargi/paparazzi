@@ -29,6 +29,8 @@
 
 #include <jpeglib.h>
 
+#include "generated/flight_plan.h"
+
 struct MemoryStruct
 {
   char *memory;
@@ -467,7 +469,6 @@ uint8_t cv_task(void)
 }
 
 // uint32_t cv_get_redcount
-
 uint8_t update_redsatheading(void)
 {
     redsatheading[heading_ind] = curredcount;

@@ -1,4 +1,6 @@
 #include <stdint.h>
-extern int do_visrl(void);
 
-extern int16_t qtab[5][3];
+extern uint8_t do_visrl(void);
+extern uint8_t get_state(void);
+
+extern float qtab[5][3];
