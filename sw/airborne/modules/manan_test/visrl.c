@@ -12,7 +12,7 @@
 
 float qtab[5][3] = { { 0} };  // qtable intialized at 0
 
-static float reward_function[5] = {-10, -6, -4, -2, 0};
+static float reward_function[7] = {-10, -8, -6, -4, -2, -1, 0};
 static float cur_rew;
 
 static uint8_t cur_sta, nxt_sta, cur_act, nxt_act;
@@ -22,6 +22,7 @@ static float rl_gamma = 0.95;
 static float rl_alp = 0.3;
 static uint8_t rl_eps = 50;
 static uint16_t steps_taken = 0;
+static uint16_t episodes_simulated = 0;
 
 static uint8_t hitwall = 0;
 uint8_t rl_isterminal = 0;
@@ -33,7 +34,7 @@ uint8_t pick_action(uint8_t state)
     uint8_t policy_roll = rand() % 100;
     if (policy_roll < rl_eps) {
         // do greedy
-        for (int i; i < 3; i++) {
+        for (int i=0; i < 3; i++) {
             if (qtab[state][i] > maxq) {
                 picked_action = i;
                 maxq = qtab[state][i];
@@ -90,8 +91,15 @@ uint8_t get_state(void)
     return state;
 }
 
+uint8_t rl_reset_episode(void)
+{
+        rl_isterminal = 0;
+        return 0;
+}
+
 uint8_t rl_init(void)
 {
+    steps_taken = 0;
     nxt_sta = get_state();
     nxt_act = pick_action(nxt_sta);
     printf("\n RL initialized \n");
@@ -128,7 +136,7 @@ uint8_t rl_take_cur_action(void)
         moveWaypointForwards(WP_BoundaryChecker,2);
         if (!InsideMyWorld(WaypointX(WP_BoundaryChecker),WaypointY(WP_BoundaryChecker))) {
             hitwall = 1;
-            printf("\n HITWALL \n");
+            printf(" HITWALL ");
         }
         else {
             moveWaypointForwards(WP_GOAL,2);
@@ -164,6 +172,7 @@ uint8_t rl_check_terminal(void)
     else {
         printf("TERMINAL \n");
         rl_isterminal = 1;
+        episodes_simulated++;
     }
     return 0;
 }

@@ -125,21 +125,32 @@
       <stay wp="GOAL"/>
     </block>
 
+    <block name="SetupEpisode">
+      <go wp="HOME"/>
+      <stay wp="HOME" until="stage_time>2"/>
+      <call fun="NavSetWaypointHere(WP_GOAL)"/>
+      <call fun="rl_reset_episode()"/>
+      <heading alt="WaypointAlt(WP_GOAL)" course="0" until="stage_time>5"/>
+      <stay wp="GOAL"/>
+    </block>
+
     <block name="InitRL">
       <call fun="rl_init()"/>
       <stay wp="GOAL" until="stage_time>1"/>
     </block>
 
     <block name="DoOneStep">
-      <call fun="rl_set_cur()"/>
-      <call fun="rl_take_cur_action()"/> <!-- check if until here makes it do what i want -->
-      <stay wp="GOAL" until="stage_time>1"/>
+        <while cond="!rl_isterminal">
+            <call fun="rl_set_cur()"/>
+            <call fun="rl_take_cur_action()"/> <!-- check if until here makes it do what i want -->
+            <stay wp="GOAL" until="stage_time>1"/>
 
-      <call fun="rl_set_nxt()"/>
-      <call fun="rl_update_qtab()"/>
-      <call fun="rl_check_terminal()"/>
-      <exception cond="rl_isterminal" deroute="EndRl"/>
-      <deroute block="DoOneStep"/>
+            <call fun="rl_set_nxt()"/>
+            <call fun="rl_update_qtab()"/>
+            <call fun="rl_check_terminal()"/>
+        </while>
+        <!-- <exception cond="rl_isterminal" deroute="EndRl"/> -->
+      <!-- <deroute block="DoOneStep"/> -->
     </block>
 
     <block name="EndRl">

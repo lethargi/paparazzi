@@ -6,6 +6,7 @@ extern uint8_t get_state(void);
 extern float qtab[5][3];
 
 extern uint8_t rl_init(void);
+extern uint8_t rl_reset_episode(void);
 extern uint8_t rl_set_cur(void);
 extern uint8_t rl_set_nxt(void);
 extern uint8_t rl_take_cur_action(void);

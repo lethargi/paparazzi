@@ -169,23 +169,36 @@ void electrical_periodic(void)
     electrical.current = 0;
   } else {
 #endif
-    electrical.current = full_current -
-                         pow((pow(full_current - idle_current, electrical_priv.nonlin_factor) -
-                              pow(((full_current - idle_current) * x), electrical_priv.nonlin_factor)),
-                           (1. / electrical_priv.nonlin_factor));
+      /* Manan Apr 4: commented next 3 lines out to replace with
+       * electrical.current = full_current so that battery doesnt die in
+       * simulation
+       */
+//     electrical.current = full_current -
+//                          pow((pow(full_current - idle_current, electrical_priv.nonlin_factor) -
+//                               pow(((full_current - idle_current) * x), electrical_priv.nonlin_factor)),
+//                            (1. / electrical_priv.nonlin_factor));
+      // printf("\nI am in current\n");
+    electrical.current = full_current;
 #ifndef FBW
   }
 #endif
 #endif /* ADC_CHANNEL_CURRENT */
 
+
+  /* Manan Apr 4: Commenting out electrical energy consumption to have no
+   * battery death in simulation
+   */
   // mAh = mA * dt (10Hz -> hours)
-  electrical.energy += ((float)electrical.current) / 3600.0f / ELECTRICAL_PERIODIC_FREQ;
+  // electrical.energy += ((float)electrical.current) / 3600.0f / ELECTRICAL_PERIODIC_FREQ;
 
   /*if valid voltage is seen then start checking. Set min level to 0 to always start*/
   if (electrical.vsupply >= MIN_BAT_LEVEL * 10) {
     vsupply_check_started = true;
   }
 
+  // Manan 4 apr: commenting out all of voltage check so that batter doesnt die
+  // in simulation
+  /*
   if (vsupply_check_started) {
     if (electrical.vsupply < LOW_BAT_LEVEL * 10) {
       if (bat_low_counter > 0) {
@@ -213,5 +226,6 @@ void electrical_periodic(void)
       electrical.bat_critical = false;
     }
   }
+  */
 
 }
