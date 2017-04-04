@@ -29,7 +29,7 @@
 
 #include <jpeglib.h>
 
-#include "generated/flight_plan.h"
+// #include "generated/flight_plan.h"
 
 struct MemoryStruct
 {
@@ -330,7 +330,7 @@ uint32_t count_redpixels(struct BmpStruct *bmpstructPtr)
             }
         }
     }
-    printf("Redcount: %6d \n", redcounter);
+    // printf("Redcount: %6d \n", redcounter);
     return redcounter;
 }
 
@@ -454,7 +454,7 @@ uint8_t cv_task(void)
     curredcount = count_redpixels(&bmp);
     // free up memory of the bmp
     free(bmp.buffer);
-    
+
     update_redsatheading();
 
     // FILE *fp;
@@ -481,5 +481,10 @@ uint8_t print_redsatheading(void)
     for(int i = 0; i < 35; i++) {
         printf("H: %3d; redcount: %6d \n", (i)*10, redsatheading[i]);
     }
+    // NavGotoWaypoint(WP_SZ1);
+    // printf("Pos x: %f \n", GetPosX());
+
+//     uint8_t ami_inside = My_InsideMyWorld(GetPosX(),GetPosY());
+//     printf("2 C files in 1 modules: %d\n", ami_inside);
     return 0;
 }

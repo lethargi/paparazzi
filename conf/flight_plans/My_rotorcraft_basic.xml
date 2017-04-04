@@ -3,9 +3,9 @@
 <flight_plan alt="57" ground_alt="49.03" lat0="60.2948404" lon0="5.2250930" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="4">
   <header>
 	#include "autopilot.h"
-        #include "subsystems/ahrs.h"
-        #include "subsystems/electrical.h"
-        #include "subsystems/datalink/datalink.h"
+    #include "subsystems/ahrs.h"
+    #include "subsystems/electrical.h"
+    #include "subsystems/datalink/datalink.h"
 	#include "modules/manan_test/manan_test.h"
 	#include "modules/manan_test/visrl.h"
 </header>
@@ -22,6 +22,7 @@
     <waypoint lat="60.295008" lon="5.225503" name="SZ2"/>
     <waypoint lat="60.294776" lon="5.225522" name="SZ3"/>
     <waypoint lat="60.294771" lon="5.224586" name="SZ4"/>
+    <waypoint lat="60.294771" lon="5.224586" name="BoundaryChecker"/>
     <waypoint height="12." name="CAM" x="-20" y="-50"/>
     <waypoint name="TD" x="5.6" y="-10.9"/>
   </waypoints>
@@ -56,6 +57,8 @@
     <block name="Standby" strip_button="Standby" strip_icon="home.png">
       <stay wp="STDBY"/>
     </block>
+
+    <!--
     <block name="For">
       <call fun="moveWaypointForwards(WP_GOAL,4)"/>
       <go wp="GOAL"/>
@@ -86,6 +89,7 @@
       <call fun="increase_nav_heading_deg(&nav_heading, -45)"/>
       <stay wp="GOAL"/>
     </block>
+
     <block name="Ballerina">
       <call fun="printheading(&nav_heading)"/>
       <call fun="NavSetWaypointHere(WP_GOAL)"/>
@@ -103,14 +107,51 @@
     </block>
     <block name="CurRedcount">
       <call fun="cv_task()"/>
+      <call fun="print_redsatheading()"/>
       <stay wp="GOAL"/>
     </block>
-    <!--
+    <block name="CheckInsideMyWorld">
+      <exception cond="InsideMyWorld(GetPosX(),GetPosY())" deroute="PrintRedsAtHeading"/>
+      <deroute block="YawLeft"/>
+    </block>
     <block name="VisRL">
       <call fun="do_visrl()"/>
       <stay wp="GOAL"/>
     </block>
 -->
+
+    <block name="VisRL">
+      <call fun="do_visrl()"/>
+      <stay wp="GOAL"/>
+    </block>
+
+    <block name="InitRL">
+      <call fun="rl_init()"/>
+      <stay wp="GOAL" until="stage_time>1"/>
+    </block>
+
+    <block name="DoOneStep">
+      <call fun="rl_set_cur()"/>
+      <call fun="rl_take_cur_action()"/> <!-- check if until here makes it do what i want -->
+      <stay wp="GOAL" until="stage_time>1"/>
+
+      <call fun="rl_set_nxt()"/>
+      <call fun="rl_update_qtab()"/>
+      <call fun="rl_check_terminal()"/>
+      <exception cond="rl_isterminal" deroute="EndRl"/>
+      <deroute block="DoOneStep"/>
+    </block>
+
+    <block name="EndRl">
+      <stay wp="GOAL"/>
+    </block>
+
+    <block name="PrintQtab">
+      <call fun="rl_print_qtab()"/>
+      <stay wp="GOAL"/>
+    </block>
+
+
     <block name="land here" strip_button="Land Here" strip_icon="land-right.png">
       <call fun="NavSetWaypointHere(WP_TD)"/>
     </block>
