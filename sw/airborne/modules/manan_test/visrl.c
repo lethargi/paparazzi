@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// #include <limits.h>
+#include <float.h>
+
 // think this contains state information from that file
 #include "firmwares/rotorcraft/navigation.h"
 #include "state.h"
@@ -10,7 +13,7 @@
 #define NAV_C
 #include "generated/flight_plan.h"
 
-float qtab[5][3] = { { 0} };  // qtable intialized at 0
+float qtab[7][3] = { { 0} };  // qtable intialized at 0
 
 static float reward_function[7] = {-10, -8, -6, -4, -2, -1, 0};
 static float cur_rew;
@@ -30,10 +33,11 @@ uint8_t rl_isterminal = 0;
 uint8_t pick_action(uint8_t state)
 {
     uint8_t picked_action = 0;
-    float maxq = 0;
+    // printf(" MAXQ: %f ",maxq);
     uint8_t policy_roll = rand() % 100;
     if (policy_roll < rl_eps) {
         // do greedy
+        float maxq = -FLT_MAX;
         for (int i=0; i < 3; i++) {
             if (qtab[state][i] > maxq) {
                 picked_action = i;
@@ -88,6 +92,7 @@ uint8_t get_state(void)
         /* Terminal state */
         rl_isterminal = 1;
     }
+    // printf(": State: %d :",state);
     return state;
 }
 
@@ -110,7 +115,7 @@ uint8_t rl_set_cur(void)
 {
     cur_sta = nxt_sta;
     cur_act = nxt_act;
-    printf("Step:%2d, Reds:%6d, C_sta:%1d C_act:%1d :: ", steps_taken, curredcount, cur_sta, cur_act);
+    printf("Step:%3u, Reds:%6d, C_sta:%1d C_act:%1d :: ", steps_taken, curredcount, cur_sta, cur_act);
     return 0;
 }
 
@@ -182,7 +187,7 @@ uint8_t rl_print_qtab(void)
     printf("\n");
     printf("=======");
     printf("Q table");
-    for(int i = 0; i < 6; i++) {
+    for(int i = 0; i < 8; i++) {
         printf("%2d : ", i);
         for(int j = 0; j < 3; j++) {
             printf("%3f  ",qtab[i][j]);
@@ -194,3 +199,21 @@ uint8_t rl_print_qtab(void)
     printf("==========");
     return 0;
 }
+
+/* TrashBin
+// uint8_t rl_print_test(void)
+// {
+//     static int16_t inttoprint = 0;
+//     inttoprint++;
+//     printf("The int is: %d\n", inttoprint);
+//     return 0;
+// }
+//
+// uint8_t test_pick_action(void) 
+// {
+//     uint8_t anaction;
+//     anaction = pick_action(nxt_sta);
+//     return 0;
+// }
+//
+*/

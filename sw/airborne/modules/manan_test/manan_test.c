@@ -44,7 +44,7 @@ struct BmpStruct
     uint16_t width;
     uint16_t height;
     uint8_t pixel_size;
-    int row_stride;
+    uint16_t row_stride;
 };
 
 uint16_t heading_ind = 0;
@@ -371,7 +371,7 @@ unsigned long threshold_pixels(struct BmpStruct *bmpstructPtr, unsigned char red
 uint8_t get_bmp(unsigned char *jpg_buffer, unsigned long jpg_size, struct BmpStruct *bmp)
 {
     // // INTIALIZE
-    int rc;
+    uint8_t rc;
 	// Variables for the decompressor itself
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -379,7 +379,7 @@ uint8_t get_bmp(unsigned char *jpg_buffer, unsigned long jpg_size, struct BmpStr
 	// Variables for the output buffer, and how long each row is
 	unsigned long bmp_size;
 	unsigned char *bmp_buffer;
-	int row_stride, width, height, pixel_size;
+	uint16_t row_stride, width, height, pixel_size;
 
     // holds the output bmp and its metadata
 
@@ -455,7 +455,7 @@ uint8_t cv_task(void)
     // free up memory of the bmp
     free(bmp.buffer);
 
-    update_redsatheading();
+    // update_redsatheading();
 
     // FILE *fp;
     // fp = fopen("myout","wb");

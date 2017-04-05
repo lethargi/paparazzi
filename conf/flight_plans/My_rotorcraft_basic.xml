@@ -141,6 +141,8 @@
 
     <block name="DoOneStep">
         <while cond="!rl_isterminal">
+            <!-- <for var="i" from="1" to="126"> -->
+                <!-- <for var="i" from="-128" to="126"> -->
             <call fun="rl_set_cur()"/>
             <call fun="rl_take_cur_action()"/> <!-- check if until here makes it do what i want -->
             <stay wp="GOAL" until="stage_time>1"/>
@@ -148,6 +150,7 @@
             <call fun="rl_set_nxt()"/>
             <call fun="rl_update_qtab()"/>
             <call fun="rl_check_terminal()"/>
+            <!-- </for> -->
         </while>
         <!-- <exception cond="rl_isterminal" deroute="EndRl"/> -->
       <!-- <deroute block="DoOneStep"/> -->
@@ -161,6 +164,46 @@
       <call fun="rl_print_qtab()"/>
       <stay wp="GOAL"/>
     </block>
+
+    <!-- TEST BLOCKS
+    <block name="Test_forloop()">
+        <for var="i" from="-129" to="126">
+            <call fun="rl_print_test()"/>
+        </for>
+    </block>
+    <block name="Test_rl_set_cur()">
+            <call fun="rl_set_cur()"/>
+            <stay wp="GOAL"/>
+    </block>
+    <block name="Test_rl_take_cur_action()">
+            <call fun="rl_take_cur_action()"/> 
+            <stay wp="GOAL"/>
+    </block>
+    <block name="Test_rl_set_nxt()">
+            <call fun="rl_set_nxt()"/>
+            <stay wp="GOAL"/>
+    </block>
+    <block name="Test_rl_update_qtab()">
+            <call fun="rl_update_qtab()"/>
+            <stay wp="GOAL"/>
+    </block>
+    <block name="Test_rl_check_terminal()">
+            <call fun="rl_check_terminal()"/>
+            <stay wp="GOAL"/>
+    </block>
+    <block name="Test_rl_get_state()">
+            <call fun="get_state()"/>
+            <stay wp="GOAL"/>
+    </block>
+    <block name="Test_rl_pick_action()">
+            <call fun="test_pick_action()"/>
+            <stay wp="GOAL"/>
+    </block>
+    <block name="Test_rl_cv_task()">
+            <call fun="cv_task()"/>
+            <stay wp="GOAL"/>
+    </block>
+-->
 
 
     <block name="land here" strip_button="Land Here" strip_icon="land-right.png">
