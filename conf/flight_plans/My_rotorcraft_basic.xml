@@ -12,6 +12,7 @@
   <waypoints>
     <waypoint name="HOME" x="0.0" y="0.0"/>
     <waypoint name="CLIMB" x="0.0" y="2.5"/>
+    <waypoint lat="60.2949" lon="5.2251" name="TEMP"/>
     <waypoint lat="60.2948404" lon="5.2250930" name="STDBY"/>
     <waypoint lat="60.2948404" lon="5.2250930" name="GOAL"/>
     <waypoint lat="60.2950532" lon="5.2245440" name="p1"/>
@@ -126,11 +127,12 @@
     </block>
 
     <block name="SetupEpisode">
-      <go wp="HOME"/>
-      <stay wp="HOME" until="stage_time>2"/>
+        <!-- <go wp="HOME"/> -->
+      <stay wp="HOME" until="stage_time>10"/>
+      <call fun="nav_set_heading_deg(0)"/>
       <call fun="NavSetWaypointHere(WP_GOAL)"/>
       <call fun="rl_reset_episode()"/>
-      <heading alt="WaypointAlt(WP_GOAL)" course="0" until="stage_time>5"/>
+      <!-- <heading alt="WaypointAlt(WP_GOAL)" course="0" until="stage_time>5"/> -->
       <stay wp="GOAL"/>
     </block>
 
@@ -163,6 +165,18 @@
     <block name="PrintQtab">
       <call fun="rl_print_qtab()"/>
       <stay wp="GOAL"/>
+    </block>
+
+
+    <block name="ReadQtab">
+      <call fun="NavSetWaypointHere(WP_TEMP)"/>
+      <call fun="rl_read_qtab()"/>
+      <stay wp="TEMP"/>
+    </block>
+    <block name="WriteQtab">
+      <call fun="NavSetWaypointHere(WP_TEMP)"/>
+      <call fun="rl_write_qtab()"/>
+      <stay wp="TEMP"/>
     </block>
 
     <!-- TEST BLOCKS

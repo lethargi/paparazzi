@@ -13,22 +13,32 @@
 #define NAV_C
 #include "generated/flight_plan.h"
 
+
+uint8_t qtab_rows = 7;
+uint8_t qtab_cols = 3;
 float qtab[7][3] = { { 0} };  // qtable intialized at 0
-
+// Mapping from state to rewardz
 static float reward_function[7] = {-10, -8, -6, -4, -2, -1, 0};
-static float cur_rew;
 
+// States, actions and reward
 static uint8_t cur_sta, nxt_sta, cur_act, nxt_act;
+static uint8_t hitwall = 0;
+uint8_t rl_isterminal = 0;
+static float cur_rew;
 // nxt_sta = 0;
 
+// RL parameters
 static float rl_gamma = 0.95;
 static float rl_alp = 0.3;
 static uint8_t rl_eps = 50;
+
+// counter for steps and episodes
 static uint16_t steps_taken = 0;
 static uint16_t episodes_simulated = 0;
 
-static uint8_t hitwall = 0;
-uint8_t rl_isterminal = 0;
+// file to write and qtable
+char qtab_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/cur_qtab.dat";
+FILE *qtab_file;
 
 uint8_t pick_action(uint8_t state)
 {
@@ -185,7 +195,7 @@ uint8_t rl_check_terminal(void)
 uint8_t rl_print_qtab(void)
 {
     printf("\n");
-    printf("=======");
+    printf("================\n");
     printf("Q table");
     for(int i = 0; i < 8; i++) {
         printf("%2d : ", i);
@@ -196,8 +206,61 @@ uint8_t rl_print_qtab(void)
         printf("\n");
     }
     printf("\n");
-    printf("==========");
+    printf("===============\n");
     return 0;
+}
+
+uint8_t rl_write_qtab(void)
+{
+    // need to include error checks
+    printf("===============\n");
+    printf("\nWriting to file;");
+    qtab_file = fopen(qtab_file_addrs,"wb");
+    fwrite(qtab,sizeof(float),sizeof(qtab)/sizeof(float),qtab_file);
+    fclose(qtab_file);
+    printf("Done\n");
+    printf("===============\n");
+    return 0;
+}
+
+uint8_t rl_read_qtab(void)
+{
+    // need to include error checks
+    printf("===============\n");
+    printf("\nReading from file;");
+    qtab_file = fopen(qtab_file_addrs,"rb");
+    float* mybuffer = (float *)malloc(sizeof(qtab));
+//     if (qtab_file == NULL) {
+//         printf("\nQ-table Read error\n");
+//     }
+// 
+//     if (fread(qtab,sizeof(float),sizeof(qtab),qtab_file) != sizeof(qtab)) {
+//         printf("\nQ-table Read error\n");
+//     }
+
+
+    printf("\nFile opened\n");
+    fread(mybuffer,sizeof(float),sizeof(qtab)/sizeof(float),qtab_file);
+
+    uint8_t poscounter = 0;
+    for (uint8_t ri = 0; ri < qtab_rows; ri++) {
+        for (uint8_t ci = 0; ci < qtab_cols; ci++) {
+            qtab[ri][ci] = *(mybuffer+poscounter);
+            printf("%f  ",qtab[ri][ci]);
+            poscounter++;
+        }
+        printf("\n");
+    }
+    free(mybuffer);
+    // printf("Freed\n");
+    fclose(qtab_file);
+    // printf("Closed\n");
+
+
+    printf("Done\n");
+    printf("===============\n");
+    return 0;
+
 }
 
 /* TrashBin

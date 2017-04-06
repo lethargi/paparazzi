@@ -16,6 +16,9 @@ extern uint8_t rl_print_qtab(void);
 
 extern uint8_t rl_isterminal;
 
+extern uint8_t rl_read_qtab(void);
+extern uint8_t rl_write_qtab(void);
+
 
 //Some testing stuff
 //extern uint8_t get_state(void);
