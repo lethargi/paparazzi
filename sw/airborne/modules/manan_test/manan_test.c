@@ -508,11 +508,11 @@ uint8_t cv_3grids(void)
     free(chunk.memory);
 
     count_redpixels_in_three_grids(&bmp);
-    printf("\n Redcount: ");
-    for(int i=0; i<3; i++) {
-        printf("%d ", redcount_arr[i]);
-    }
-    printf("\n");
+//     printf("\n Redcount: ");
+//     for(int i=0; i<3; i++) {
+//         printf("%d ", redcount_arr[i]);
+//     }
+//     printf("\n");
     // free up memory of the bmp
     free(bmp.buffer);
 

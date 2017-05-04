@@ -3,7 +3,7 @@
 extern uint8_t do_visrl(void);
 extern uint8_t get_state(void);
 
-extern float qtab[7][3];
+extern float qtab[8][3];
 
 extern uint8_t rl_init(void);
 extern uint8_t rl_reset_episode(void);
@@ -23,7 +23,7 @@ extern uint8_t rl_write_episode_log(void);
 
 
 // wth the 3 grids
-extern uint8_t get_state2(void);
+// extern uint8_t get_state2(void);
 
 //Some testing stuff
 //extern uint8_t get_state(void);

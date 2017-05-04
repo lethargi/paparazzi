@@ -15,11 +15,13 @@
 #include "generated/flight_plan.h"
 
 
+// counters for vision, state and terminal condition
 uint32_t totredcount;
 
 uint8_t qtab_rows = 7;
 uint8_t qtab_cols = 3;
-float qtab[7][3] = { { 0} };  // qtable intialized at 0
+// float qtab[7][3] = { { 0} };  // qtable intialized at 0
+float qtab[8][3] = { { 0} };  // qtable intialized at 0
 // Mapping from state to rewardz
 static float reward_function[7] = {-10, -8, -6, -4, -2, -1, 0};
 
@@ -45,18 +47,15 @@ char qtab_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/
 char qtab_txt_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qtab.txt";
 char log_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/log.txt";
 char savelocation[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/";
+
 FILE *qtab_file;
 FILE *qtab_txt_file;
 FILE *log_file;
 
 
-// uint8_t rl_stepsinep = 0;
-// uint8_t rl_  = 0;
-
 uint8_t pick_action(uint8_t state)
 {
     uint8_t picked_action = 0;
-    // printf(" MAXQ: %f ",maxq);
     uint8_t policy_roll = rand() % 100;
     if (policy_roll < rl_eps) {
         // do greedy
@@ -71,24 +70,11 @@ uint8_t pick_action(uint8_t state)
     }
     else {
         picked_action = rand() % 3;
-        // printf("Rand: %d\n", picked_action);
     }
     return picked_action;
 }
 
-uint8_t do_visrl(void)
-{
-//     cur_sta = get_state();
-//     cur_act = pick_action(cur_sta);
-    // uint8_t ami_inside = InsideMyWorld(GetPosX(),GetPosY());
-    // printf("Inside: %d\n", ami_inside);
-    for(uint8_t i = 0; i<5; i++) {
-        printf("RewFunc: %3f",reward_function[i]);
-    }
-    return 0;
-}
-
-uint8_t get_state(void)
+uint8_t get_state_old(void)
 {
     cv_task();
     uint8_t state = 6;
@@ -121,33 +107,22 @@ uint8_t get_state(void)
 
 int visrl_power(int base, int exp);
 
-uint8_t get_state2(void)
+uint8_t get_state(void)
 {
     cv_3grids();
-    // uint8_t state = 6;
     totredcount = 0;
-    // uint8_t redpresence[3] = {0,0,0}
-    // uint8_t state_binary_array[4] = {0,0,0,0}
-    uint8_t state_binary_array[3] = {0,0,0};
+    // uint8_t state_binary_array[3] = {0,0,0};
     uint8_t stateind = 0;
 
     // see if each grid has red
     for(int i=0; i<3; i++) {
-        uint32_t redcount = redcount_arr[i];
-        totredcount += redcount;
-        if (redcount > 0) {
-            state_binary_array[i] = 1;
+        if (redcount_arr[i] > 0) {
+            totredcount += redcount_arr[i];
+            // state_binary_array[i] = 1;
             stateind += visrl_power(2,i);
         }
     }
-
-    //normalizing stateind to start from 0
-//     if (stateind != 0) {
-//         stateind -= 1;
-//     }
-    printf("\n Totredcount: %d; Stateind: %d \n",totredcount,stateind);
-
-    return 0;
+    return stateind;
 }
 
 int visrl_power(int base, int exp)
@@ -183,7 +158,7 @@ uint8_t rl_set_cur(void)
 {
     cur_sta = nxt_sta;
     cur_act = nxt_act;
-    printf("Step:%3u, Reds:%6d, C_sta:%1d C_act:%1d :: ", steps_taken, curredcount, cur_sta, cur_act);
+    printf("Ep:%2u, Step:%3u, Reds:%6d, C_sta:%1d C_act:%1d :: ", episodes_simulated, steps_taken, totredcount, cur_sta, cur_act);
     return 0;
 }
 
@@ -192,7 +167,17 @@ uint8_t rl_set_nxt(void)
     nxt_sta = get_state();
     nxt_act = pick_action(nxt_sta);
     if (hitwall == 0) {
-        cur_rew = reward_function[nxt_sta];
+        // cur_rew = reward_function[nxt_sta];
+        if (nxt_sta == 7) {
+            cur_rew = -1;
+        }
+        else if (nxt_sta > 0) {
+            cur_rew = -5;
+        }
+        else {
+            cur_rew = -10;
+        }
+
     }
     else {
         hitwall = 0;
@@ -240,7 +225,8 @@ uint8_t rl_update_qtab(void)
 
 uint8_t rl_check_terminal(void)
 {
-    if (nxt_sta < 5) {
+    // if (totredcount < 35000) {
+    if (totredcount < 50000) {
         printf("non-terminal \n");
         rl_isterminal = 0;
     }
@@ -261,7 +247,6 @@ uint8_t rl_print_qtab(void)
         printf("%2d : ", i);
         for(int j = 0; j < 3; j++) {
             printf("%3f  ",qtab[i][j]);
-
         }
         printf("\n");
     }
@@ -297,7 +282,6 @@ uint8_t rl_read_qtab(void)
 //     if (fread(qtab,sizeof(float),sizeof(qtab),qtab_file) != sizeof(qtab)) {
 //         printf("\nQ-table Read error\n");
 //     }
-
 
     printf("\nFile opened\n");
     fread(mybuffer,sizeof(float),sizeof(qtab)/sizeof(float),qtab_file);
@@ -349,13 +333,12 @@ uint8_t rl_print_qtab_to_file(void)
             fprintf(qtab_txt_file,"%3f  ",qtab[i][j]);
 
         }
-        printf("\n");
+        fprintf(qtab_txt_file,"\n");
     }
     printf("\n");
     printf("===============\n");
     return 0;
 }
-
 
 /* TrashBin
 // uint8_t rl_print_test(void)

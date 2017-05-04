@@ -85,8 +85,8 @@
       <stay wp="TEMP"/>
     </block>
     <block name="3Grids">
-        <!-- <call fun="cv_3grids()"/> -->
-      <call fun="get_state2()"/>
+        <call fun="cv_3grids()"/>
+        <!-- <call fun="get_state2()"/> -->
       <stay wp="GOAL"/>
     </block>
     <!--
