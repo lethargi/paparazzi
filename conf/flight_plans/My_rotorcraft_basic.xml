@@ -13,6 +13,8 @@
     <waypoint name="HOME" x="0.0" y="0.0"/>
     <waypoint name="CLIMB" x="0.0" y="2.5"/>
     <waypoint lat="60.2949" lon="5.2251" name="TEMP"/>
+    <waypoint lat="60.2949" lon="5.2251045" name="CURPOS"/>
+    <waypoint lat="60.295034" lon="5.225104" name="TESTWP"/>
     <waypoint lat="60.2948404" lon="5.2250930" name="STDBY"/>
     <waypoint lat="60.2948404" lon="5.2250930" name="GOAL"/>
     <waypoint lat="60.2950532" lon="5.2245440" name="p1"/>
@@ -58,116 +60,89 @@
     <block name="Standby" strip_button="Standby" strip_icon="home.png">
       <stay wp="STDBY"/>
     </block>
-
-    <!--
-    <block name="For">
-      <call fun="moveWaypointForwards(WP_GOAL,4)"/>
-      <go wp="GOAL"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="Bac">
-      <call fun="moveWaypointBackwards(WP_GOAL,4)"/>
-      <go wp="GOAL"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="Lef">
-      <call fun="moveWaypointLeftwards(WP_GOAL,4)"/>
-      <go wp="GOAL"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="Rig">
-      <call fun="moveWaypointRightwards(WP_GOAL,4)"/>
-      <go wp="GOAL"/>
-      <stay wp="GOAL"/>
-    </block>
     <block name="YawRight">
       <call fun="NavSetWaypointHere(WP_GOAL)"/>
-      <call fun="increase_nav_heading_deg(&nav_heading, 45)"/>
+      <call fun="increase_nav_heading_deg(&nav_heading, 30)"/>
       <stay wp="GOAL"/>
     </block>
     <block name="YawLeft">
       <call fun="NavSetWaypointHere(WP_GOAL)"/>
-      <call fun="increase_nav_heading_deg(&nav_heading, -45)"/>
+      <call fun="increase_nav_heading_deg(&nav_heading, -30)"/>
       <stay wp="GOAL"/>
     </block>
-
-    <block name="Ballerina">
-      <call fun="printheading(&nav_heading)"/>
+    <block name="For">
       <call fun="NavSetWaypointHere(WP_GOAL)"/>
-      <for from="0" to="35" var="i">
-        <heading alt="WaypointAlt(WP_GOAL)" course="($i+1)*10" until="stage_time>1"/>
-        <call fun="cv_task()"/>
-        <call fun="update_redsatheading()"/>
-        <call fun="printheading(&GetCurHeading())"/>
-      </for>
+      <call fun="moveWaypointForwards(WP_GOAL,2)"/>
       <stay wp="GOAL"/>
     </block>
-    <block name="PrintRedsAtHeading">
-      <call fun="print_redsatheading()"/>
+    <block name="Bac">
+      <call fun="NavSetWaypointHere(WP_GOAL)"/>
+      <call fun="moveWaypointForwards(WP_GOAL,-2)"/>
       <stay wp="GOAL"/>
     </block>
-    <block name="CurRedcount">
-      <call fun="cv_task()"/>
-      <call fun="print_redsatheading()"/>
+    <block name="GoToTemp">
+      <go wp="TEMP"/>
+      <stay wp="TEMP"/>
+    </block>
+    <block name="3Grids">
+        <!-- <call fun="cv_3grids()"/> -->
+      <call fun="get_state2()"/>
       <stay wp="GOAL"/>
     </block>
-    <block name="CheckInsideMyWorld">
-      <exception cond="InsideMyWorld(GetPosX(),GetPosY())" deroute="PrintRedsAtHeading"/>
-      <deroute block="YawLeft"/>
+    <!--
+    <block name="SetupEpisode">
+      <go wp="HOME"/>
+      <call fun="NavSetWaypointHere(WP_GOAL)"/>
+      <call fun="rl_reset_episode()"/>
     </block>
-    <block name="VisRL">
-      <call fun="do_visrl()"/>
+    <block name="SetupEpisode2">
+      <call fun="nav_set_heading_towards_waypoint(WP_TESTWP)"/>
       <stay wp="GOAL"/>
     </block>
 -->
-
-    <block name="VisRL">
-      <call fun="do_visrl()"/>
-      <stay wp="GOAL"/>
-    </block>
-
-    <block name="SetupEpisode">
+    <block name="II-SetupEpisode4">
         <!-- <go wp="HOME"/> -->
-      <stay wp="HOME" until="stage_time>10"/>
-      <call fun="nav_set_heading_deg(0)"/>
-      <call fun="NavSetWaypointHere(WP_GOAL)"/>
+      <call fun="NavSetWaypointHere(WP_CURPOS)"/>
+      <go from="CURPOS" wp="HOME" hmode="route" approaching_time="0"/>
+      <stay wp="HOME" until="stage_time>2"/>
       <call fun="rl_reset_episode()"/>
-      <!-- <heading alt="WaypointAlt(WP_GOAL)" course="0" until="stage_time>5"/> -->
-      <stay wp="GOAL"/>
+      <call fun="NavSetWaypointHere(WP_GOAL)"/>
+      <for var="i" from="1" to="4">
+        <heading alt="WaypointAlt(WP_GOAL)" course="90 * $i" until="stage_time > 1.8"/>
+      </for>
+      <stay wp="GOAL" until="stage_time>2"/>
     </block>
-
     <block name="InitRL">
       <call fun="rl_init()"/>
-      <stay wp="GOAL" until="stage_time>1"/>
+      <stay until="stage_time>1" wp="GOAL"/>
     </block>
-
     <block name="DoOneStep">
-        <while cond="!rl_isterminal">
-            <!-- <for var="i" from="1" to="126"> -->
-                <!-- <for var="i" from="-128" to="126"> -->
-            <call fun="rl_set_cur()"/>
-            <call fun="rl_take_cur_action()"/> <!-- check if until here makes it do what i want -->
-            <stay wp="GOAL" until="stage_time>1"/>
-
-            <call fun="rl_set_nxt()"/>
-            <call fun="rl_update_qtab()"/>
-            <call fun="rl_check_terminal()"/>
-            <!-- </for> -->
-        </while>
-        <!-- <exception cond="rl_isterminal" deroute="EndRl"/> -->
-      <!-- <deroute block="DoOneStep"/> -->
+      <while cond="!rl_isterminal">
+        <call fun="rl_set_cur()"/>
+        <call fun="rl_take_cur_action()"/>
+        <stay until="stage_time>1" wp="GOAL"/>
+        <call fun="rl_set_nxt()"/>
+        <call fun="rl_update_qtab()"/>
+        <call fun="rl_check_terminal()"/>
+      </while>
     </block>
-
+    <block name="EndEp">
+      <call fun="rl_write_episode_log()"/>
+	  <exception cond="episodes_simulated > 100" deroute="EndRl"/>
+      <stay wp="GOAL" until="stage_time > 2"/>
+	  <deroute block="II-SetupEpisode4"/>
+    </block>
     <block name="EndRl">
       <stay wp="GOAL"/>
+      <call fun="rl_write_episode_log()"/>
     </block>
-
+    <block name="WriteEpLog">
+      <call fun="rl_write_episode_log()"/>
+    </block>
     <block name="PrintQtab">
       <call fun="rl_print_qtab()"/>
       <stay wp="GOAL"/>
     </block>
-
-
     <block name="ReadQtab">
       <call fun="NavSetWaypointHere(WP_TEMP)"/>
       <call fun="rl_read_qtab()"/>
@@ -178,48 +153,6 @@
       <call fun="rl_write_qtab()"/>
       <stay wp="TEMP"/>
     </block>
-
-    <!-- TEST BLOCKS
-    <block name="Test_forloop()">
-        <for var="i" from="-129" to="126">
-            <call fun="rl_print_test()"/>
-        </for>
-    </block>
-    <block name="Test_rl_set_cur()">
-            <call fun="rl_set_cur()"/>
-            <stay wp="GOAL"/>
-    </block>
-    <block name="Test_rl_take_cur_action()">
-            <call fun="rl_take_cur_action()"/> 
-            <stay wp="GOAL"/>
-    </block>
-    <block name="Test_rl_set_nxt()">
-            <call fun="rl_set_nxt()"/>
-            <stay wp="GOAL"/>
-    </block>
-    <block name="Test_rl_update_qtab()">
-            <call fun="rl_update_qtab()"/>
-            <stay wp="GOAL"/>
-    </block>
-    <block name="Test_rl_check_terminal()">
-            <call fun="rl_check_terminal()"/>
-            <stay wp="GOAL"/>
-    </block>
-    <block name="Test_rl_get_state()">
-            <call fun="get_state()"/>
-            <stay wp="GOAL"/>
-    </block>
-    <block name="Test_rl_pick_action()">
-            <call fun="test_pick_action()"/>
-            <stay wp="GOAL"/>
-    </block>
-    <block name="Test_rl_cv_task()">
-            <call fun="cv_task()"/>
-            <stay wp="GOAL"/>
-    </block>
--->
-
-
     <block name="land here" strip_button="Land Here" strip_icon="land-right.png">
       <call fun="NavSetWaypointHere(WP_TD)"/>
     </block>

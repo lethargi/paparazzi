@@ -15,10 +15,15 @@ extern uint8_t rl_check_terminal(void);
 extern uint8_t rl_print_qtab(void);
 
 extern uint8_t rl_isterminal;
+extern uint8_t episodes_simulated;
 
 extern uint8_t rl_read_qtab(void);
 extern uint8_t rl_write_qtab(void);
+extern uint8_t rl_write_episode_log(void);
 
+
+// wth the 3 grids
+extern uint8_t get_state2(void);
 
 //Some testing stuff
 //extern uint8_t get_state(void);

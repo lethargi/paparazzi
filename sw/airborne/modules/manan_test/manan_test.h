@@ -35,10 +35,11 @@ extern uint8_t moveWaypointRightwards(uint8_t waypoint, float distanceMeters);
 //extern size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream);
 //extern int runcurltomem(void);
 extern uint32_t curredcount;
+extern uint32_t redcount_arr[3];
 
 extern uint8_t update_redsatheading(void);
 extern uint8_t print_redsatheading(void);
 extern uint8_t cv_task(void);
+extern uint8_t cv_3grids(void);
 
 #endif
-

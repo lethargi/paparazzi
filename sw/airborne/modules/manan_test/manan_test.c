@@ -51,11 +51,13 @@ uint16_t heading_ind = 0;
 uint32_t redsatheading[36];
 uint32_t curredcount;
 // struct BmpStruct curbmp;
+uint32_t redcount_arr[3] = {0,0,0};
 
 void my_init()
 {
     printf("MY MODULE INIT \n\n");
 }
+
 
 //Increases the NAV heading. Assumes heading is an INT32_ANGLE. It is bound in this function.
 uint8_t increase_nav_heading(int32_t *heading, int32_t increment)
@@ -322,7 +324,6 @@ uint32_t count_redpixels(struct BmpStruct *bmpstructPtr)
             pxr = curpx;
             pxg = curpx + 1;
             pxb = curpx + 2;
-
             colvalsum = *pxr + *pxg + *pxb;
             redfrac = (float) *pxr / (float) colvalsum;
             if (redfrac > 0.75) {
@@ -332,6 +333,42 @@ uint32_t count_redpixels(struct BmpStruct *bmpstructPtr)
     }
     // printf("Redcount: %6d \n", redcounter);
     return redcounter;
+}
+
+uint8_t count_redpixels_in_three_grids(struct BmpStruct *bmpstructPtr)
+{
+    unsigned char *curpx, *pxr, *pxg, *pxb;
+    uint16_t height = bmpstructPtr->height;
+    uint16_t width = bmpstructPtr->width;
+    uint16_t width1 = width/3;
+    uint16_t width2 = 2*width/3;
+    // redcount_arr = {0,0,0};
+    redcount_arr[0] = 0;
+    redcount_arr[1] = 0;
+    redcount_arr[2] = 0;
+
+    unsigned char *bmp_buffer = bmpstructPtr->buffer;
+
+    int colvalsum;
+    float redfrac;
+
+    for(int rowi = 0; rowi < height; rowi++) {
+        for(int coli = 0; coli < width; coli++) {
+            curpx = get_pointertopix(bmp_buffer, rowi, coli, width);
+            pxr = curpx;
+            pxg = curpx + 1;
+            pxb = curpx + 2;
+            colvalsum = *pxr + *pxg + *pxb;
+            redfrac = (float) *pxr / (float) colvalsum;
+
+            if (redfrac > 0.75) {
+                if (coli < width1) { redcount_arr[0]++; }
+                else if (coli < width2) { redcount_arr[1]++; }
+                else { redcount_arr[2]++; }
+            }
+        }
+    }
+    return 0;
 }
 
 /* Counts the number of pixels above provided threshold values of RGB */
@@ -442,11 +479,8 @@ uint8_t cv_task(void)
 
     struct BmpStruct bmp;
 
-    // printf("Downloading \n");
     curl2mem(&chunk);
 
-    // printf("Jpegging \n");
-    // do_cv((unsigned char*)chunk.memory, chunk.size);
     get_bmp((unsigned char*)chunk.memory, chunk.size, &bmp);
     // free up memory of downloaded jpeg
     free(chunk.memory);
@@ -455,15 +489,33 @@ uint8_t cv_task(void)
     // free up memory of the bmp
     free(bmp.buffer);
 
-    // update_redsatheading();
 
-    // FILE *fp;
-    // fp = fopen("myout","wb");
-    // fwrite((const void *)chunk.memory, sizeof(char),chunk.size,fp);
+    return 0;
+}
 
-    // printf("Size of char: %lu; size of memory: %lu \n", sizeof(char),chunk.size);
-    //
-    // printf("Done \n");
+uint8_t cv_3grids(void)
+{
+    struct MemoryStruct chunk;
+    chunk.memory = malloc(1);
+    chunk.size = 0;
+
+    struct BmpStruct bmp;
+
+    curl2mem(&chunk);
+
+    get_bmp((unsigned char*)chunk.memory, chunk.size, &bmp);
+    // free up memory of downloaded jpeg
+    free(chunk.memory);
+
+    count_redpixels_in_three_grids(&bmp);
+    printf("\n Redcount: ");
+    for(int i=0; i<3; i++) {
+        printf("%d ", redcount_arr[i]);
+    }
+    printf("\n");
+    // free up memory of the bmp
+    free(bmp.buffer);
+
 
     return 0;
 }
