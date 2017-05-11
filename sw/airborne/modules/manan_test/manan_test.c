@@ -20,7 +20,6 @@
 // dont know where all these imports are from (most prolly for the curl)
 #include <time.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include <curl/curl.h>
 
@@ -28,6 +27,7 @@
 #include <fcntl.h> //this one used to write to ppmfile
 
 #include <jpeglib.h>
+
 
 // #include "generated/flight_plan.h"
 
@@ -52,6 +52,12 @@ uint32_t redsatheading[36];
 uint32_t curredcount;
 // struct BmpStruct curbmp;
 uint32_t redcount_arr[3] = {0,0,0};
+uint32_t bluecount_arr[3] = {0,0,0};
+uint32_t greencount_arr[3] = {0,0,0};
+uint32_t count_arr[3][3] = {{0}};
+
+// GList* list = NULL;
+// GHashTable* qdict = g_hash_table_new(g_str_hash, g_str_equal);
 
 void my_init()
 {

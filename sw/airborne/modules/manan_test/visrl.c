@@ -7,6 +7,7 @@
 // #include <limits.h>
 #include <float.h>
 
+
 // think this contains state information from that file
 #include "firmwares/rotorcraft/navigation.h"
 #include "state.h"
@@ -35,7 +36,7 @@ static float cur_rew;
 // RL parameters
 static float rl_gamma = 0.95;
 static float rl_alp = 0.3;
-static uint8_t rl_eps = 50;
+static uint8_t rl_eps = 75;
 
 // counter for steps and episodes
 static uint16_t steps_taken = 0;
@@ -52,6 +53,103 @@ FILE *qtab_file;
 FILE *qtab_txt_file;
 FILE *log_file;
 
+GHashTable *myqdict;
+
+uint8_t counter = 0;
+
+uint8_t init_qdict(void)
+{
+    myqdict = g_hash_table_new(g_str_hash, g_str_equal);
+    printf("SizeOfQdict: %d\n",g_hash_table_size(myqdict));
+    return 0;
+}
+
+uint8_t append_qdict(void)
+{
+    counter++;
+    // myqdict = g_hash_table_new(g_str_hash, g_str_equal);
+    // char teststa[] = "0,1,1;200,300,1000";
+    // gchar *thekey = "0,1,1;200,300,1000";
+    uint8_t leftgrid = 0;
+    uint8_t midgrid = 0;
+    uint8_t rightgrid = 1;
+    uint8_t redcount = 100;
+    uint8_t bluecount = 50;
+    uint8_t greencount = 20;
+    uint8_t head = 100;
+    char *akey = g_strdup_printf("%d,%d,%d;%d,%d,%d;%d",
+            leftgrid,midgrid,rightgrid,redcount,bluecount,greencount,head);
+    char counter_str[2];
+    sprintf(counter_str, "%d",counter);
+    printf("\n Counter: %s \n",counter_str);
+    // uint8_t anarr[3] = {counter,counter+10,counter+5};
+    printf("SizeOfQdict: %d\n",g_hash_table_size(myqdict));
+
+    // uint8_t *anarr = (uint8_t *)calloc(3,sizeof(uint8_t));
+    uint8_t *anarr = (uint8_t *)calloc(3,sizeof(uint8_t));
+    for (int i = 0; i<3; i++) {
+// //         *curpt = counter+i*2;
+// //         curpt++;
+        anarr[i] = i+counter;
+        printf("%d ",anarr[i]);
+    }
+    printf("\n");
+    g_hash_table_insert(myqdict,akey,anarr);
+    return 0;
+}
+
+uint8_t size_qdict(void)
+{
+    printf("SizeOfQdict: %d\n",g_hash_table_size(myqdict));
+    return 0;
+}
+
+uint8_t printcounter = 0;
+uint8_t print_qdict(void)
+{
+    printcounter++;
+    printf("SizeOfQdict: %d\n",g_hash_table_size(myqdict));
+    char counter_str[2];
+    sprintf(counter_str, "%d",printcounter);
+    printf("Counter: %s \n",counter_str);
+    // gchar *thekey = "0,1,1;200,300,1000";
+    // GString *mykey = g_string_new(NULL);
+    // uint8_t *anotherarr = (uint8_t *)g_hash_table_lookup(myqdict,counter_str);
+    uint8_t leftgrid = 0;
+    uint8_t midgrid = 0;
+    uint8_t rightgrid = 1;
+    uint8_t redcount = 100;
+    uint8_t bluecount = 50;
+    uint8_t greencount = 20;
+    uint8_t head = 100;
+    char *akey = g_strdup_printf("%d,%d,%d;%d,%d,%d;%d",
+            leftgrid,midgrid,rightgrid,redcount,bluecount,greencount,head);
+    uint8_t *anotherarr = (uint8_t *)g_hash_table_lookup(myqdict,akey);
+    if (anotherarr != NULL) {
+        printf("Not Null");
+        printf("%d%d%d",anotherarr[0],anotherarr[1],anotherarr[2]);
+    }
+    // printf("%d",anotherarr[0]);
+    printf("Done");
+    // g_hash_table_foreach(myqdict, (GHFunc)iterator, "The pointer @ %s is %d\n");
+    // uint8_t *anotherarr = g_hash_table_lookup(myqdict,counter_str);
+//     uint8_t *anotherarr = g_hash_table_lookup(myqdict,"1");
+//     printf("\n Done1 \n");
+//     printf("%p",anotherarr);
+    // if (*anotherarr != NULL) {
+        // uint8_t *anotherarr = (uint8_t *)anotherarr;
+//         printf("\n Done \n");
+//         printf("\n");
+        // printf("%d",anotherarr[0]);
+    // }
+//     for (int i = 0; i<3; i++) {
+//         printf("%d:%d ",i,*(anotherarr+i));
+//     }
+    printf("\n");
+    return 0;
+}
+
+// GHashTable* qdict = g_hash_table_new(g_str_hash, g_str_equal);
 
 uint8_t pick_action(uint8_t state)
 {
@@ -127,6 +225,7 @@ uint8_t get_state(void)
 
 int visrl_power(int base, int exp)
 {
+    /* function to calculate exponents */
     if (exp == 0)
         return 1;
     else if (exp % 2)
@@ -212,6 +311,18 @@ uint8_t rl_take_cur_action(void)
 }
 
 uint8_t rl_update_qtab(void)
+{
+    float Qcur, Qnxt, Qcur1;
+    Qcur = qtab[cur_sta][cur_act];
+    Qnxt = qtab[nxt_sta][nxt_act];
+    Qcur1 = Qcur + rl_alp*(cur_rew + rl_gamma*Qnxt - Qcur);
+    qtab[cur_sta][cur_act] = Qcur1;
+    sumofQchanges += abs(Qcur1 - Qcur);
+    printf("Qcur:%03.1f Qnxt:%03.1f Qcur1:%03.1f :: ", Qcur, Qnxt, Qcur1);
+    return 0;
+}
+
+uint8_t rl_update_qdict(void)
 {
     float Qcur, Qnxt, Qcur1;
     Qcur = qtab[cur_sta][cur_act];

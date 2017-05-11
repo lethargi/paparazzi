@@ -86,7 +86,22 @@
     </block>
     <block name="3Grids">
         <call fun="cv_3grids()"/>
-        <!-- <call fun="get_state2()"/> -->
+      <stay wp="GOAL"/>
+    </block>
+    <block name="InitQdict">
+        <call fun="init_qdict()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="AppendQdict">
+        <call fun="append_qdict()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="PrintQdict">
+        <call fun="print_qdict()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="SizeQdict">
+        <call fun="size_qdict()"/>
       <stay wp="GOAL"/>
     </block>
     <!--
@@ -128,7 +143,7 @@
     </block>
     <block name="EndEp">
       <call fun="rl_write_episode_log()"/>
-	  <exception cond="episodes_simulated > 100" deroute="EndRl"/>
+	  <exception cond="episodes_simulated > 50" deroute="EndRl"/>
       <stay wp="GOAL" until="stage_time > 2"/>
 	  <deroute block="II-SetupEpisode4"/>
     </block>

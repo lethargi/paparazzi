@@ -21,6 +21,12 @@
     <raw>
         nps.LDFLAGS += -lcurl
         nps.LDFLAGS += -ljpeg
+        nps.LDFLAGS += -glib
+        <!-- nps.LDFLAGS += -lgtk-2.0-dev -->
+        <!--
+        ap.LDFLAGS += -lcurl
+        ap.LDFLAGS += -ljpeg
+        -->
     </raw>
   </makefile>
 </module>
