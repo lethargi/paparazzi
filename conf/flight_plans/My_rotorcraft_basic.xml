@@ -92,6 +92,7 @@
         <call fun="init_qdict()"/>
       <stay wp="GOAL"/>
     </block>
+    <!--
     <block name="AppendQdict">
         <call fun="append_qdict()"/>
       <stay wp="GOAL"/>
@@ -100,6 +101,7 @@
         <call fun="print_qdict()"/>
       <stay wp="GOAL"/>
     </block>
+-->
     <block name="SizeQdict">
         <call fun="size_qdict()"/>
       <stay wp="GOAL"/>
@@ -142,13 +144,14 @@
         <call fun="rl_take_cur_action()"/>
         <stay until="stage_time>1" wp="GOAL"/>
         <call fun="rl_set_nxt()"/>
-        <call fun="rl_update_qtab()"/>
+        <!-- <call fun="rl_update_qtab()"/> -->
+        <call fun="rl_update_qdict()"/>
         <call fun="rl_check_terminal()"/>
       </while>
     </block>
     <block name="EndEp">
       <call fun="rl_write_episode_log()"/>
-	  <exception cond="episodes_simulated > 50" deroute="EndRl"/>
+	  <exception cond="episodes_simulated > 100" deroute="EndRl"/>
       <stay wp="GOAL" until="stage_time > 2"/>
 	  <deroute block="II-SetupEpisode4"/>
     </block>
@@ -161,6 +164,10 @@
     </block>
     <block name="PrintQtab">
       <call fun="rl_print_qtab()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="PrintQDict">
+      <call fun="print_qdict()"/>
       <stay wp="GOAL"/>
     </block>
     <block name="ReadQtab">

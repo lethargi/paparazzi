@@ -24,10 +24,11 @@ uint8_t qtab_cols = 3;
 // float qtab[7][3] = { { 0} };  // qtable intialized at 0
 float qtab[8][3] = { { 0} };  // qtable intialized at 0
 // Mapping from state to rewardz
-static float reward_function[7] = {-10, -8, -6, -4, -2, -1, 0};
+// static float reward_function[7] = {-10, -8, -6, -4, -2, -1, 0};
 
 // States, actions and reward
-static uint8_t cur_sta, nxt_sta, cur_act, nxt_act;
+static uint8_t cur_act, nxt_act;
+static char *cur_sta, *nxt_sta;
 static uint8_t hitwall = 0;
 uint8_t rl_isterminal = 0;
 static float cur_rew;
@@ -35,7 +36,7 @@ static float cur_rew;
 
 // RL parameters
 static float rl_gamma = 0.95;
-static float rl_alp = 0.3;
+static float rl_alp = 0.35;
 static uint8_t rl_eps = 75;
 
 // counter for steps and episodes
@@ -64,109 +65,37 @@ uint8_t init_qdict(void)
     return 0;
 }
 
-uint8_t append_qdict(void)
-{
-    counter++;
-    // myqdict = g_hash_table_new(g_str_hash, g_str_equal);
-    // char teststa[] = "0,1,1;200,300,1000";
-    // gchar *thekey = "0,1,1;200,300,1000";
-    uint8_t leftgrid = 0;
-    uint8_t midgrid = 0;
-    uint8_t rightgrid = 1;
-    uint8_t redcount = 100;
-    uint8_t bluecount = 50;
-    uint8_t greencount = 20;
-    uint8_t head = 100;
-    char *akey = g_strdup_printf("%d,%d,%d;%d,%d,%d;%d",
-            leftgrid,midgrid,rightgrid,redcount,bluecount,greencount,head);
-    char counter_str[2];
-    sprintf(counter_str, "%d",counter);
-    printf("\n Counter: %s \n",counter_str);
-    // uint8_t anarr[3] = {counter,counter+10,counter+5};
-    printf("SizeOfQdict: %d\n",g_hash_table_size(myqdict));
-
-    // uint8_t *anarr = (uint8_t *)calloc(3,sizeof(uint8_t));
-    uint8_t *anarr = (uint8_t *)calloc(3,sizeof(uint8_t));
-    for (int i = 0; i<3; i++) {
-// //         *curpt = counter+i*2;
-// //         curpt++;
-        anarr[i] = i+counter;
-        printf("%d ",anarr[i]);
-    }
-    printf("\n");
-    g_hash_table_insert(myqdict,akey,anarr);
-    return 0;
-}
-
 uint8_t size_qdict(void)
 {
     printf("SizeOfQdict: %d\n",g_hash_table_size(myqdict));
     return 0;
 }
 
-uint8_t printcounter = 0;
-uint8_t print_qdict(void)
-{
-    printcounter++;
-    printf("SizeOfQdict: %d\n",g_hash_table_size(myqdict));
-    char counter_str[2];
-    sprintf(counter_str, "%d",printcounter);
-    printf("Counter: %s \n",counter_str);
-    // gchar *thekey = "0,1,1;200,300,1000";
-    // GString *mykey = g_string_new(NULL);
-    // uint8_t *anotherarr = (uint8_t *)g_hash_table_lookup(myqdict,counter_str);
-    uint8_t leftgrid = 0;
-    uint8_t midgrid = 0;
-    uint8_t rightgrid = 1;
-    uint8_t redcount = 100;
-    uint8_t bluecount = 50;
-    uint8_t greencount = 20;
-    uint8_t head = 100;
-    char *akey = g_strdup_printf("%d,%d,%d;%d,%d,%d;%d",
-            leftgrid,midgrid,rightgrid,redcount,bluecount,greencount,head);
-    uint8_t *anotherarr = (uint8_t *)g_hash_table_lookup(myqdict,akey);
-    if (anotherarr != NULL) {
-        printf("Not Null");
-        printf("%d%d%d",anotherarr[0],anotherarr[1],anotherarr[2]);
-    }
-    // printf("%d",anotherarr[0]);
-    printf("Done");
-    // g_hash_table_foreach(myqdict, (GHFunc)iterator, "The pointer @ %s is %d\n");
-    // uint8_t *anotherarr = g_hash_table_lookup(myqdict,counter_str);
-//     uint8_t *anotherarr = g_hash_table_lookup(myqdict,"1");
-//     printf("\n Done1 \n");
-//     printf("%p",anotherarr);
-    // if (*anotherarr != NULL) {
-        // uint8_t *anotherarr = (uint8_t *)anotherarr;
-//         printf("\n Done \n");
-//         printf("\n");
-        // printf("%d",anotherarr[0]);
-    // }
-//     for (int i = 0; i<3; i++) {
-//         printf("%d:%d ",i,*(anotherarr+i));
-//     }
-    printf("\n");
-    return 0;
-}
-
-// GHashTable* qdict = g_hash_table_new(g_str_hash, g_str_equal);
-
-uint8_t pick_action(uint8_t state)
+uint8_t pick_action(char *state)
 {
     uint8_t picked_action = 0;
     uint8_t policy_roll = rand() % 100;
-    if (policy_roll < rl_eps) {
+
+    // float *currow;
+    float *currow = (float *)g_hash_table_lookup(myqdict,state);
+    if (currow == NULL) {
+        float *currow = (float *)calloc(3,sizeof(float));
+        for (int i = 0; i < 3; i++) {currow[i] = 0;}
+        g_hash_table_insert(myqdict,g_strdup(state),currow);
+        picked_action = rand() % 3;
+    }
+    else if (policy_roll < rl_eps) {
         // do greedy
         float maxq = -FLT_MAX;
         for (int i=0; i < 3; i++) {
-            if (qtab[state][i] > maxq) {
+            if (currow[i] > maxq) {
                 picked_action = i;
-                maxq = qtab[state][i];
+                maxq = currow[i];
             }
         }
-        // printf("Greed: %d\n", picked_action);
     }
     else {
+        // do random
         picked_action = rand() % 3;
     }
     return picked_action;
@@ -223,6 +152,19 @@ uint8_t get_state(void)
     return stateind;
 }
 
+char *get_state_ext(void)
+{
+    cv_3grids();
+    uint8_t countfracs[3] = {0,0,0};
+    for (int i = 0; i < 3; i++) {
+        countfracs[i] = sumcount_arr[i]/1000;
+    }
+    char *curstate = g_strdup_printf("%d,%d,%d;%d,%d,%d",
+            domcol_arr[0],domcol_arr[1],domcol_arr[2],countfracs[0],countfracs[1],countfracs[2]);
+    printf("Ep:%d State:%s ",episodes_simulated+1,curstate);
+    return curstate;
+}
+
 int visrl_power(int base, int exp)
 {
     /* function to calculate exponents */
@@ -247,7 +189,7 @@ uint8_t rl_init(void)
     steps_taken = 0;
     sumofQchanges = 0;
     // episodes_simulated++;
-    nxt_sta = get_state();
+    nxt_sta = get_state_ext();
     nxt_act = pick_action(nxt_sta);
     printf("\n RL initialized \n");
     return 0;
@@ -257,32 +199,37 @@ uint8_t rl_set_cur(void)
 {
     cur_sta = nxt_sta;
     cur_act = nxt_act;
-    printf("Ep:%2u, Step:%3u, Reds:%6d, C_sta:%1d C_act:%1d :: ", episodes_simulated, steps_taken, totredcount, cur_sta, cur_act);
+    // printf("Ep:%2u, Step:%3u, Reds:%6d, C_sta:%1d C_act:%1d :: ", episodes_simulated, steps_taken, totredcount, cur_sta, cur_act);
     return 0;
 }
 
 uint8_t rl_set_nxt(void)
 {
-    nxt_sta = get_state();
+    nxt_sta = get_state_ext();
     nxt_act = pick_action(nxt_sta);
     if (hitwall == 0) {
         // cur_rew = reward_function[nxt_sta];
-        if (nxt_sta == 7) {
-            cur_rew = -1;
+        if (sumcount_arr[0] > 20000) {
+            cur_rew = -2;
         }
-        else if (nxt_sta > 0) {
-            cur_rew = -5;
+        if (sumcount_arr[0] > 10000) {
+            cur_rew = -4;
+        }
+        else if (sumcount_arr[0] > 1000) {
+            cur_rew = -6;
+        }
+        else if (sumcount_arr[0] > 500) {
+            cur_rew = -8;
         }
         else {
             cur_rew = -10;
         }
-
     }
     else {
         hitwall = 0;
-        cur_rew = -25;
+        cur_rew = -20;
     }
-    printf("N_sta:%1d N_act:%1d Rew:%03.1f :: ",nxt_sta, nxt_act, cur_rew);
+    printf("Rew: %02.1f ",cur_rew);
     return 0;
 }
 
@@ -310,35 +257,38 @@ uint8_t rl_take_cur_action(void)
     return 0;
 }
 
-uint8_t rl_update_qtab(void)
-{
-    float Qcur, Qnxt, Qcur1;
-    Qcur = qtab[cur_sta][cur_act];
-    Qnxt = qtab[nxt_sta][nxt_act];
-    Qcur1 = Qcur + rl_alp*(cur_rew + rl_gamma*Qnxt - Qcur);
-    qtab[cur_sta][cur_act] = Qcur1;
-    sumofQchanges += abs(Qcur1 - Qcur);
-    printf("Qcur:%03.1f Qnxt:%03.1f Qcur1:%03.1f :: ", Qcur, Qnxt, Qcur1);
-    return 0;
-}
+// uint8_t rl_update_qtab(void)
+// {
+//     float Qcur, Qnxt, Qcur1;
+//     Qcur = qtab[cur_sta][cur_act];
+//     Qnxt = qtab[nxt_sta][nxt_act];
+//     Qcur1 = Qcur + rl_alp*(cur_rew + rl_gamma*Qnxt - Qcur);
+//     qtab[cur_sta][cur_act] = Qcur1;
+//     sumofQchanges += abs(Qcur1 - Qcur);
+//     printf("Qcur:%03.1f Qnxt:%03.1f Qcur1:%03.1f :: ", Qcur, Qnxt, Qcur1);
+//     return 0;
+// }
 
 uint8_t rl_update_qdict(void)
 {
+    printf("SizeOfQdict: %d ;",g_hash_table_size(myqdict));
     float Qcur, Qnxt, Qcur1;
-    Qcur = qtab[cur_sta][cur_act];
-    Qnxt = qtab[nxt_sta][nxt_act];
+    float *qtab_currow =  (float *)g_hash_table_lookup(myqdict,cur_sta);
+    float *qtab_nxtrow =  (float *)g_hash_table_lookup(myqdict,nxt_sta);
+    Qcur = qtab_currow[cur_act];
+    Qnxt = qtab_nxtrow[nxt_act];
     Qcur1 = Qcur + rl_alp*(cur_rew + rl_gamma*Qnxt - Qcur);
-    qtab[cur_sta][cur_act] = Qcur1;
+    qtab_currow[cur_act] = Qcur1;
     sumofQchanges += abs(Qcur1 - Qcur);
-    printf("Qcur:%03.1f Qnxt:%03.1f Qcur1:%03.1f :: ", Qcur, Qnxt, Qcur1);
+    printf("Qcur:%03.1f Qnxt:%03.1f Qcur1:%03.1f :: \n", Qcur, Qnxt, Qcur1);
     return 0;
 }
 
 uint8_t rl_check_terminal(void)
 {
     // if (totredcount < 35000) {
-    if (totredcount < 50000) {
-        printf("non-terminal \n");
+    if (sumcount_arr[0] < 45000) {
+        // printf("non-terminal \n");
         rl_isterminal = 0;
     }
     else {
@@ -395,7 +345,7 @@ uint8_t rl_read_qtab(void)
 //     }
 
     printf("\nFile opened\n");
-    fread(mybuffer,sizeof(float),sizeof(qtab)/sizeof(float),qtab_file);
+    size_t readbytes = fread(mybuffer,sizeof(float),sizeof(qtab)/sizeof(float),qtab_file);
 
     uint8_t poscounter = 0;
     for (uint8_t ri = 0; ri < qtab_rows; ri++) {
@@ -446,8 +396,24 @@ uint8_t rl_print_qtab_to_file(void)
         }
         fprintf(qtab_txt_file,"\n");
     }
+    fclose(qtab_txt_file);
     printf("\n");
     printf("===============\n");
+    return 0;
+}
+
+void qdict_printer(gpointer key, gpointer value, gpointer user_data) {
+    float *curarr = (float *)value;
+    // printf(user_data, (char *)key, curarr[0], curarr[1], curarr[2]);
+    fprintf(qtab_txt_file,user_data, (char *)key, curarr[0], curarr[1], curarr[2]);
+}
+
+uint8_t print_qdict(void) {
+    // printf("\n State \t | For \t | Lef \t | Rig");
+    qtab_txt_file = fopen(qtab_txt_file_addrs,"w");
+    fprintf(qtab_txt_file,"State \t\t\t | For \t\t | Lef \t\t | Rig \n");
+    g_hash_table_foreach(myqdict, (GHFunc)qdict_printer, "%s \t | %03.3f | %03.3f | %03.3f \n");
+    fclose(qtab_txt_file);
     return 0;
 }
 

@@ -561,7 +561,6 @@ uint8_t cv_3grids(void)
     get_bmp((unsigned char*)chunk.memory, chunk.size, &bmp);
     // free up memory of downloaded jpeg
     free(chunk.memory);
-    printf("\n==InHere==\n");
 
     count_redpixels_in_three_grids(&bmp);
 //     printf("\n Redcount: ");
