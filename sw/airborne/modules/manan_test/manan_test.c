@@ -55,6 +55,8 @@ uint32_t redcount_arr[3] = {0,0,0};
 uint32_t bluecount_arr[3] = {0,0,0};
 uint32_t greencount_arr[3] = {0,0,0};
 uint32_t count_arr[3][3] = {{0}};
+uint32_t sumcount_arr[3] = {0,0,0};
+uint32_t domcol_arr[3] = {0,0,0};
 
 // GList* list = NULL;
 // GHashTable* qdict = g_hash_table_new(g_str_hash, g_str_equal);
@@ -341,6 +343,22 @@ uint32_t count_redpixels(struct BmpStruct *bmpstructPtr)
     return redcounter;
 }
 
+uint8_t colmax(uint32_t colarr[3][3], uint8_t arrwidth, uint8_t arrheight)
+{
+    for (int i = 0; i < arrwidth; i++) {
+        uint32_t curcolmax = 0;
+        uint8_t curcolmax_ind = 0;
+        for (int j = 0; j < arrheight; j++) {
+            if (colarr[j][i] > curcolmax) {
+                curcolmax = colarr[j][i];
+                curcolmax_ind = j+1;
+            }
+        }
+        domcol_arr[i] = curcolmax_ind;
+    }
+    return 0;
+}
+
 uint8_t count_redpixels_in_three_grids(struct BmpStruct *bmpstructPtr)
 {
     unsigned char *curpx, *pxr, *pxg, *pxb;
@@ -349,32 +367,63 @@ uint8_t count_redpixels_in_three_grids(struct BmpStruct *bmpstructPtr)
     uint16_t width1 = width/3;
     uint16_t width2 = 2*width/3;
     // redcount_arr = {0,0,0};
-    redcount_arr[0] = 0;
-    redcount_arr[1] = 0;
-    redcount_arr[2] = 0;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            count_arr[i][j] = 0;
+        }
+        sumcount_arr[i] = 0;
+        domcol_arr[i] = 0;
+    }
 
     unsigned char *bmp_buffer = bmpstructPtr->buffer;
 
     int colvalsum;
-    float redfrac;
+    float redfrac,bluefrac,greenfrac;
 
     for(int rowi = 0; rowi < height; rowi++) {
         for(int coli = 0; coli < width; coli++) {
+            uint8_t arrtoapp = 100;
             curpx = get_pointertopix(bmp_buffer, rowi, coli, width);
             pxr = curpx;
             pxg = curpx + 1;
             pxb = curpx + 2;
             colvalsum = *pxr + *pxg + *pxb;
             redfrac = (float) *pxr / (float) colvalsum;
+            greenfrac = (float) *pxg / (float) colvalsum;
+            bluefrac = (float) *pxb / (float) colvalsum;
 
-            if (redfrac > 0.75) {
-                if (coli < width1) { redcount_arr[0]++; }
-                else if (coli < width2) { redcount_arr[1]++; }
-                else { redcount_arr[2]++; }
+            if (redfrac > 0.75) { arrtoapp=0; }
+            else if (greenfrac > 0.75) { arrtoapp=1; }
+            else if (bluefrac > 0.75) { arrtoapp=2; }
+
+            if (arrtoapp < 3) {
+                if (coli < width1) { count_arr[arrtoapp][0]++; }
+                else if (coli < width2) { count_arr[arrtoapp][1]++; }
+                else { count_arr[arrtoapp][2]++; }
             }
         }
     }
+
+    for (int i = 0; i < 3; i++) {
+        uint32_t sumpix = 0;
+        for (int j = 0; j < 3; j++) {
+            sumpix += count_arr[i][j];
+        }
+        sumcount_arr[i] = sumpix;
+    }
+
+    colmax(count_arr,3,3);
+
     return 0;
+}
+
+
+uint32_t sumpixcounts(uint32_t *colarr, uint8_t arrsize) {
+    uint32_t sumpix = 0;
+    for (int i = 0; i < arrsize; i++) {
+        sumpix += colarr[i];
+    }
+    return sumpix;
 }
 
 /* Counts the number of pixels above provided threshold values of RGB */
@@ -512,6 +561,7 @@ uint8_t cv_3grids(void)
     get_bmp((unsigned char*)chunk.memory, chunk.size, &bmp);
     // free up memory of downloaded jpeg
     free(chunk.memory);
+    printf("\n==InHere==\n");
 
     count_redpixels_in_three_grids(&bmp);
 //     printf("\n Redcount: ");
@@ -527,22 +577,20 @@ uint8_t cv_3grids(void)
 }
 
 // uint32_t cv_get_redcount
-uint8_t update_redsatheading(void)
-{
-    redsatheading[heading_ind] = curredcount;
-    heading_ind++;
-    return 0;
-}
-
-uint8_t print_redsatheading(void)
-{
-    for(int i = 0; i < 35; i++) {
-        printf("H: %3d; redcount: %6d \n", (i)*10, redsatheading[i]);
+uint8_t print_cvarrs(void) {
+    printf("\n Printing CV-arrs \n Dominant colors \n");
+    for (int i = 0; i < 3; i++) {printf("%d ",domcol_arr[i]);}
+    printf("\n Sum of colors \n");
+    for (int i = 0; i < 3; i++) {printf("%d ",sumcount_arr[i]);}
+    printf("\n Colors in grids ");
+    char *colarr[3] = {"red","green","blue"};
+    for (int i = 0; i < 3; i++) {
+        printf("\n %s \n", colarr[i]);
+        for (int j = 0; j < 3; j++) {
+            printf("%d ", count_arr[i][j]);
+        }
+        printf("\n");
     }
-    // NavGotoWaypoint(WP_SZ1);
-    // printf("Pos x: %f \n", GetPosX());
-
-//     uint8_t ami_inside = My_InsideMyWorld(GetPosX(),GetPosY());
-//     printf("2 C files in 1 modules: %d\n", ami_inside);
+    printf("\n Done \n");
     return 0;
 }

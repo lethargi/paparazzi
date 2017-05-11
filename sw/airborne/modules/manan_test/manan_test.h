@@ -37,8 +37,12 @@ extern uint8_t moveWaypointRightwards(uint8_t waypoint, float distanceMeters);
 extern uint32_t curredcount;
 extern uint32_t redcount_arr[3];
 
-extern uint8_t update_redsatheading(void);
-extern uint8_t print_redsatheading(void);
+
+extern uint32_t count_arr[3][3];
+extern uint32_t sumcount_arr[3];
+extern uint32_t domcol_arr[3];
+
+extern uint8_t print_cvarrs(void);
 extern uint8_t cv_task(void);
 extern uint8_t cv_3grids(void);
 

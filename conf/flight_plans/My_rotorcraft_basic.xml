@@ -104,6 +104,11 @@
         <call fun="size_qdict()"/>
       <stay wp="GOAL"/>
     </block>
+    <block name="PrintCVArrs">
+        <call fun="cv_3grids()"/>
+        <call fun="print_cvarrs()"/>
+      <stay wp="GOAL"/>
+    </block>
     <!--
     <block name="SetupEpisode">
       <go wp="HOME"/>
