@@ -17,7 +17,6 @@
     <waypoint lat="60.295034" lon="5.225104" name="TESTWP"/>
     <waypoint lat="60.2948404" lon="5.2250930" name="STDBY"/>
     <waypoint lat="60.2948404" lon="5.2250930" name="GOAL"/>
-    <waypoint lat="60.2952" lon="5.2256" name="HeightRef"/>
     <waypoint lat="60.2950532" lon="5.2245440" name="p1"/>
     <waypoint lat="60.2950305" lon="5.2255602" name="p2"/>
     <waypoint lat="60.2947578" lon="5.2255819" name="p3"/>
@@ -81,10 +80,6 @@
       <call fun="moveWaypointForwards(WP_GOAL,-2)"/>
       <stay wp="GOAL"/>
     </block>
-    <block name="GoToGoal">
-      <go wp="GOAL"/>
-      <stay wp="GOAL"/>
-    </block>
     <block name="GoToTemp">
       <go wp="TEMP"/>
       <stay wp="TEMP"/>
@@ -134,7 +129,6 @@
       <stay wp="HOME" until="stage_time>2"/>
       <call fun="rl_reset_episode()"/>
       <call fun="NavSetWaypointHere(WP_GOAL)"/>
-      <call fun="setAltToWp(WP_GOAL,WP_HeightRef)"/>
       <for var="i" from="1" to="4">
         <heading alt="WaypointAlt(WP_GOAL)" course="90 * $i" until="stage_time > 1.8"/>
       </for>

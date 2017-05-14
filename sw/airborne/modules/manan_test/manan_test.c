@@ -117,12 +117,23 @@ uint8_t moveWaypointForwards(uint8_t waypoint, float distanceMeters)
 	  // Now determine where to place the waypoint you want to go to
 	  new_coor.x = pos->x + POS_BFP_OF_REAL(sin_heading * (distanceMeters));
 	  new_coor.y = pos->y + POS_BFP_OF_REAL(cos_heading * (distanceMeters));
+	  // new_coor.z = waypoint->z; // Keep the height the same
 	  new_coor.z = pos->z; // Keep the height the same
 
 	  // Set the waypoint to the calculated position
 	  waypoint_set_xy_i(waypoint, new_coor.x, new_coor.y);
+      float wpheight = waypoint_get_alt(waypoint);
+      // waypoint_set_here(waypoint);
+      waypoint_set_alt(waypoint, wpheight);
 
 	  return FALSE;
+}
+
+uint8_t setAltToWp(uint8_t waypoint_toset, uint8_t waypoint_ref) {
+      float wpheight = waypoint_get_alt(waypoint_ref);
+      // waypoint_set_here(waypoint);
+      waypoint_set_alt(waypoint_toset, wpheight);
+      return FALSE;
 }
 
 uint8_t moveWaypointBackwards(uint8_t waypoint, float distanceMeters)
@@ -393,8 +404,8 @@ uint8_t count_redpixels_in_three_grids(struct BmpStruct *bmpstructPtr)
             bluefrac = (float) *pxb / (float) colvalsum;
 
             if (redfrac > 0.75) { arrtoapp=0; }
-            else if (greenfrac > 0.75) { arrtoapp=1; }
-            else if (bluefrac > 0.75) { arrtoapp=2; }
+            else if (greenfrac > 0.65) { arrtoapp=1; }
+            else if (bluefrac > 0.65) { arrtoapp=2; }
 
             if (arrtoapp < 3) {
                 if (coli < width1) { count_arr[arrtoapp][0]++; }

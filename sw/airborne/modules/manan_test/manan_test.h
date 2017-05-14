@@ -30,6 +30,7 @@ extern uint8_t moveWaypointForwards(uint8_t waypoint, float distanceMeters);
 extern uint8_t moveWaypointBackwards(uint8_t waypoint, float distanceMeters);
 extern uint8_t moveWaypointLeftwards(uint8_t waypoint, float distanceMeters);
 extern uint8_t moveWaypointRightwards(uint8_t waypoint, float distanceMeters);
+extern uint8_t setAltToWp(uint8_t waypoint_toset, uint8_t waypoint_ref);
 
 
 //extern size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream);

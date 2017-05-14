@@ -18,7 +18,7 @@ extern uint8_t rl_check_terminal(void);
 extern uint8_t rl_print_qtab(void);
 
 extern uint8_t rl_isterminal;
-extern uint8_t episodes_simulated;
+extern uint16_t episodes_simulated;
 
 extern uint8_t rl_read_qtab(void);
 extern uint8_t rl_write_qtab(void);
