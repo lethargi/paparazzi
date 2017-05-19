@@ -39,6 +39,9 @@ static float rl_gamma = 0.95;
 static float rl_alp = 0.35;
 static uint8_t rl_eps = 75;
 
+// Some vars for state
+// goals_visited 0 for none; 1 for red; 2 for green; 3 for both
+uint8_t goals_visited = 0;
 // counter for steps and episodes
 static uint16_t steps_taken = 0;
 uint16_t episodes_simulated = 0;
@@ -178,8 +181,10 @@ char *get_state_ext(void)
     for (int i = 0; i < 3; i++) {
         countfracs[i] = sumcount_arr[i]/5000;
     }
-    char *curstate = g_strdup_printf("%d,%d,%d;%d,%d,%d",
-            domcol_arr[0],domcol_arr[1],domcol_arr[2],countfracs[0],countfracs[1],countfracs[2]);
+    char *curstate = g_strdup_printf("%d,%d,%d;%d,%d,%d;%d",
+            domcol_arr[0],domcol_arr[1],domcol_arr[2],
+            countfracs[0],countfracs[1],countfracs[2],
+            goals_visited);
     printf("Ep:%d Step:%d State:%s ",episodes_simulated+1,steps_taken,curstate);
     return curstate;
 }
