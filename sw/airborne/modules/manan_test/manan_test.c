@@ -92,15 +92,6 @@ int printheading(int32_t *heading)
     printf("Heading: %f \n", DegOfRad(ANGLE_FLOAT_OF_BFP(*heading)));
     return 0;
 }
-/*
-uint8_t yaw(int32_t *heading, int32_t increment)
-{
-  *heading = *heading + increment;
-  // Check if your turn made it go out of bounds...
-  INT32_ANGLE_NORMALIZE(*heading); // HEADING HAS INT32_ANGLE_FRAC....
-  return FALSE;
-}
-*/
 
 /* The following functions are to move the waypoints in 4 directions relative
  * to the craft; these can be factored into one or two
@@ -129,33 +120,6 @@ uint8_t moveWaypointForwards(uint8_t waypoint, float distanceMeters)
 	  return FALSE;
 }
 
-uint8_t setAltToWp(uint8_t waypoint_toset, uint8_t waypoint_ref) {
-      float wpheight = waypoint_get_alt(waypoint_ref);
-      // waypoint_set_here(waypoint);
-      waypoint_set_alt(waypoint_toset, wpheight);
-      return FALSE;
-}
-
-uint8_t moveWaypointBackwards(uint8_t waypoint, float distanceMeters)
-{
-	  struct EnuCoor_i new_coor;
-	  struct EnuCoor_i *pos = stateGetPositionEnu_i(); // Get your current position
-
-	  // Calculate the sine and cosine of the heading the drone is keeping
-	  float sin_heading = sinf(ANGLE_FLOAT_OF_BFP(nav_heading));
-	  float cos_heading = cosf(ANGLE_FLOAT_OF_BFP(nav_heading));
-
-	  // Now determine where to place the waypoint you want to go to
-	  new_coor.x = pos->x - POS_BFP_OF_REAL(sin_heading * (distanceMeters));
-	  new_coor.y = pos->y - POS_BFP_OF_REAL(cos_heading * (distanceMeters));
-	  new_coor.z = pos->z; // Keep the height the same
-
-	  // Set the waypoint to the calculated position
-	  waypoint_set_xy_i(waypoint, new_coor.x, new_coor.y);
-
-	  return FALSE;
-}
-
 uint8_t moveWaypointLeftwards(uint8_t waypoint, float distanceMeters)
 {
 	  struct EnuCoor_i new_coor;
@@ -176,24 +140,36 @@ uint8_t moveWaypointLeftwards(uint8_t waypoint, float distanceMeters)
 	  return FALSE;
 }
 
-uint8_t moveWaypointRightwards(uint8_t waypoint, float distanceMeters)
+uint8_t setHeadingNorth(void)
 {
-	  struct EnuCoor_i new_coor;
-	  struct EnuCoor_i *pos = stateGetPositionEnu_i(); // Get your current position
+    float cur_head = ANGLE_FLOAT_OF_BFP(GetCurHeading());
+    // float cur_navhead = ANGLE_FLOAT_OF_BFP(nav_heading);
+    // printf("Nav %f; Curhead %f \n", ANGLE_FLOAT_OF_BFP(nav_heading),ANGLE_FLOAT_OF_BFP(GetCurHeading()));
 
-	  // Calculate the sine and cosine of the heading the drone is keeping
-	  float sin_heading = sinf(ANGLE_FLOAT_OF_BFP(nav_heading));
-	  float cos_heading = cosf(ANGLE_FLOAT_OF_BFP(nav_heading));
+    if (abs(cur_head) > 1.57) {
+        if (cur_head > 0) {
+            nav_heading = ANGLE_BFP_OF_REAL(RadOfDeg(90));
+        }
+        else {
+            nav_heading = ANGLE_BFP_OF_REAL(RadOfDeg(270));
+        }
+        INT32_COURSE_NORMALIZE(nav_heading);
+        return TRUE;
+    }
+    else {
+        nav_heading = ANGLE_BFP_OF_REAL(0);
+        INT32_COURSE_NORMALIZE(nav_heading);
+        return FALSE;
+    }
+    // if (abs(cur_head) < 0.1
+}
 
-	  // Now determine where to place the waypoint you want to go to
-	  new_coor.x = pos->x + POS_BFP_OF_REAL(cos_heading * (distanceMeters));
-	  new_coor.y = pos->y - POS_BFP_OF_REAL(sin_heading * (distanceMeters));
-	  new_coor.z = pos->z; // Keep the height the same
-
-	  // Set the waypoint to the calculated position
-	  waypoint_set_xy_i(waypoint, new_coor.x, new_coor.y);
-
-	  return FALSE;
+uint8_t setAltToWp(uint8_t waypoint_toset, uint8_t waypoint_ref)
+{
+      float wpheight = waypoint_get_alt(waypoint_ref);
+      // waypoint_set_here(waypoint);
+      waypoint_set_alt(waypoint_toset, wpheight);
+      return FALSE;
 }
 
 static size_t
@@ -404,7 +380,7 @@ uint8_t count_redpixels_in_three_grids(struct BmpStruct *bmpstructPtr)
             bluefrac = (float) *pxb / (float) colvalsum;
 
             if (redfrac > 0.75) { arrtoapp=0; }
-            else if (greenfrac > 0.65) { arrtoapp=1; }
+            else if (greenfrac > 0.75) { arrtoapp=1; }
             else if (bluefrac > 0.65) { arrtoapp=2; }
 
             if (arrtoapp < 3) {
@@ -428,8 +404,8 @@ uint8_t count_redpixels_in_three_grids(struct BmpStruct *bmpstructPtr)
     return 0;
 }
 
-
-uint32_t sumpixcounts(uint32_t *colarr, uint8_t arrsize) {
+uint32_t sumpixcounts(uint32_t *colarr, uint8_t arrsize)
+{
     uint32_t sumpix = 0;
     for (int i = 0; i < arrsize; i++) {
         sumpix += colarr[i];

@@ -19,10 +19,12 @@ extern void my_init(void);
 //extern void my_period(void);
 
 // Making amacro to get current heading (phi)
+// use ANGLE_FLOAT_OF_BFP for real value??
 #define GetCurHeading() (stateGetNedToBodyEulers_i()->psi)
 
 extern uint8_t increase_nav_heading(int32_t *heading, int32_t increment);
 extern uint8_t increase_nav_heading_deg(int32_t *heading, int32_t increment);
+extern uint8_t setHeadingNorth(void);
 
 extern int printheading(int32_t *heading);
 

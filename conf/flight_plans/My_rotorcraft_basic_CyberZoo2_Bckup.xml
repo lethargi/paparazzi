@@ -1,6 +1,6 @@
 <!DOCTYPE flight_plan SYSTEM "flight_plan.dtd">
 
-<flight_plan alt="57" ground_alt="49.03" lat0="60.2948404" lon0="5.2250930" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="4">
+<flight_plan alt="41" ground_alt="39.5" lat0="60.2806185" lon0="5.2225626" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="4">
   <header>
 	#include "autopilot.h"
     #include "subsystems/ahrs.h"
@@ -15,18 +15,18 @@
     <waypoint lat="60.2949" lon="5.2251" name="TEMP"/>
     <waypoint lat="60.2949" lon="5.2251045" name="CURPOS"/>
     <waypoint lat="60.295034" lon="5.225104" name="TESTWP"/>
-    <waypoint lat="60.2948404" lon="5.2250930" name="STDBY"/>
+    <waypoint x="0" y="0" name="STDBY"/>
     <waypoint lat="60.2948404" lon="5.2250930" name="GOAL"/>
     <waypoint lat="60.2952" lon="5.2256" name="HeightRef"/>
     <waypoint lat="60.2950532" lon="5.2245440" name="p1"/>
     <waypoint lat="60.2950305" lon="5.2255602" name="p2"/>
     <waypoint lat="60.2947578" lon="5.2255819" name="p3"/>
     <waypoint lat="60.2947389" lon="5.2245349" name="p4"/>
-    <waypoint lat="60.295011" lon="5.224595" name="SZ1"/>
-    <waypoint lat="60.295008" lon="5.225503" name="SZ2"/>
-    <waypoint lat="60.294776" lon="5.225522" name="SZ3"/>
-    <waypoint lat="60.294771" lon="5.224586" name="SZ4"/>
-    <waypoint lat="60.294771" lon="5.224586" name="BoundaryChecker"/>
+    <waypoint x="-4" y="4" name="SZ1"/>
+    <waypoint x="4" y="4" name="SZ2"/>
+    <waypoint x="4" y="-4" name="SZ3"/>
+    <waypoint x="-4" y="-4" name="SZ4"/>
+    <waypoint x="0.25" y="0.25" name="BoundaryChecker"/>
     <waypoint height="12." name="CAM" x="-20" y="-50"/>
     <waypoint name="XYFINDER" x="30" y="-30"/>
     <waypoint name="TD" x="5.6" y="-10.9"/>

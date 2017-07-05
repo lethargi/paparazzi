@@ -1,6 +1,6 @@
 <!DOCTYPE flight_plan SYSTEM "flight_plan.dtd">
 
-<flight_plan alt="57" ground_alt="49.03" lat0="60.2948404" lon0="5.2250930" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="4">
+<flight_plan alt="41" ground_alt="39.5" lat0="60.2806185" lon0="5.2225626" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="1">
   <header>
 	#include "autopilot.h"
     #include "subsystems/ahrs.h"
@@ -12,24 +12,26 @@
   <waypoints>
     <waypoint name="HOME" x="0.0" y="0.0"/>
     <waypoint name="CLIMB" x="0.0" y="2.5"/>
-    <waypoint lat="60.2949" lon="5.2251" name="TEMP"/>
-    <waypoint lat="60.2949" lon="5.2251045" name="CURPOS"/>
-    <waypoint lat="60.295034" lon="5.225104" name="TESTWP"/>
-    <waypoint lat="60.2948404" lon="5.2250930" name="STDBY"/>
-    <waypoint lat="60.2948404" lon="5.2250930" name="GOAL"/>
-    <waypoint lat="60.2952" lon="5.2256" name="HeightRef"/>
+    <waypoint x="3" y="3" name="TEMP"/>
+    <waypoint x="3" y="3.5" name="CURPOS"/>
+    <waypoint x="3" y="4" lon="5.225104" name="TESTWP"/>
+    <waypoint x="0" y="0" name="STDBY"/>
+    <waypoint x="0" y="0" name="GOAL"/>
+    <waypoint x="3" y="7" name="HeightRef"/>
+<!--
     <waypoint lat="60.2950532" lon="5.2245440" name="p1"/>
     <waypoint lat="60.2950305" lon="5.2255602" name="p2"/>
     <waypoint lat="60.2947578" lon="5.2255819" name="p3"/>
     <waypoint lat="60.2947389" lon="5.2245349" name="p4"/>
-    <waypoint lat="60.295011" lon="5.224595" name="SZ1"/>
-    <waypoint lat="60.295008" lon="5.225503" name="SZ2"/>
-    <waypoint lat="60.294776" lon="5.225522" name="SZ3"/>
-    <waypoint lat="60.294771" lon="5.224586" name="SZ4"/>
-    <waypoint lat="60.294771" lon="5.224586" name="BoundaryChecker"/>
+-->
+    <waypoint x="-4" y="3" name="SZ1"/>
+    <waypoint x="4" y="3" name="SZ2"/>
+    <waypoint x="4" y="-4" name="SZ3"/>
+    <waypoint x="-4" y="-4" name="SZ4"/>
+    <waypoint x="0.25" y="0.25" name="BoundaryChecker"/>
     <waypoint height="12." name="CAM" x="-20" y="-50"/>
     <waypoint name="XYFINDER" x="30" y="-30"/>
-    <waypoint name="TD" x="5.6" y="-10.9"/>
+    <waypoint name="TD" x="5" y="-5"/>
   </waypoints>
   <sectors>
     <sector color="green" name="MyWorld">
@@ -60,7 +62,14 @@
       <deroute block="Standby"/>
     </block>
     <block name="Standby" strip_button="Standby" strip_icon="home.png">
+       <call fun="init_qdict()"/>
       <stay wp="STDBY"/>
+    </block>
+    <!--
+    <block name="InitQdict">
+      <call fun="NavSetWaypointHere(WP_GOAL)"/>
+        <call fun="init_qdict()"/>
+      <stay wp="GOAL"/>
     </block>
     <block name="YawRight">
       <call fun="NavSetWaypointHere(WP_GOAL)"/>
@@ -101,10 +110,7 @@
         <call fun="cv_3grids()"/>
       <stay wp="GOAL"/>
     </block>
-    <block name="InitQdict">
-        <call fun="init_qdict()"/>
-      <stay wp="GOAL"/>
-    </block>
+-->
     <!--
     <block name="AppendQdict">
         <call fun="append_qdict()"/>
@@ -114,7 +120,6 @@
         <call fun="print_qdict()"/>
       <stay wp="GOAL"/>
     </block>
--->
     <block name="SizeQdict">
         <call fun="size_qdict()"/>
       <stay wp="GOAL"/>
@@ -122,16 +127,6 @@
     <block name="PrintCVArrs">
         <call fun="cv_3grids()"/>
         <call fun="print_cvarrs()"/>
-      <stay wp="GOAL"/>
-    </block>
-    <!--
-    <block name="SetupEpisode">
-      <go wp="HOME"/>
-      <call fun="NavSetWaypointHere(WP_GOAL)"/>
-      <call fun="rl_reset_episode()"/>
-    </block>
-    <block name="SetupEpisode2">
-      <call fun="nav_set_heading_towards_waypoint(WP_TESTWP)"/>
       <stay wp="GOAL"/>
     </block>
 -->
@@ -165,6 +160,7 @@
         <!-- <call fun="rl_update_qtab()"/> -->
         <call fun="rl_update_qdict()"/>
         <call fun="rl_check_terminal()"/>
+        <call fun="rl_write_step_log()"/>
       </while>
     </block>
     <block name="EndEp">
@@ -178,6 +174,7 @@
       <call fun="rl_write_episode_log()"/>
       <call fun="print_qdict()"/>
     </block>
+    <!--
     <block name="WriteEpLog">
       <call fun="rl_write_episode_log()"/>
     </block>
@@ -185,10 +182,12 @@
       <call fun="rl_print_qtab()"/>
       <stay wp="GOAL"/>
     </block>
+    -->
     <block name="PrintQDict">
       <call fun="print_qdict()"/>
       <stay wp="GOAL"/>
     </block>
+    <!--
     <block name="ReadQtab">
       <call fun="NavSetWaypointHere(WP_TEMP)"/>
       <call fun="rl_read_qtab()"/>
@@ -199,6 +198,7 @@
       <call fun="rl_write_qtab()"/>
       <stay wp="TEMP"/>
     </block>
+    -->
     <block name="WriteQDict">
       <call fun="NavSetWaypointHere(WP_TEMP)"/>
       <call fun="write_qdict()"/>
@@ -209,8 +209,11 @@
       <call fun="load_qdict()"/>
       <stay wp="TEMP"/>
     </block>
-    <!--
-    -->
+    <block name="ReadQDict_TXT">
+      <call fun="NavSetWaypointHere(WP_TEMP)"/>
+      <call fun="load_qdict_fromtxt()"/>
+      <stay wp="TEMP"/>
+    </block>
     <block name="land here" strip_button="Land Here" strip_icon="land-right.png">
       <call fun="NavSetWaypointHere(WP_TD)"/>
     </block>

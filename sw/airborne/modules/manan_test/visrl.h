@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include <glib.h>
 
+// #define GetCurX() (stateGetNedToBodyEulers_i()->psi)
+// #define GetCurY() (stateGetNedToBodyEulers_i()->psi)
+
 extern uint8_t do_visrl(void);
 extern uint8_t get_state(void);
 
@@ -23,14 +26,23 @@ extern uint16_t episodes_simulated;
 extern uint8_t rl_read_qtab(void);
 extern uint8_t rl_write_qtab(void);
 extern uint8_t rl_write_episode_log(void);
+extern uint8_t rl_write_step_log(void);
 
+extern uint8_t rl_dec_eps(void);
+extern uint8_t rl_inc_eps(void);
 
 extern uint8_t print_qdict(void);
+extern uint8_t load_qdict_fromtxt(void);
 // wth the 3 grids
 // extern uint8_t get_state2(void);
 
 extern uint8_t init_qdict(void);
 extern uint8_t size_qdict(void);
+
+
+extern uint8_t write_qdict(void);
+extern uint8_t load_qdict(void);
+
 // extern uint8_t append_qdict(void);
 // extern uint8_t print_qdict(void);
 //Some testing stuff
