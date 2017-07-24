@@ -24,10 +24,10 @@
     <waypoint lat="60.2947578" lon="5.2255819" name="p3"/>
     <waypoint lat="60.2947389" lon="5.2245349" name="p4"/>
 -->
-    <waypoint x="-4" y="3" name="SZ1"/>
-    <waypoint x="4" y="3" name="SZ2"/>
-    <waypoint x="4" y="-4" name="SZ3"/>
-    <waypoint x="-4" y="-4" name="SZ4"/>
+    <waypoint x="-3.8" y="3" name="SZ1"/>
+    <waypoint x="3.8" y="3" name="SZ2"/>
+    <waypoint x="3.8" y="-4" name="SZ3"/>
+    <waypoint x="-3.8" y="-4" name="SZ4"/>
     <waypoint x="0.25" y="0.25" name="BoundaryChecker"/>
     <waypoint height="12." name="CAM" x="-20" y="-50"/>
     <waypoint name="XYFINDER" x="30" y="-30"/>
@@ -154,25 +154,51 @@
     <block name="DoOneStep">
       <while cond="!rl_isterminal">
         <call fun="rl_set_cur()"/>
+        <call fun="rl_write_step_log()"/>
         <call fun="rl_take_cur_action()"/>
         <stay until="stage_time>1" wp="GOAL"/>
         <call fun="rl_set_nxt()"/>
         <!-- <call fun="rl_update_qtab()"/> -->
         <call fun="rl_update_qdict()"/>
         <call fun="rl_check_terminal()"/>
-        <call fun="rl_write_step_log()"/>
       </while>
     </block>
     <block name="EndEp">
       <call fun="rl_write_episode_log()"/>
-	  <exception cond="episodes_simulated > 500" deroute="EndRl"/>
+      <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
+	  <exception cond="episodes_simulated > rl_maxepochs" deroute="IncEps"/>
+      <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
+	  <deroute block="SetupEpisode"/>
+    </block>
+    <block name="IncEps">
+      <call fun="rl_inc_maxepochs()"/>
+      <call fun="rl_inc_eps()"/>
+      <call fun="rl_write_episode_log()"/>
+      <call fun="print_qdict()"/>
+      <call fun="write_qdict()"/>
+      <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
+	  <exception cond="episodes_simulated > 899" deroute="EndRl"/>
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
 	  <deroute block="SetupEpisode"/>
     </block>
     <block name="EndRl">
-      <stay wp="GOAL"/>
       <call fun="rl_write_episode_log()"/>
       <call fun="print_qdict()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <!-- -->
+
+    <block name="IncMaxEpochs">
+      <call fun="rl_inc_maxepochs()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="IncEpsilon">
+      <call fun="rl_inc_eps()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="DecEpsilon">
+      <call fun="rl_dec_eps()"/>
+      <stay wp="GOAL"/>
     </block>
     <!--
     <block name="WriteEpLog">

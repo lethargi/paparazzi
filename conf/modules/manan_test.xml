@@ -4,6 +4,13 @@
   <doc>
     <description>testing if nps can compile custom modules</description>
   </doc>
+  <settings>
+    <dl_settings>
+      <dl_settings NAME="RL params">
+          <dl_setting MAX="100" MIN="5" STEP="5" VAR="rl_eps" shortname="epsilon" module="manan_test/visrl" type="int"/>
+      </dl_settings>
+    </dl_settings>
+  </settings>
   <header>
     <file name="manan_test.h"/>
   </header>
@@ -26,6 +33,7 @@
         <!--
         ap.LDFLAGS += -lcurl
         ap.LDFLAGS += -ljpeg
+        ap.LDFLAGS += -glib
         -->
     </raw>
   </makefile>
