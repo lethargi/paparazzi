@@ -1,14 +1,22 @@
 #include <stdint.h>
 #include <glib.h>
 
+#define GetSign(v) ( ( (v) < 0 ) ? -1 : ( (v) > 0 ) )
 // #define GetCurX() (stateGetNedToBodyEulers_i()->psi)
 // #define GetCurY() (stateGetNedToBodyEulers_i()->psi)
 
 extern GHashTable *myqdict;
 extern uint16_t rl_maxepochs;
+extern int8_t headind;
+extern int8_t head_roll;
+
+
+// extern uint8_t rl_randomize_start(uint8_t waypoint);
+extern uint8_t rl_randomize_start(uint8_t waypoint, uint8_t altref_wp);
+extern uint8_t rl_smooth_turn(uint8_t targhead_ind);
+// extern uint8_t rl_turntoheadroll(void);
 
 extern uint8_t rl_init(void);
-extern uint8_t rl_reset_episode(void);
 extern uint8_t rl_set_cur(void);
 extern uint8_t rl_set_nxt(void);
 extern uint8_t rl_take_cur_action(void);
@@ -33,3 +41,4 @@ extern uint8_t print_qdict(void);
 extern uint8_t write_qdict(void);
 extern uint8_t load_qdict(void);
 extern uint8_t load_qdict_fromtxt(void);
+extern uint8_t copy_qdict(void);

@@ -11,22 +11,18 @@
 // think this contains state information from that file
 #include "firmwares/rotorcraft/navigation.h"
 #include "state.h"
+#include "autopilot.h"
 
 #define NAV_C
 #include "generated/flight_plan.h"
 
 
-// counters for vision, state and terminal condition
-uint32_t totredcount;
 
-// float headings[8] = {0,45,90,135,180,225,270,315};
 float headings_rad[8] = {0, M_PI/4., M_PI/2., 3*M_PI/4.,
                         M_PI, 5*M_PI/4. , 3*M_PI/2. , 7*M_PI/4.};
 uint8_t len_headings = 8;
 int8_t headind = 0;
 uint8_t headatcompass = 1;
-// Mapping from state to rewardz
-// static float reward_function[7] = {-10, -8, -6, -4, -2, -1, 0};
 
 // States, actions and reward
 static char *act_type = "R";
@@ -35,14 +31,9 @@ static char *cur_sta, *nxt_sta;
 static uint8_t hitwall = 0;
 uint8_t rl_isterminal = 0;
 static float cur_rew = 0;
-// nxt_sta = 0;
 
 uint16_t rl_maxepochs = 100;
 
-// RL parameters
-// static float rl_gamma = 0.95;
-// static float rl_alp = 0.35;
-// static uint8_t rl_eps = 75;
 static float rl_gamma = 0.9;
 static float rl_alp = 0.3;
 uint8_t rl_eps = 60;
@@ -57,6 +48,8 @@ uint16_t episodes_simulated = 0;
 float episode_rewards = 0;
 static float sumofQchanges = 0;
 uint32_t total_state_visits = 0;
+
+int8_t head_roll;
 
 // file to write and qtable; add descriptions of these files
 char qdict_txt_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict.txt";
@@ -206,40 +199,132 @@ char *get_state_ext(void)
 
     // curstate[30];
     // char *curstate = g_strdup_printf("%d,%d,%d;%d,%d;%d;%d;%d",
-    char *curstate = g_strdup_printf("%d,%d,%d;%d;%d;%d",
+    char *curstate = g_strdup_printf("%d,%d,%d;%d;%d",
             domcol_arr[0],domcol_arr[1],domcol_arr[2],
             // countfracs[0],countfracs[1],//countfracs[2],
-            goals_visited,hitwall,headind);
+            goals_visited,hitwall);//,headind);
     printf("Ep:%d Step:%d State:%s ",episodes_simulated+1,steps_taken,curstate);
     return curstate;
 }
 
-uint8_t rl_reset_episode(void)
-{
-        rl_isterminal = 0;
-        return 0;
-}
+void update_headind(void);
 
 uint8_t rl_init(void)
 {
+    rl_isterminal = 0;
     steps_taken = 0;
     sumofQchanges = 0;
     episode_rewards = 0;
     cur_rew = 0;
     goals_visited = 0;
-    nxt_sta = get_state_ext();
-    nxt_act = pick_action(nxt_sta);
-    headind = 0;
+    rl_set_nxt();
+    // headind = 0;
+    update_headind();
     printf("\n RL initialized ");
     printf(" TotVis:%u \n", total_state_visits);
     return 0;
 }
 
+uint8_t rl_randomize_start(uint8_t waypoint, uint8_t altref_wp)
+{
+    struct EnuCoor_i new_coor;
+
+    float x_roll = (float) (rand() % 70 - 35)/10;
+    float y_roll = (float) (rand() % 70 - 35)/10;
+    while (!InsideMyWorld(x_roll,y_roll)) {
+        x_roll = (float) (rand() % 70 - 35)/10;
+        y_roll = (float) (rand() % 70 - 35)/10;
+    }
+    float refalt = waypoint_get_alt(altref_wp);
+    head_roll = rand() % 8;
+    printf("\n %f %f %f %d %f \n", x_roll,y_roll,refalt,head_roll,headings_rad[head_roll]);
+
+    // Now determine where to place the waypoint you want to go to
+    new_coor.x = POS_BFP_OF_REAL(x_roll);
+    new_coor.y = POS_BFP_OF_REAL(y_roll);
+    new_coor.z = refalt; // Keep the height the same
+    waypoint_move_enu_i(waypoint,&new_coor);
+
+//     uint8_t notdone = TRUE;
+//     while(notdone) {
+//         notdone = rl_smooth_turn(head_roll);
+//     };
+
+//     int8_t turndir = head_roll - headind;
+//     int8_t turndir = (head_roll > headind)? +1 : -1;
+//     int8_t curtargdir = heading + turndir;
+//     curtargdir = (curtargdir>7)? 0 : curtargdir;
+//     curtargdir = (curtargdir<0)? 7 : curtargdir;
+//     while (headind != head_roll) {
+// 
+//         set_nav_heading(headings_rad[curtargdir])
+//     }
+//     set_nav_heading(headings_rad[head_roll]);
+    // autopilot_guided_goto_ned(x_roll, y_roll, refalt, headings_rad[head_roll]);
+    return FALSE;
+}
+
+float get_myheading(void)
+{
+    float myhead = GetCurHeading();
+    myhead = (myhead > 0)? myhead : 2*M_PI + myhead;
+    return myhead;
+}
+
+void update_headind(void)
+{
+    float myhead = get_myheading();
+    float hby2 = M_PI/8;
+    uint8_t i = 0;
+    if ((myhead < hby2) || (myhead >= headings_rad[7] + hby2)) {
+        headind = i;
+    }
+    else {
+        // uint8_t done = FALSE;
+        // while (!done) {
+        for (uint8_t i=1; i<8;i++){
+            if ((myhead >= headings_rad[i-1] + hby2) &&
+                (myhead < headings_rad[i] + hby2)) {
+                    headind = i;
+                    // printf("\n Headindset %d \n",headind);
+                    // done = TRUE;
+                }
+            // printf("InUpdateHeadind WHILE-LOOP %d %d %f %f %f\n", i, headind,  headings_rad[i-1] + hby2, myhead, headings_rad[i] + hby2);
+        }
+    }
+}
+
+uint8_t rl_smooth_turn(uint8_t targhead_ind)
+{
+    update_headind();
+    int8_t dh_i = targhead_ind - headind;
+    if (dh_i == 0) {
+        return FALSE;
+    }
+
+    if (abs(dh_i) > 4) {
+        dh_i = (dh_i > 0)? 8 - dh_i : 8 + dh_i;
+    }
+
+    // if (abs(dh_i) > 1) {
+    dh_i = GetSign(dh_i);
+    // }
+
+    float targ_heading = headings_rad[headind+dh_i];
+    set_nav_heading(targ_heading);
+    // printf("InSmoothTurn %d %d %d %f %f \n",dh_i, headind, targhead_ind, targ_heading, headings_rad[headind]);
+    return TRUE;
+}
+
+// uint8_t rl_turntoheadroll(void)
+// {
+//     return rl_smooth_turn(head_roll);
+// }
+
 uint8_t rl_set_cur(void)
 {
     cur_sta = nxt_sta;
     cur_act = nxt_act;
-    // printf("Ep:%2u, Step:%3u, Reds:%6d, C_sta:%1d C_act:%1d :: ", episodes_simulated, steps_taken, totredcount, cur_sta, cur_act);
     return 0;
 }
 
@@ -341,7 +426,6 @@ uint8_t rl_update_qdict(void)
 uint8_t rl_check_terminal(void)
 {
     // this can be stated better
-    // if (totredcount < 35000) {
     if (goals_visited != 3) {
         // printf("non-terminal \n");
         rl_isterminal = 0;
@@ -536,6 +620,84 @@ uint8_t load_qdict_fromtxt(void)
     return 0;
 }
 
+// /*
+uint8_t copy_file(char *old_filename, char  *new_filename)
+{
+    FILE  *ptr_old, *ptr_new;
+    // uint8_t err = 0, err1 = 0;
+    int  a;
+
+//     err = fopen_s(&ptr_old, old_filename, "rb");
+//     err1 = fopen_s(&ptr_new, new_filename, "wb");
+    ptr_old = fopen(old_filename,"rb");
+    ptr_new = fopen(new_filename,"wb");
+
+
+    /*
+    if(err != 0)
+        return  1;
+
+    if(err1 != 0)
+    {
+        fclose(ptr_old);
+        return  1;
+    }
+    */
+
+    while(1)
+    {
+        a  =  fgetc(ptr_old);
+
+        if(!feof(ptr_old))
+            fputc(a, ptr_new);
+        else
+            break;
+    }
+
+    fclose(ptr_new);
+    fclose(ptr_old);
+    return  0;
+}
+// */
+
+uint8_t copy_qdict(void)
+{
+    char acopyloc[200];
+    char copy_location[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/__LastSaves/";
+    //https://stackoverflow.com/questions/8257714/how-to-convert-an-int-to-string-in-c
+    int length = snprintf( NULL, 0, "%s%d/", copy_location, episodes_simulated);
+    char* path = malloc( length + 1 );
+    snprintf( path, length + 1, "%s%d/", copy_location, episodes_simulated);
+    // printf("%s",path);
+    mkdir(path,0777);
+
+    // /*
+    strcpy(acopyloc,path);
+    strcat(acopyloc,"statevisits.txt");
+    copy_file(statevisits_file_addrs,acopyloc);
+
+    strcpy(acopyloc,path);
+    strcat(acopyloc,"qdict.txt");
+    copy_file(qdict_txt_file_addrs,acopyloc);
+
+    strcpy(acopyloc,path);
+    strcat(acopyloc,"qdict_keys.dat");
+    copy_file(qdictkeys_file_addrs,acopyloc);
+
+    strcpy(acopyloc,path);
+    strcat(acopyloc,"qdict_values.dat");
+    copy_file(qdictvalues_file_addrs,acopyloc);
+
+    strcpy(acopyloc,path);
+    strcat(acopyloc,"statevisits.dat");
+    copy_file(statevisitsvalues_file_addrs,acopyloc);
+    // */
+    free(path);
+    return FALSE;
+
+
+}
+
 void qdict_remove(gpointer key, gpointer value, gpointer user_data)
 {
     // uint16_t *curarr = (uint16_t *)value;
@@ -544,11 +706,12 @@ void qdict_remove(gpointer key, gpointer value, gpointer user_data)
     // printf(user_data, (char *)key, curarr[0], curarr[1], curarr[2]);
     // fprintf(statevisits_txt_file,user_data, (char *)key, curarr[0], curarr[1], curarr[2]);
 }
+
 uint8_t free_qdict(void)
 {
     g_hash_table_foreach(myqdict, (GHFunc)qdict_remove, "");
     g_hash_table_destroy(myqdict);
-    return 0;
+    return FALSE;
 }
 /* TrashBin
 // uint8_t rl_print_test(void)

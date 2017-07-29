@@ -68,6 +68,7 @@ void my_init()
 
 uint8_t set_nav_heading(float newheading)
 {
+    // printf("Oldhead: %f; NewHead: %f\n", ANGLE_FLOAT_OF_BFP(nav_heading), newheading);
     nav_heading = ANGLE_BFP_OF_REAL(newheading);
     INT32_ANGLE_NORMALIZE(nav_heading); // HEADING HAS INT32_ANGLE_FRAC....
     return FALSE;
@@ -151,6 +152,37 @@ uint8_t setHeadingNorth(void)
     }
     // if (abs(cur_head) < 0.1
 }
+
+/*
+uint8_t setHeadingSmooth(float targhead)
+{
+    float cur_head = GetCurHeading();
+    float diff_head = targhead-cur_head
+    // float cur_navhead = ANGLE_FLOAT_OF_BFP(nav_heading);
+    // printf("Nav %f; Curhead %f \n", ANGLE_FLOAT_OF_BFP(nav_heading),ANGLE_FLOAT_OF_BFP(GetCurHeading()));
+
+    if (abs(diff_head) > 3.14) {
+        diff_head = cur_head-targhead
+        }
+
+    if (abs(diff_head) > 1.57) {
+        if (diff_head > 0) {
+            nav_heading = ANGLE_BFP_OF_REAL(targhead+RadOfDeg(90));
+        }
+        else {
+            nav_heading = ANGLE_BFP_OF_REAL(targhead+RadOfDeg(90));
+        }
+        INT32_COURSE_NORMALIZE(nav_heading);
+        return TRUE;
+    }
+    else {
+        nav_heading = ANGLE_BFP_OF_REAL(targhead);
+        INT32_COURSE_NORMALIZE(nav_heading);
+        return FALSE;
+    }
+    // if (abs(cur_head) < 0.1
+}
+*/
 
 uint8_t setAltToWp(uint8_t waypoint_toset, uint8_t waypoint_ref)
 {
@@ -322,7 +354,7 @@ uint8_t colmax(uint32_t colarr[3][3],uint8_t maxcolarr[3])
     return 0;
 }
 
-uint8_t count_redpixels_in_three_grids(struct BmpStruct *bmpstructPtr)
+uint8_t count_pixels_in_three_grids(struct BmpStruct *bmpstructPtr)
 {
     unsigned char *curpx, *pxr, *pxg, *pxb;
     uint16_t height = bmpstructPtr->height;
@@ -397,7 +429,7 @@ uint8_t cv_3grids(void)
     // free up memory of downloaded jpeg
     free(chunk.memory);
 
-    count_redpixels_in_three_grids(&bmp);
+    count_pixels_in_three_grids(&bmp);
 
     // free up memory of the bmp
     free(bmp.buffer);
