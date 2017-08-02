@@ -1,5 +1,6 @@
 #include "modules/manan_test/visrl.h"
 #include "modules/manan_test/manan_test.h"
+// #include "modules/manan_test/mydict.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -202,27 +203,57 @@ char *get_state_ext(void)
     char *curstate = g_strdup_printf("%d,%d,%d;%d;%d",
             domcol_arr[0],domcol_arr[1],domcol_arr[2],
             // countfracs[0],countfracs[1],//countfracs[2],
-            goals_visited,hitwall);//,headind);
+            // goals_visited,hitwall,headind); // with headindex
+            goals_visited,hitwall);      // without headingindex
     printf("Ep:%d Step:%d State:%s ",episodes_simulated+1,steps_taken,curstate);
     return curstate;
 }
 
-void update_headind(void);
-
-uint8_t rl_init(void)
+float get_myheading(void)
 {
-    rl_isterminal = 0;
-    steps_taken = 0;
-    sumofQchanges = 0;
-    episode_rewards = 0;
-    cur_rew = 0;
-    goals_visited = 0;
-    rl_set_nxt();
-    // headind = 0;
+    float myhead = GetCurHeading();
+    myhead = (myhead > 0)? myhead : 2*M_PI + myhead;
+    return myhead;
+}
+
+void update_headind(void)
+{
+    float myhead = get_myheading();
+    float hby2 = M_PI/8;
+    uint8_t i = 0;
+    if ((myhead < hby2) || (myhead >= headings_rad[7] + hby2)) {
+        headind = i;
+    }
+    else {
+        for (uint8_t i=1; i<8;i++){
+            if ((myhead >= headings_rad[i-1] + hby2) &&
+                (myhead < headings_rad[i] + hby2)) {
+                    headind = i;
+                }
+        }
+    }
+}
+
+uint8_t rl_smooth_turn(uint8_t targhead_ind)
+{
     update_headind();
-    printf("\n RL initialized ");
-    printf(" TotVis:%u \n", total_state_visits);
-    return 0;
+    int8_t dh_i = targhead_ind - headind;
+    if (dh_i == 0) {
+        return FALSE;
+    }
+
+    if (abs(dh_i) > 4) {
+        dh_i = (dh_i > 0)? 8 - dh_i : 8 + dh_i;
+    }
+
+    // if (abs(dh_i) > 1) {
+    dh_i = GetSign(dh_i);
+    // }
+
+    float targ_heading = headings_rad[headind+dh_i];
+    set_nav_heading(targ_heading);
+    // printf("InSmoothTurn %d %d %d %f %f \n",dh_i, headind, targhead_ind, targ_heading, headings_rad[headind]);
+    return TRUE;
 }
 
 uint8_t rl_randomize_start(uint8_t waypoint, uint8_t altref_wp)
@@ -264,62 +295,21 @@ uint8_t rl_randomize_start(uint8_t waypoint, uint8_t altref_wp)
     return FALSE;
 }
 
-float get_myheading(void)
+uint8_t rl_init(void)
 {
-    float myhead = GetCurHeading();
-    myhead = (myhead > 0)? myhead : 2*M_PI + myhead;
-    return myhead;
-}
-
-void update_headind(void)
-{
-    float myhead = get_myheading();
-    float hby2 = M_PI/8;
-    uint8_t i = 0;
-    if ((myhead < hby2) || (myhead >= headings_rad[7] + hby2)) {
-        headind = i;
-    }
-    else {
-        // uint8_t done = FALSE;
-        // while (!done) {
-        for (uint8_t i=1; i<8;i++){
-            if ((myhead >= headings_rad[i-1] + hby2) &&
-                (myhead < headings_rad[i] + hby2)) {
-                    headind = i;
-                    // printf("\n Headindset %d \n",headind);
-                    // done = TRUE;
-                }
-            // printf("InUpdateHeadind WHILE-LOOP %d %d %f %f %f\n", i, headind,  headings_rad[i-1] + hby2, myhead, headings_rad[i] + hby2);
-        }
-    }
-}
-
-uint8_t rl_smooth_turn(uint8_t targhead_ind)
-{
+    rl_isterminal = 0;
+    steps_taken = 0;
+    sumofQchanges = 0;
+    episode_rewards = 0;
+    cur_rew = 0;
+    goals_visited = 0;
+    rl_set_nxt();
+    // headind = 0;
     update_headind();
-    int8_t dh_i = targhead_ind - headind;
-    if (dh_i == 0) {
-        return FALSE;
-    }
-
-    if (abs(dh_i) > 4) {
-        dh_i = (dh_i > 0)? 8 - dh_i : 8 + dh_i;
-    }
-
-    // if (abs(dh_i) > 1) {
-    dh_i = GetSign(dh_i);
-    // }
-
-    float targ_heading = headings_rad[headind+dh_i];
-    set_nav_heading(targ_heading);
-    // printf("InSmoothTurn %d %d %d %f %f \n",dh_i, headind, targhead_ind, targ_heading, headings_rad[headind]);
-    return TRUE;
+    printf("\n RL initialized ");
+    printf(" TotVis:%u \n", total_state_visits);
+    return 0;
 }
-
-// uint8_t rl_turntoheadroll(void)
-// {
-//     return rl_smooth_turn(head_roll);
-// }
 
 uint8_t rl_set_cur(void)
 {
@@ -501,6 +491,13 @@ uint8_t print_qdict(void)
     return 0;
 }
 
+/*
+uint8_t print_qdict2(void)
+{
+    return 0;
+}
+*/
+
 uint8_t write_qdict(void)
 {
     GHashTableIter iter;
@@ -617,6 +614,7 @@ uint8_t load_qdict_fromtxt(void)
         printf("%s %f %f %f \n",akey, aval[0], aval[1], aval[2]);
     }
     fclose(qdict_txt_file);
+    fclose(statevisits_txt_file);
     return 0;
 }
 
@@ -698,6 +696,22 @@ uint8_t copy_qdict(void)
 
 }
 
+uint8_t copy_logs(void)
+{
+    char acopyloc[200];
+    char copy_location[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/__LastSaves/";
+
+    strcpy(acopyloc,copy_location);
+    strcat(acopyloc,"epi_log.txt");
+    copy_file(epi_log_file_addrs,acopyloc);
+
+    strcpy(acopyloc,copy_location);
+    strcat(acopyloc,"log.txt");
+    copy_file(log_file_addrs,acopyloc);
+
+    return FALSE;
+}
+
 void qdict_remove(gpointer key, gpointer value, gpointer user_data)
 {
     // uint16_t *curarr = (uint16_t *)value;
@@ -713,20 +727,3 @@ uint8_t free_qdict(void)
     g_hash_table_destroy(myqdict);
     return FALSE;
 }
-/* TrashBin
-// uint8_t rl_print_test(void)
-// {
-//     static int16_t inttoprint = 0;
-//     inttoprint++;
-//     printf("The int is: %d\n", inttoprint);
-//     return 0;
-// }
-//
-// uint8_t test_pick_action(void) 
-// {
-//     uint8_t anaction;
-//     anaction = pick_action(nxt_sta);
-//     return 0;
-// }
-//
-*/

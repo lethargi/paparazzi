@@ -41,4 +41,6 @@ extern uint8_t print_qdict(void);
 extern uint8_t write_qdict(void);
 extern uint8_t load_qdict(void);
 extern uint8_t load_qdict_fromtxt(void);
+
 extern uint8_t copy_qdict(void);
+extern uint8_t copy_logs(void);

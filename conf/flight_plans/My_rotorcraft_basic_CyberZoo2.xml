@@ -135,9 +135,9 @@
       <call fun="rl_randomize_start(WP_GOAL,WP_HOME)"/>
       <call fun="setAltToWp(WP_GOAL,WP_HOME)"/>
       <call fun="rl_smooth_turn(head_roll)"/>
-      <stay wp="CURPOS" until="stage_time>10"/>
+      <stay wp="CURPOS" until="stage_time>8"/>
       <go from="CURPOS" wp="GOAL" hmode="route" approaching_time="0"/>
-      <stay wp="GOAL" until="stage_time>10"/>
+      <stay wp="GOAL" until="stage_time>5"/>
       <!-- <call fun="setHeadingNorth()"/> -->
       <!-- <call fun="NavSetWaypointHere(WP_GOAL)"/> -->
       <deroute block="InitRL"/>
@@ -173,8 +173,8 @@
       <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
 	  <exception cond="episodes_simulated > rl_maxepochs" deroute="IncEps"/>
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
-      <!-- <deroute block="SetupEpisode"/> -->
-	  <deroute block="RandomizeStart"/>
+      <deroute block="SetupEpisode"/>
+      <!-- <deroute block="RandomizeStart"/> -->
     </block>
     <block name="IncEps">
       <call fun="rl_inc_maxepochs()"/>
@@ -193,10 +193,10 @@
       <call fun="print_qdict()"/>
       <call fun="write_qdict()"/>
       <call fun="copy_qdict()"/>
+      <call fun="copy_logs()"/>
       <stay wp="GOAL"/>
     </block>
     <!-- -->
-
     <block name="IncMaxEpochs">
       <call fun="rl_inc_maxepochs()"/>
       <stay wp="GOAL"/>
