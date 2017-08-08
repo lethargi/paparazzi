@@ -1,6 +1,6 @@
 #include "modules/manan_test/visrl.h"
 #include "modules/manan_test/manan_test.h"
-// #include "modules/manan_test/mydict.h"
+#include "modules/manan_test/mydict.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -78,6 +78,7 @@ GHashTable *myqdict;
 GHashTable *mystatevisitsdict;
 // GSList *rewardlist = NULL;
 
+md_linkedlist *ll_qdict;
 
 uint8_t init_qdict(void)
 {
@@ -85,16 +86,14 @@ uint8_t init_qdict(void)
     myqdict = g_hash_table_new(g_str_hash, g_str_equal);
     mystatevisitsdict = g_hash_table_new(g_str_hash, g_str_equal);
     printf("SizeOfQdict:%d\n",g_hash_table_size(myqdict));
+
     log_file = fopen(log_file_addrs,"w"); //create or reset logfile
     epi_log_file = fopen(epi_log_file_addrs,"w"); //create or reset epi logfile
     fclose(log_file);
     fclose(epi_log_file);
-    return 0;
-}
 
-uint8_t size_qdict(void)
-{
-    printf("SizeOfQdict:%d\n",g_hash_table_size(myqdict));
+    ll_qdict = md_init_linkedlist();
+    printf("Size Of ll_Qdict:%d\n",ll_qdict->length);
     return 0;
 }
 

@@ -19,7 +19,7 @@
   <makefile>
     <file name="manan_test.c"/>
     <file name="visrl.c" dir="modules/manan_test/"/>
-    <!-- <file name="mydict.c" dir="modules/manan_test/"/> -->
+    <file name="mydict.c" dir="modules/manan_test/"/>
     <!--<raw>$(TARGET).CFLAGS += -lcurl</raw>-->
     <!--raw>
      ap.CFLAGS += "-I/usr/include/
