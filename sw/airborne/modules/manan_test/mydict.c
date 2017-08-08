@@ -32,25 +32,12 @@ void md_node_best_action(md_node *cursor)
 {
     float cur_best_val = -FLT_MAX;
     // uint8_t cur_best_act;
-    if (cursor->f > cur_best_val) {
-        cur_best_val = cursor->f;
-        cursor->best_act = 0;
+    for (int i = 0; i < 3; i++){
+        if (cursor->values[i] > cur_best_val) {
+            cur_best_val = cursor->values[i];
+            cursor->best_action = i;
+        }
     }
-    if (cursor->l > cur_best_val) {
-        cur_best_val = cursor->l;
-        cursor->best_act = 1;
-    }
-    if (cursor->r > cur_best_val) {
-        cur_best_val = cursor->r;
-        cursor->best_act = 2;
-    }
-    // use this when using the turn extended action
-    /*
-    if (cursor->T > cur_best_val) {
-        cur_best_val = cursor->T;
-        cursor->best_act = 3;
-    }
-    */
 }
 
 md_node* md_create(char *key, md_node *next)
@@ -64,17 +51,11 @@ md_node* md_create(char *key, md_node *next)
     }
     new_node->key = key;
 
-    // value functions initialized at 0
-    new_node->f = 0;
-    new_node->l = 0;
-    new_node->r = 0;
-    new_node->T = 0;
-
-    // state visits intialization
-    new_node->f_v = 0;
-    new_node->l_v = 0;
-    new_node->r_v = 0;
-    new_node->T_v = 0;
+    // value and visits functions initialized at 0
+    for(int i = 0; i<3; i++) {
+        new_node->values[i] = 0;
+        new_node->visits[i] = 0;
+    }
 
     new_node->next = next;
 
@@ -86,11 +67,10 @@ md_node* md_prepend_list(md_linkedlist* mylist, char *key)
     md_node* new_node = md_create(key, mylist->head);
     mylist->head = new_node;
     mylist->length++;
-    // head = new_node;
     return new_node;
 }
 
-md_node* search(md_linkedlist* alist, char *key)
+md_node* md_search(md_linkedlist* alist, char *key)
 {
     md_node *cursor = alist->head;
     while(cursor != NULL)
@@ -122,14 +102,9 @@ uint8_t md_free_list(md_linkedlist* alist)
     return 0;
 }
 
-md_linkedlist *md_import_from_text(char* qdict_filename, char* statev_filename)
+uint8_t md_import_from_text(md_linkedlist *mylist, char* qdict_filename,
+        char* statev_filename)
 {
-    // create a new linked list object
-    md_linkedlist *mylist = (md_linkedlist*)malloc(sizeof(md_linkedlist));
-    mylist->elemsize = sizeof(md_node);
-    mylist->length = 0;
-    mylist->head = NULL;
-
     size_t dummy;
     md_node *cursor;
 
@@ -141,90 +116,53 @@ md_linkedlist *md_import_from_text(char* qdict_filename, char* statev_filename)
     dummy = fscanf(statevisits_txt_file, "%*[^\n]");
 
     char akey[30];
-    float f, l, r;//, T;
-    int f_v, l_v, r_v;// T_v;
+    float val[3];//, T;
+    int vis[3];// T_v;
     while (!feof(qdict_txt_file)) {
 
         // read values from file and store in cache variable
-        dummy = fscanf(qdict_txt_file, "%s %f %f %f", akey, &f, &l, &r);
-        dummy = fscanf(statevisits_txt_file, "%s %d %d %d", akey, &f_v, &l_v,
-                &r_v);
+        dummy = fscanf(qdict_txt_file, "%s %f %f %f", akey, &val[0], &val[1], &val[2]);
+        dummy = fscanf(statevisits_txt_file, "%s %d %d %d", akey, &vis[0], &vis[1], &vis[2]);
 
         // create new list element with key
         cursor = md_prepend_list(mylist,strdup(akey));
 
         // fill in other values
-        cursor->f = f;
-        cursor->l = l;
-        cursor->r = r;
-        // cursor->T = T;
-
-        cursor->f_v = f_v;
-        cursor->l_v = l_v;
-        cursor->r_v = r_v;
-        // cursor->T_v = T_v;
-
-//         printf("%s %6.2f %6.2f %6.2f %4d %4d %4d \n",cursor->key, cursor->f, cursor->l,
-//                 cursor->r, cursor->f_v, cursor->l_v, cursor->r_v);
+        for (int i = 0; i < 3; i++){
+            cursor->values[i] = val[i];
+            cursor->visits[i] = vis[i];
+        }
     }
     fclose(qdict_txt_file);
     fclose(statevisits_txt_file);
-    return mylist;
+    return 0;
 }
 
-md_linkedlist *md_import_from_dat(char* qdictkeys_filename,
-        char* qdictvalues_filename, char* statevvalues_filename)
+uint8_t md_import_from_dat(md_linkedlist *mylist, char* keys_filename,
+        char* values_filename, char* visits_filename)
 {
-    md_linkedlist *mylist = (md_linkedlist*)malloc(sizeof(md_linkedlist));
-    mylist->elemsize = sizeof(md_node);
-    mylist->length = 0;
-    mylist->head = NULL;
-
     size_t dummy;
     md_node *cursor;
 
     //safety feature about testing if "myqdict" already exists is unimplemented
     printf("\n ===LoadingQDICTFromDat=== \n");
 
-    FILE *qdictkeys_file = fopen(qdictkeys_filename,"rb");
-    FILE *qdictvalues_file = fopen(qdictvalues_filename,"rb");
-    FILE *statevisitsvalues_file = fopen(statevvalues_filename,"rb");
+    FILE *keys_file = fopen(keys_filename,"rb");
+    FILE *values_file = fopen(values_filename,"rb");
+    FILE *visits_file = fopen(visits_filename,"rb");
 //     fwrite(valvisitsarr,sizeof(uint16_t),sizeof(valvisitsarr)/sizeof(uint16_t),statevisitsvalues_file);
 
     char akey[30];
-    float f, l, r;//, T;
-    int f_v, l_v, r_v;//, T_v;
 
-    if ((qdictkeys_file != NULL) && (qdictvalues_file != NULL) && (statevisitsvalues_file != NULL)) {
-        while (!feof(qdictkeys_file)) {
+    if ((keys_file != NULL) && (values_file != NULL) && (visits_file != NULL)) {
+        while (!feof(keys_file)) {
             // Read from the dat file
-            dummy = fread(&akey,sizeof(char[30]),1,qdictkeys_file);
+            dummy = fread(&akey,sizeof(char[30]),1,keys_file);
 
-            dummy = fread(&f,sizeof(float),1,qdictvalues_file);
-            dummy = fread(&l,sizeof(float),1,qdictvalues_file);
-            dummy = fread(&r,sizeof(float),1,qdictvalues_file);
-            // dummy = fread(&T,sizeof(float),1,qdictvalues_file);
-            dummy = fread(&f_v,sizeof(int),1,statevisitsvalues_file);
-            dummy = fread(&l_v,sizeof(int),1,statevisitsvalues_file);
-            dummy = fread(&r_v,sizeof(int),1,statevisitsvalues_file);
-            // dummy = fread(&T_v,sizeof(int),1,statevisitsvalues_file);
-
-            // create new list element with key
             cursor = md_prepend_list(mylist,strdup(akey));
 
-            // fill in other values
-            cursor->f = f;
-            cursor->l = l;
-            cursor->r = r;
-            // cursor->T = T;
-
-            cursor->f_v = f_v;
-            cursor->l_v = l_v;
-            cursor->r_v = r_v;
-            // cursor->T_v = T_v;
-
-//             printf("%s %6.2f %6.2f %6.2f %4d %4d %4d \n",cursor->key, cursor->f, cursor->l,
-//                     cursor->r, cursor->f_v, cursor->l_v, cursor->r_v);
+            dummy = fread(cursor->values,sizeof(float),3,values_file);
+            dummy = fread(cursor->visits,sizeof(int),3,visits_file);
         }
         printf("Done\n");
         printf("===============\n");
@@ -232,22 +170,22 @@ md_linkedlist *md_import_from_dat(char* qdictkeys_filename,
     else {
         printf("\n NO FILE TO READ \n");
     }
-    fclose(qdictkeys_file);
-    fclose(qdictvalues_file);
-    fclose(statevisitsvalues_file);
+    fclose(keys_file);
+    fclose(values_file);
+    fclose(visits_file);
 
-    return mylist;
+    return 0;
 }
 
-uint8_t md_export_to_text(md_linkedlist* mylist, char* qdict_filename, char* statev_filename)
+uint8_t md_export_to_text(md_linkedlist* mylist, char* qdict_filename, char* visits_filename)
 {
     FILE *qdict_txt_file = fopen(qdict_filename,"w");
-    FILE *statevisits_txt_file = fopen(statev_filename,"w");
+    FILE *visits_txt_file = fopen(visits_filename,"w");
 
     md_node *cursor = mylist->head;
 
     fprintf(qdict_txt_file,"State \t\t\t | For \t\t | Lef \t\t | Rig \n");
-    fprintf(statevisits_txt_file,"State \t\t\t | For \t\t | Lef \t\t | Rig \n");
+    fprintf(visits_txt_file,"State \t\t\t | For \t\t | Lef \t\t | Rig \n");
 
     char akey[30];
     float f, l, r;//, T;
@@ -256,94 +194,46 @@ uint8_t md_export_to_text(md_linkedlist* mylist, char* qdict_filename, char* sta
     {
         strcpy(akey,cursor->key);
 
-        f = cursor->f;
-        l = cursor->l;
-        r = cursor->r;
-        // T = cursor->T;
+        f = cursor->values[0];
+        l = cursor->values[1];
+        r = cursor->values[2];
 
-        f_v = cursor->f_v;
-        l_v = cursor->l_v;
-        r_v = cursor->r_v;
-        // T_v = cursor->T_v;
+        f_v = cursor->visits[0];
+        l_v = cursor->visits[1];
+        r_v = cursor->visits[2];
 
         fprintf(qdict_txt_file, "%s %03.3f %03.3f %03.3f \n", (char *)akey, f, l, r);
-        fprintf(statevisits_txt_file, "%s %4u %4u %4u \n", (char *)akey, f_v, l_v, r_v);
+        fprintf(visits_txt_file, "%s %4u %4u %4u \n", (char *)akey, f_v, l_v, r_v);
         cursor = cursor->next;
     }
 
     fclose(qdict_txt_file);
-    fclose(statevisits_txt_file);
+    fclose(visits_txt_file);
 
     return 0;
 }
 
-uint8_t md_export_to_dat(md_linkedlist* mylist, char* qdictkeys_filename,
-        char* qdictvalues_filename, char* statevvalues_filename)
+uint8_t md_export_to_dat(md_linkedlist* mylist, char* keys_filename,
+        char* values_filename, char* visits_filename)
 {
-    FILE *qdictkeys_file = fopen(qdictkeys_filename,"wb");
-    FILE *qdictvalues_file = fopen(qdictvalues_filename,"wb");
-    FILE *statevisitsvalues_file = fopen(statevvalues_filename,"wb");
-
-    // uint16_t dictsize = mylist->length;
-    // uint16_t rowi = 0;
-
-//     float valarr[dictsize][3];
-//     uint16_t valvisitsarr[dictsize][3];
-//     char keyarr[dictsize][30];
+    FILE *keys_file = fopen(keys_filename,"wb");
+    FILE *values_file = fopen(values_filename,"wb");
+    FILE *visits_file = fopen(visits_filename,"wb");
 
     md_node *cursor = mylist->head;
-    // printf("ExportToDat1\n");
-
-    char akey[30];
-    float f, l, r;//, T;
-    int f_v, l_v, r_v;//, T_v;
 
     while(cursor != NULL)
     {
-        // printf("%f %f %f %d %d %d\n",cursor->f,cursor->l,cursor->r,cursor->f_v,cursor->l_v,cursor->r_v);
-        // printf("ExportToDat3\n");
-        /*
-        strcpy(keyarr[rowi],cursor->key);
-        valarr[rowi][0] = cursor->f;
-        valarr[rowi][1] = cursor->l;
-        valarr[rowi][2] = cursor->r;
-        // printf("ExportToDat4\n");
-
-        valvisitsarr[rowi][0] = cursor->f_v;
-        valvisitsarr[rowi][1] = cursor->l_v;
-        valvisitsarr[rowi][2] = cursor->r_v;
-        // printf("ExportToDat5\n");
-
-        // printf("\n");
-        rowi++;
-
-        */
-        fwrite(akey,sizeof(char),sizeof(akey)/sizeof(char),qdictkeys_file);
-
-        fwrite(&f,sizeof(float),1,qdictvalues_file);
-        fwrite(&l,sizeof(float),1,qdictvalues_file);
-        fwrite(&r,sizeof(float),1,qdictvalues_file);
-        // fwrite(T,sizeof(float),1,qdictvalues_file);
-
-        fwrite(&f_v,sizeof(uint16_t),1,statevisitsvalues_file);
-        fwrite(&l_v,sizeof(uint16_t),1,statevisitsvalues_file);
-        fwrite(&r_v,sizeof(uint16_t),1,statevisitsvalues_file);
-        // fwrite(T_v,sizeof(uint16_t),1,statevvalues_file);
+        fwrite(cursor->key,sizeof(char),sizeof(cursor->key)/sizeof(char),keys_file);
+        fwrite(cursor->values,sizeof(float),3,values_file);
+        fwrite(cursor->visits,sizeof(int),3,visits_file);
 
         cursor = cursor->next;
-        // printf("ExportToDat6\n");
     }
-    // printf("ExportToDat2\n");
 
-    /*
-    fwrite(keyarr,sizeof(char),sizeof(keyarr)/sizeof(char),qdictkeys_file);
-    fwrite(valarr,sizeof(float),sizeof(valarr)/sizeof(float),qdictvalues_file);
-    fwrite(valvisitsarr,sizeof(uint16_t),sizeof(valvisitsarr)/sizeof(uint16_t),statevisitsvalues_file);
-    */
-
-    fclose(qdictkeys_file);
-    fclose(qdictvalues_file);
-    fclose(statevisitsvalues_file);
+    fclose(keys_file);
+    fclose(values_file);
+    fclose(visits_file);
 
     return 0;
 }

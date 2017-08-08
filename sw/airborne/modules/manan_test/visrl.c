@@ -119,17 +119,15 @@ uint8_t rl_inc_maxepochs(void)
 uint8_t pick_action(char *state)
 {
     uint8_t picked_action = 0;
-    uint8_t policy_roll = rand() % 100;
     total_state_visits++;
 
-    // float *currow;
-    // printf("\n InPickAction \n");
-    float *currow = (float *)g_hash_table_lookup(myqdict,state);
-    // printf("\nSizeOfCurrow:%lu\n",sizeof(currow));
-    uint16_t *currow_statevisits = (uint16_t *)g_hash_table_lookup(mystatevisitsdict,state);
-    // printf("\n BefIf \n");
-    if (currow == NULL) {
-        // printf("\n NULL \n");
+    md_node *curnode;
+    curnode = md_search(ll_qdict,state);
+
+    if (curnode == NULL) {
+        curnode = md_prepend_list(ll_qdict,state);
+        picked_action = rand() % 3;
+        /*
         currow = (float *)calloc(3,sizeof(float));
         currow_statevisits = (uint16_t *)calloc(3,sizeof(uint16_t));
         for (int i = 0; i < 3; i++) {
@@ -138,23 +136,17 @@ uint8_t pick_action(char *state)
         }
         g_hash_table_insert(myqdict,g_strdup(state),currow);
 
-        picked_action = rand() % 3;
         currow_statevisits[picked_action]++;
         g_hash_table_insert(mystatevisitsdict,g_strdup(state),currow_statevisits);
+        */
     }
     else {
-        // printf("\n NotNULL \n");
+        uint8_t policy_roll = rand() % 100;
         if (policy_roll < rl_eps) {
-        // do greedy
+            // do greedy
             act_type = "G";
-            float maxq = -FLT_MAX;
-            for (int i=0; i < 3; i++) {
-                // printf("\n%f\n",currow[i]);
-                if (currow[i] > maxq) {
-                    picked_action = i;
-                    maxq = currow[i];
-                }
-            }
+            md_node_best_action(curnode);
+            picked_action = curnode->best_action;
         }
         else {
             // do random
@@ -162,7 +154,7 @@ uint8_t pick_action(char *state)
             picked_action = rand() % 3;
         }
         // printf("\n BefStateVisits \n");
-        currow_statevisits[picked_action]++;
+        curnode->visits[picked_action]++;
         // printf("\n AftStateVisits \n");
     }
     // printf(" Visits:%u ", currow_statevisits[picked_action]);
@@ -400,14 +392,15 @@ uint8_t rl_update_qdict(void)
 {
     // printf("SizeOfQdict:%d ;",g_hash_table_size(myqdict));
     float Qcur, Qnxt, Qcur1;
-    float *qtab_currow =  (float *)g_hash_table_lookup(myqdict,cur_sta);
-    float *qtab_nxtrow =  (float *)g_hash_table_lookup(myqdict,nxt_sta);
-    Qcur = qtab_currow[cur_act];
-    Qnxt = qtab_nxtrow[nxt_act];
+
+    md_node *qtab_curnode = md_search(ll_qdict,cur_sta); //(float *)g_hash_table_lookup(myqdict,cur_sta);
+    md_node *qtab_nxtnode = md_search(ll_qdict,nxt_sta); // (float *)g_hash_table_lookup(myqdict,nxt_sta);
+    Qcur = qtab_curnode->values[cur_act];
+    Qnxt = qtab_nxtnode->values[nxt_act];
     Qcur1 = Qcur + rl_alp*(cur_rew + rl_gamma*Qnxt - Qcur);
-    qtab_currow[cur_act] = Qcur1;
+    qtab_curnode->values[cur_act] = Qcur1;
     sumofQchanges += abs(Qcur1 - Qcur);
-    // printf("Qcur:%03.1f Qnxt:%03.1f Qcur1:%03.1f :: \n", Qcur, Qnxt, Qcur1);
+    printf("Qcur:%03.1f Qnxt:%03.1f Qcur1:%03.1f :: \n", Qcur, Qnxt, Qcur1);
     printf("\n");
     return 0;
 }
