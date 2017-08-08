@@ -401,7 +401,7 @@ uint8_t rl_update_qdict(void)
     qtab_curnode->values[cur_act] = Qcur1;
     sumofQchanges += abs(Qcur1 - Qcur);
     printf("Qcur:%03.1f Qnxt:%03.1f Qcur1:%03.1f :: \n", Qcur, Qnxt, Qcur1);
-    printf("\n");
+    // printf("\n");
     return 0;
 }
 
@@ -454,185 +454,49 @@ uint8_t rl_write_step_log(void)
     return 0;
 }
 
-void qdict_printer(gpointer key, gpointer value, gpointer user_data)
-{
-    float *curarr = (float *)value;
-    // printf(user_data, (char *)key, curarr[0], curarr[1], curarr[2]);
-    fprintf(qdict_txt_file,user_data, (char *)key, curarr[0], curarr[1], curarr[2]);
-}
-void statevisits_printer(gpointer key, gpointer value, gpointer user_data)
-{
-    uint16_t *curarr = (uint16_t *)value;
-    // printf(user_data, (char *)key, curarr[0], curarr[1], curarr[2]);
-    fprintf(statevisits_txt_file,user_data, (char *)key, curarr[0], curarr[1], curarr[2]);
-}
-
+// functions to read and write Q-tables; can be improved overall
 uint8_t print_qdict(void)
 {
-    // printf("\n State \t | For \t | Lef \t | Rig");
-    qdict_txt_file = fopen(qdict_txt_file_addrs,"w");
-    fprintf(qdict_txt_file,"State \t\t\t | For \t\t | Lef \t\t | Rig \n");
-    g_hash_table_foreach(myqdict, (GHFunc)qdict_printer, "%s %03.3f %03.3f %03.3f \n");
-    fclose(qdict_txt_file);
-    statevisits_txt_file = fopen(statevisits_file_addrs,"w");
-    fprintf(statevisits_txt_file,"State \t\t\t | For \t\t | Lef \t\t | Rig \n");
-    // g_hash_table_foreach(mystatevisitsdict, (GHFunc)qdict_printer, "%s \t | %04.3f | %04.3f | %04.3f \n");
-    g_hash_table_foreach(mystatevisitsdict, (GHFunc)statevisits_printer, "%s %4u %4u %4u \n");
-    fclose(statevisits_txt_file);
-
+    // printf("\n====== Writing to txt file =========\n");
+    md_export_to_text(ll_qdict, qdict_txt_file_addrs, statevisits_file_addrs);
     return 0;
 }
-
-/*
-uint8_t print_qdict2(void)
-{
-    return 0;
-}
-*/
 
 uint8_t write_qdict(void)
 {
-    GHashTableIter iter;
-    gpointer key, value;
-    uint16_t dictsize = g_hash_table_size(myqdict);
-
-    float valarr[dictsize][3];
-    uint16_t valvisitsarr[dictsize][3];
-    char keyarr[dictsize][30];
-
-    uint16_t dicti = 0;
-    g_hash_table_iter_init(&iter, myqdict);
-    printf("\n LetsLookInside \n");
-    while (g_hash_table_iter_next (&iter, &key, &value))
-    {
-        float *currow = (float *)value;
-        uint16_t *currow_statevisits = (uint16_t *)g_hash_table_lookup(mystatevisitsdict,(char *)key);
-        printf("%s: ",(char *)key);
-        strcpy(keyarr[dicti],(char *)key);
-        for (int i = 0; i < 3; i++) {
-            valarr[dicti][i] = currow[i];
-            valvisitsarr[dicti][i] = currow_statevisits[i];
-            printf("%f ",valarr[dicti][i]);
-        }
-        printf("\n");
-        dicti++;
-    }
-    printf("\n ===DONE=== \n");
-
-    printf("===============\n");
-    printf("\nWriting to file;");
-    qdictkeys_file = fopen(qdictkeys_file_addrs,"wb");
-    // fwrite(keyarr,sizeof(keyarr[0]),sizeof(keyarr)/sizeof(keyarr[0]),qdictkeys_file);
-    fwrite(keyarr,sizeof(char),sizeof(keyarr)/sizeof(char),qdictkeys_file);
-    fclose(qdictkeys_file);
-
-    qdictvalues_file = fopen(qdictvalues_file_addrs,"wb");
-    fwrite(valarr,sizeof(float),sizeof(valarr)/sizeof(float),qdictvalues_file);
-    fclose(qdictvalues_file);
-
-    statevisitsvalues_file = fopen(statevisitsvalues_file_addrs,"wb");
-    fwrite(valvisitsarr,sizeof(uint16_t),sizeof(valvisitsarr)/sizeof(uint16_t),statevisitsvalues_file);
-    fclose(statevisitsvalues_file);
-    printf("Done\n");
-    printf("===============\n");
+    // printf("\n====== Writing to dat file =========\n");
+    md_export_to_dat(ll_qdict, qdictkeys_file_addrs, qdictvalues_file_addrs,
+            statevisitsvalues_file_addrs);
+    // printf("======= Done ==========\n");
     return 0;
 }
 
 uint8_t load_qdict(void)
 {
     //safety feature about testing if "myqdict" already exists is unimplemented
-    printf("\n ===LoadingQDICT=== \n");
-
-    qdictkeys_file = fopen(qdictkeys_file_addrs,"rb");
-    qdictvalues_file = fopen(qdictvalues_file_addrs,"rb");
-    statevisitsvalues_file = fopen(statevisitsvalues_file_addrs,"rb");
-//     fwrite(valvisitsarr,sizeof(uint16_t),sizeof(valvisitsarr)/sizeof(uint16_t),statevisitsvalues_file);
-
-    char akey[30];
-    size_t dummy;
-
-    printf("SizeOfQdict:%d \n",g_hash_table_size(myqdict));
-    if ((qdictkeys_file != NULL) && (qdictvalues_file != NULL) && (statevisitsvalues_file != NULL)) {
-        while (!feof(qdictkeys_file)) {
-            dummy = fread(&akey,sizeof(char[30]),1,qdictkeys_file);
-            float *aval = (float *)calloc(3,sizeof(float));
-            uint16_t *asvval = (uint16_t *)calloc(3,sizeof(uint16_t));
-            for (int i=0 ; i<3 ; i++) {
-                dummy = fread(&aval[i],sizeof(float),1,qdictvalues_file);
-                dummy = fread(&asvval[i],sizeof(float),1,statevisitsvalues_file);
-            }
-            g_hash_table_insert(myqdict,g_strdup(akey),aval);
-            g_hash_table_insert(mystatevisitsdict,g_strdup(akey),asvval);
-        }
-        printf("Done\n");
-        printf("SizeOfQdict:%d \n",g_hash_table_size(myqdict));
-        printf("===============\n");
-    }
-    else {
-        printf("\n NO FILE TO READ \n");
-    }
-    fclose(qdictkeys_file);
-    fclose(qdictvalues_file);
-    fclose(statevisitsvalues_file);
+    // printf("\n ===Loading QDICT from dat=== \n");
+    md_import_from_dat(ll_qdict, qdictkeys_file_addrs, qdictvalues_file_addrs,
+            statevisitsvalues_file_addrs);
+    // printf("\n ===Done=== \n");
     return 0;
 }
 
 uint8_t load_qdict_fromtxt(void)
 {
-    size_t dummy;
-    qdict_txt_file = fopen(qdict_txt_file_addrs,"r");
-    statevisits_txt_file = fopen(statevisits_file_addrs,"r");
-    dummy = fscanf(qdict_txt_file, "%*[^\n]");
-    dummy = fscanf(statevisits_txt_file, "%*[^\n]");
-
-    char akey[30];
-    while (!feof(qdict_txt_file)) {
-        float *aval = (float *)calloc(3,sizeof(float));
-        uint16_t *asvval = (uint16_t *)calloc(3,sizeof(uint16_t));
-
-        dummy = fscanf(qdict_txt_file, "%s %f %f %f",akey, &aval[0], &aval[1],
-                &aval[2]);
-
-        // sets all state visit values to 0
-//             dummy = fscanf(statevisits_txt_file, "%s %f %f %f",akey, &asvval[0], &asvval[1],
-//                     &asvval[2]);
-        asvval[0] = 0;
-        asvval[1] = 0;
-        asvval[2] = 0;
-
-        g_hash_table_insert(myqdict,g_strdup(akey),aval);
-        g_hash_table_insert(mystatevisitsdict,g_strdup(akey),asvval);
-
-        printf("%s %f %f %f \n",akey, aval[0], aval[1], aval[2]);
-    }
-    fclose(qdict_txt_file);
-    fclose(statevisits_txt_file);
+    // printf("\n ===Loading QDICT from txt=== \n");
+    md_import_from_text(ll_qdict, qdict_txt_file_addrs,
+            statevisits_file_addrs);
+    // printf("\n ===Done=== \n");
     return 0;
 }
 
-// /*
 uint8_t copy_file(char *old_filename, char  *new_filename)
 {
     FILE  *ptr_old, *ptr_new;
-    // uint8_t err = 0, err1 = 0;
     int  a;
 
-//     err = fopen_s(&ptr_old, old_filename, "rb");
-//     err1 = fopen_s(&ptr_new, new_filename, "wb");
     ptr_old = fopen(old_filename,"rb");
     ptr_new = fopen(new_filename,"wb");
-
-
-    /*
-    if(err != 0)
-        return  1;
-
-    if(err1 != 0)
-    {
-        fclose(ptr_old);
-        return  1;
-    }
-    */
 
     while(1)
     {
@@ -648,7 +512,6 @@ uint8_t copy_file(char *old_filename, char  *new_filename)
     fclose(ptr_old);
     return  0;
 }
-// */
 
 uint8_t copy_qdict(void)
 {
@@ -658,10 +521,8 @@ uint8_t copy_qdict(void)
     int length = snprintf( NULL, 0, "%s%d/", copy_location, episodes_simulated);
     char* path = malloc( length + 1 );
     snprintf( path, length + 1, "%s%d/", copy_location, episodes_simulated);
-    // printf("%s",path);
     mkdir(path,0777);
 
-    // /*
     strcpy(acopyloc,path);
     strcat(acopyloc,"statevisits.txt");
     copy_file(statevisits_file_addrs,acopyloc);
@@ -681,7 +542,7 @@ uint8_t copy_qdict(void)
     strcpy(acopyloc,path);
     strcat(acopyloc,"statevisits.dat");
     copy_file(statevisitsvalues_file_addrs,acopyloc);
-    // */
+
     free(path);
     return FALSE;
 
@@ -701,21 +562,5 @@ uint8_t copy_logs(void)
     strcat(acopyloc,"log.txt");
     copy_file(log_file_addrs,acopyloc);
 
-    return FALSE;
-}
-
-void qdict_remove(gpointer key, gpointer value, gpointer user_data)
-{
-    // uint16_t *curarr = (uint16_t *)value;
-    free(value);
-    free(key);
-    // printf(user_data, (char *)key, curarr[0], curarr[1], curarr[2]);
-    // fprintf(statevisits_txt_file,user_data, (char *)key, curarr[0], curarr[1], curarr[2]);
-}
-
-uint8_t free_qdict(void)
-{
-    g_hash_table_foreach(myqdict, (GHFunc)qdict_remove, "");
-    g_hash_table_destroy(myqdict);
     return FALSE;
 }

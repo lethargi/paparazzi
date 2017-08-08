@@ -65,6 +65,9 @@
        <call fun="init_qdict()"/>
       <stay wp="STDBY"/>
     </block>
+    <block name="WaitOnGoal">
+      <stay wp="GOAL"/>
+    </block>
     <!--
     <block name="InitQdict">
       <call fun="NavSetWaypointHere(WP_GOAL)"/>

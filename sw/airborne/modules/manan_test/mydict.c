@@ -105,6 +105,8 @@ uint8_t md_free_list(md_linkedlist* alist)
 uint8_t md_import_from_text(md_linkedlist *mylist, char* qdict_filename,
         char* statev_filename)
 {
+    printf("\n Importing from txt \n");
+
     size_t dummy;
     md_node *cursor;
 
@@ -135,17 +137,20 @@ uint8_t md_import_from_text(md_linkedlist *mylist, char* qdict_filename,
     }
     fclose(qdict_txt_file);
     fclose(statevisits_txt_file);
+
+    printf("\n Done \n");
     return 0;
 }
 
 uint8_t md_import_from_dat(md_linkedlist *mylist, char* keys_filename,
         char* values_filename, char* visits_filename)
 {
+    printf("\n Importing from dat \n");
+
     size_t dummy;
     md_node *cursor;
 
     //safety feature about testing if "myqdict" already exists is unimplemented
-    printf("\n ===LoadingQDICTFromDat=== \n");
 
     FILE *keys_file = fopen(keys_filename,"rb");
     FILE *values_file = fopen(values_filename,"rb");
@@ -164,8 +169,6 @@ uint8_t md_import_from_dat(md_linkedlist *mylist, char* keys_filename,
             dummy = fread(cursor->values,sizeof(float),3,values_file);
             dummy = fread(cursor->visits,sizeof(int),3,visits_file);
         }
-        printf("Done\n");
-        printf("===============\n");
     }
     else {
         printf("\n NO FILE TO READ \n");
@@ -174,11 +177,15 @@ uint8_t md_import_from_dat(md_linkedlist *mylist, char* keys_filename,
     fclose(values_file);
     fclose(visits_file);
 
+    printf("\n Done \n");
+
     return 0;
 }
 
 uint8_t md_export_to_text(md_linkedlist* mylist, char* qdict_filename, char* visits_filename)
 {
+    printf("\n Exporting to txt \n");
+
     FILE *qdict_txt_file = fopen(qdict_filename,"w");
     FILE *visits_txt_file = fopen(visits_filename,"w");
 
@@ -210,12 +217,15 @@ uint8_t md_export_to_text(md_linkedlist* mylist, char* qdict_filename, char* vis
     fclose(qdict_txt_file);
     fclose(visits_txt_file);
 
+    printf("\n Done \n");
+
     return 0;
 }
 
 uint8_t md_export_to_dat(md_linkedlist* mylist, char* keys_filename,
         char* values_filename, char* visits_filename)
 {
+    printf("\n Exporting to dat \n");
     FILE *keys_file = fopen(keys_filename,"wb");
     FILE *values_file = fopen(values_filename,"wb");
     FILE *visits_file = fopen(visits_filename,"wb");
@@ -234,6 +244,8 @@ uint8_t md_export_to_dat(md_linkedlist* mylist, char* keys_filename,
     fclose(keys_file);
     fclose(values_file);
     fclose(visits_file);
+
+    printf("\n Done \n");
 
     return 0;
 }
