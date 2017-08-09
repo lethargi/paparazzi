@@ -26,6 +26,7 @@ int8_t headind = 0;
 uint8_t headatcompass = 1;
 
 // States, actions and reward
+char *state_buffer;
 static char *act_type = "R";
 static uint8_t cur_act, nxt_act;
 static char *cur_sta, *nxt_sta;
@@ -74,8 +75,8 @@ FILE *epi_log_file;
 // I dont free the dictionary in the end of the program; If further development
 // is desired, the dictionary needs to be freed using g_hash_table_destroy(myqdict);
 // maybe each element also needs to be freed since they were allocated with calloc.
-GHashTable *myqdict;
-GHashTable *mystatevisitsdict;
+// GHashTable *myqdict;
+// GHashTable *mystatevisitsdict;
 // GSList *rewardlist = NULL;
 
 md_linkedlist *ll_qdict;
@@ -83,9 +84,9 @@ md_linkedlist *ll_qdict;
 uint8_t init_qdict(void)
 {
     // run only once per training
-    myqdict = g_hash_table_new(g_str_hash, g_str_equal);
-    mystatevisitsdict = g_hash_table_new(g_str_hash, g_str_equal);
-    printf("SizeOfQdict:%d\n",g_hash_table_size(myqdict));
+//     myqdict = g_hash_table_new(g_str_hash, g_str_equal);
+//     mystatevisitsdict = g_hash_table_new(g_str_hash, g_str_equal);
+//     printf("SizeOfQdict:%d\n",g_hash_table_size(myqdict));
 
     log_file = fopen(log_file_addrs,"w"); //create or reset logfile
     epi_log_file = fopen(epi_log_file_addrs,"w"); //create or reset epi logfile
@@ -94,6 +95,9 @@ uint8_t init_qdict(void)
 
     ll_qdict = md_init_linkedlist();
     printf("Size Of ll_Qdict:%d\n",ll_qdict->length);
+
+    cur_sta = (char *)malloc(30*sizeof(char));
+    nxt_sta = (char *)malloc(30*sizeof(char));
     return 0;
 }
 
@@ -191,11 +195,25 @@ char *get_state_ext(void)
 
     // curstate[30];
     // char *curstate = g_strdup_printf("%d,%d,%d;%d,%d;%d;%d;%d",
-    char *curstate = g_strdup_printf("%d,%d,%d;%d;%d",
+
+//     char *curstate = g_strdup_printf("%d,%d,%d;%d;%d",
+//             domcol_arr[0],domcol_arr[1],domcol_arr[2],
+            // countfracs[0],countfracs[1],//countfracs[2],
+            // goals_visited,hitwall,headind); // with headindex
+            // goals_visited,hitwall);      // without headingindex
+
+    int length = snprintf( NULL, 0, "%d,%d,%d;%d;%d",
             domcol_arr[0],domcol_arr[1],domcol_arr[2],
             // countfracs[0],countfracs[1],//countfracs[2],
             // goals_visited,hitwall,headind); // with headindex
             goals_visited,hitwall);      // without headingindex
+    char *curstate = malloc( length + 1 );
+    snprintf( curstate, length + 1, "%d,%d,%d;%d;%d",
+            domcol_arr[0],domcol_arr[1],domcol_arr[2],
+            // countfracs[0],countfracs[1],//countfracs[2],
+            // goals_visited,hitwall,headind); // with headindex
+            goals_visited,hitwall);      // without headingindex
+
     printf("Ep:%d Step:%d State:%s ",episodes_simulated+1,steps_taken,curstate);
     return curstate;
 }
@@ -337,9 +355,11 @@ uint8_t rl_get_reward(void)
 
 uint8_t rl_set_nxt(void)
 {
-    nxt_sta = get_state_ext();
+    state_buffer = get_state_ext();
+    strcpy(nxt_sta,state_buffer);
     nxt_act = pick_action(nxt_sta);
     rl_get_reward();
+    free(state_buffer);
 
     return 0;
 }
@@ -427,7 +447,7 @@ uint8_t rl_write_episode_log(void)
     printf("\nWriting to file;");
     log_file = fopen(log_file_addrs,"a");
     fprintf(log_file,"%u %u %.1f %.1f %u\n",episodes_simulated,steps_taken,
-            sumofQchanges,episode_rewards,g_hash_table_size(myqdict));
+            sumofQchanges,episode_rewards,ll_qdict->length);
     // fwrite(qtab,sizeof(float),sizeof(qtab)/sizeof(float),qtab_file);
     fclose(log_file);
     printf("Done\n");

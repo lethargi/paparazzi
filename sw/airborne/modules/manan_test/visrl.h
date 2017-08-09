@@ -1,11 +1,11 @@
 #include <stdint.h>
-#include <glib.h>
+// #include <glib.h>
 
 #define GetSign(v) ( ( (v) < 0 ) ? -1 : ( (v) > 0 ) )
 // #define GetCurX() (stateGetNedToBodyEulers_i()->psi)
 // #define GetCurY() (stateGetNedToBodyEulers_i()->psi)
 
-extern GHashTable *myqdict;
+// extern GHashTable *myqdict;
 extern uint16_t rl_maxepochs;
 extern int8_t headind;
 extern int8_t head_roll;
