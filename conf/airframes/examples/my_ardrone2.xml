@@ -45,7 +45,7 @@
         <define name="COLORFILTER_CAMERA" value="front_camera"/>
     </module>
     <module name="orange_avoider"/>   -->
-    <module name="manan_test"/>
+    <!-- <module name="manan_test"/> -->
   </modules>
 
   <commands>

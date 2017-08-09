@@ -96,6 +96,7 @@ uint8_t init_qdict(void)
     ll_qdict = md_init_linkedlist();
     printf("Size Of ll_Qdict:%d\n",ll_qdict->length);
 
+    // These are never freed
     cur_sta = (char *)malloc(30*sizeof(char));
     nxt_sta = (char *)malloc(30*sizeof(char));
     return 0;

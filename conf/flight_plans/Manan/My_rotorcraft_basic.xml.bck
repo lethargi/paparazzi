@@ -1,4 +1,4 @@
-<!DOCTYPE flight_plan SYSTEM "flight_plan.dtd">
+<!DOCTYPE flight_plan SYSTEM "../flight_plan.dtd">
 
 <flight_plan alt="57" ground_alt="49.03" lat0="60.2948404" lon0="5.2250930" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="4">
   <header>

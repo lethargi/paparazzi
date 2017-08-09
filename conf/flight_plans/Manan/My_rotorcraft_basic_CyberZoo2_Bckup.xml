@@ -1,6 +1,6 @@
-<!DOCTYPE flight_plan SYSTEM "flight_plan.dtd">
+<!DOCTYPE flight_plan SYSTEM "../flight_plan.dtd">
 
-<flight_plan alt="41" ground_alt="39.5" lat0="60.2806185" lon0="5.2225626" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="1">
+<flight_plan alt="41" ground_alt="39.5" lat0="60.2806185" lon0="5.2225626" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="4">
   <header>
 	#include "autopilot.h"
     #include "subsystems/ahrs.h"
@@ -12,26 +12,24 @@
   <waypoints>
     <waypoint name="HOME" x="0.0" y="0.0"/>
     <waypoint name="CLIMB" x="0.0" y="2.5"/>
-    <waypoint x="3" y="3" name="TEMP"/>
-    <waypoint x="3" y="3.5" name="CURPOS"/>
-    <waypoint x="3" y="4" lon="5.225104" name="TESTWP"/>
+    <waypoint lat="60.2949" lon="5.2251" name="TEMP"/>
+    <waypoint lat="60.2949" lon="5.2251045" name="CURPOS"/>
+    <waypoint lat="60.295034" lon="5.225104" name="TESTWP"/>
     <waypoint x="0" y="0" name="STDBY"/>
-    <waypoint x="0" y="0" name="GOAL"/>
-    <waypoint x="3" y="7" name="HeightRef"/>
-<!--
+    <waypoint lat="60.2948404" lon="5.2250930" name="GOAL"/>
+    <waypoint lat="60.2952" lon="5.2256" name="HeightRef"/>
     <waypoint lat="60.2950532" lon="5.2245440" name="p1"/>
     <waypoint lat="60.2950305" lon="5.2255602" name="p2"/>
     <waypoint lat="60.2947578" lon="5.2255819" name="p3"/>
     <waypoint lat="60.2947389" lon="5.2245349" name="p4"/>
--->
-    <waypoint x="-3.8" y="3" name="SZ1"/>
-    <waypoint x="3.8" y="3" name="SZ2"/>
-    <waypoint x="3.8" y="-4" name="SZ3"/>
-    <waypoint x="-3.8" y="-4" name="SZ4"/>
+    <waypoint x="-4" y="4" name="SZ1"/>
+    <waypoint x="4" y="4" name="SZ2"/>
+    <waypoint x="4" y="-4" name="SZ3"/>
+    <waypoint x="-4" y="-4" name="SZ4"/>
     <waypoint x="0.25" y="0.25" name="BoundaryChecker"/>
     <waypoint height="12." name="CAM" x="-20" y="-50"/>
     <waypoint name="XYFINDER" x="30" y="-30"/>
-    <waypoint name="TD" x="5" y="-5"/>
+    <waypoint name="TD" x="5.6" y="-10.9"/>
   </waypoints>
   <sectors>
     <sector color="green" name="MyWorld">
@@ -62,17 +60,7 @@
       <deroute block="Standby"/>
     </block>
     <block name="Standby" strip_button="Standby" strip_icon="home.png">
-       <call fun="init_qdict()"/>
       <stay wp="STDBY"/>
-    </block>
-    <block name="WaitOnGoal">
-      <stay wp="GOAL"/>
-    </block>
-    <!--
-    <block name="InitQdict">
-      <call fun="NavSetWaypointHere(WP_GOAL)"/>
-        <call fun="init_qdict()"/>
-      <stay wp="GOAL"/>
     </block>
     <block name="YawRight">
       <call fun="NavSetWaypointHere(WP_GOAL)"/>
@@ -113,7 +101,10 @@
         <call fun="cv_3grids()"/>
       <stay wp="GOAL"/>
     </block>
--->
+    <block name="InitQdict">
+        <call fun="init_qdict()"/>
+      <stay wp="GOAL"/>
+    </block>
     <!--
     <block name="AppendQdict">
         <call fun="append_qdict()"/>
@@ -123,6 +114,7 @@
         <call fun="print_qdict()"/>
       <stay wp="GOAL"/>
     </block>
+-->
     <block name="SizeQdict">
         <call fun="size_qdict()"/>
       <stay wp="GOAL"/>
@@ -132,27 +124,32 @@
         <call fun="print_cvarrs()"/>
       <stay wp="GOAL"/>
     </block>
--->
-    <block name="RandomizeStart">
-      <call fun="NavSetWaypointHere(WP_CURPOS)"/>
-      <call fun="rl_randomize_start(WP_GOAL,WP_HOME)"/>
-      <call fun="setAltToWp(WP_GOAL,WP_HOME)"/>
-      <call fun="rl_smooth_turn(head_roll)"/>
-      <stay wp="CURPOS" until="stage_time>8"/>
-      <go from="CURPOS" wp="GOAL" hmode="route" approaching_time="0"/>
-      <stay wp="GOAL" until="stage_time>5"/>
-      <!-- <call fun="setHeadingNorth()"/> -->
-      <!-- <call fun="NavSetWaypointHere(WP_GOAL)"/> -->
-      <deroute block="InitRL"/>
+    <!--
+    <block name="SetupEpisode">
+      <go wp="HOME"/>
+      <call fun="NavSetWaypointHere(WP_GOAL)"/>
+      <call fun="rl_reset_episode()"/>
     </block>
+    <block name="SetupEpisode2">
+      <call fun="nav_set_heading_towards_waypoint(WP_TESTWP)"/>
+      <stay wp="GOAL"/>
+    </block>
+-->
     <block name="SetupEpisode">
         <!-- <go wp="HOME"/> -->
       <call fun="NavSetWaypointHere(WP_CURPOS)"/>
       <go from="CURPOS" wp="HOME" hmode="route" approaching_time="0"/>
       <call fun="setHeadingNorth()"/>
       <stay wp="HOME" until="stage_time>5"/>
+      <call fun="rl_reset_episode()"/>
       <call fun="NavSetWaypointHere(WP_GOAL)"/>
+      <!-- <call fun="setAltToWp(WP_GOAL,WP_HeightRef)"/> -->
       <call fun="setAltToWp(WP_GOAL,WP_HOME)"/>
+      <!--
+      <for var="i" from="1" to="8">
+        <heading alt="WaypointAlt(WP_GOAL)" course="45 * $i" until="stage_time > 1.2"/>
+      </for>
+        -->
       <stay wp="GOAL" until="stage_time>1"/>
     </block>
     <block name="InitRL">
@@ -162,7 +159,6 @@
     <block name="DoOneStep">
       <while cond="!rl_isterminal">
         <call fun="rl_set_cur()"/>
-        <call fun="rl_write_step_log()"/>
         <call fun="rl_take_cur_action()"/>
         <stay until="stage_time>1" wp="GOAL"/>
         <call fun="rl_set_nxt()"/>
@@ -173,50 +169,15 @@
     </block>
     <block name="EndEp">
       <call fun="rl_write_episode_log()"/>
-      <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
-	  <exception cond="episodes_simulated > rl_maxepochs" deroute="IncEps"/>
-      <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
-      <deroute block="SetupEpisode"/>
-      <!-- <deroute block="RandomizeStart"/> -->
-    </block>
-    <block name="IncEps">
-      <call fun="rl_inc_maxepochs()"/>
-      <call fun="rl_inc_eps()"/>
-      <call fun="rl_write_episode_log()"/>
-      <call fun="print_qdict()"/>
-      <call fun="write_qdict()"/>
-      <call fun="copy_qdict()"/>
-      <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
-	  <exception cond="episodes_simulated > 899" deroute="EndRl"/>
+	  <exception cond="episodes_simulated > 500" deroute="EndRl"/>
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
 	  <deroute block="SetupEpisode"/>
     </block>
     <block name="EndRl">
+      <stay wp="GOAL"/>
       <call fun="rl_write_episode_log()"/>
       <call fun="print_qdict()"/>
-      <call fun="write_qdict()"/>
-      <call fun="copy_qdict()"/>
-      <call fun="copy_logs()"/>
-      <stay wp="GOAL"/>
     </block>
-    <!-- -->
-    <block name="IncMaxEpochs">
-      <call fun="rl_inc_maxepochs()"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="IncEpsilon">
-      <call fun="rl_inc_eps()"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="DecEpsilon">
-      <call fun="rl_dec_eps()"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="CopyTest">
-      <call fun="copy_qdict()"/>
-      <stay wp="GOAL"/>
-    </block>
-    <!--
     <block name="WriteEpLog">
       <call fun="rl_write_episode_log()"/>
     </block>
@@ -224,12 +185,10 @@
       <call fun="rl_print_qtab()"/>
       <stay wp="GOAL"/>
     </block>
-    -->
     <block name="PrintQDict">
       <call fun="print_qdict()"/>
       <stay wp="GOAL"/>
     </block>
-    <!--
     <block name="ReadQtab">
       <call fun="NavSetWaypointHere(WP_TEMP)"/>
       <call fun="rl_read_qtab()"/>
@@ -240,7 +199,6 @@
       <call fun="rl_write_qtab()"/>
       <stay wp="TEMP"/>
     </block>
-    -->
     <block name="WriteQDict">
       <call fun="NavSetWaypointHere(WP_TEMP)"/>
       <call fun="write_qdict()"/>
@@ -251,11 +209,8 @@
       <call fun="load_qdict()"/>
       <stay wp="TEMP"/>
     </block>
-    <block name="ReadQDict_TXT">
-      <call fun="NavSetWaypointHere(WP_TEMP)"/>
-      <call fun="load_qdict_fromtxt()"/>
-      <stay wp="TEMP"/>
-    </block>
+    <!--
+    -->
     <block name="land here" strip_button="Land Here" strip_icon="land-right.png">
       <call fun="NavSetWaypointHere(WP_TD)"/>
     </block>
