@@ -576,6 +576,22 @@ static inline float float_vect_norm(const float *a, const int n)
   return sqrtf(sum);
 }
 
+/** a *= s */
+static inline void float_vect_scale(float *a, const float s, const int n)
+{
+  int i;
+  for (i = 0; i < n; i++) { a[i] *= s; }
+}
+
+/** a.b */
+static inline float float_vect_dot_product(const float *a, const float *b, const int n)
+{
+  int i;
+  float dot = 0.f;
+  for (i = 0; i < n; i++) { dot += a[i] * b[i]; }
+  return dot;
+}
+
 //
 //
 // Generic matrix algebra
@@ -698,6 +714,8 @@ static inline void float_mat_col(float *o, float **a, int m, int c)
     o[i] = a[i][c];
   }
 }
+
+extern void float_mat_inv_4d(float invOut[16], float mat_in[16]);
 
 #ifdef __cplusplus
 } /* extern "C" */

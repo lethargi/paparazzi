@@ -10,10 +10,11 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-
+#include <pthread.h>
 
 #include "std.h"
 #include "../flight_gear.h"
+#include "nps_main.h"
 #include "nps_fdm.h"
 #include "nps_atmosphere.h"
 
@@ -25,9 +26,9 @@ static struct  {
   unsigned int time_offset;
 } flightgear;
 
-// defining time structure to hold the time i want sim to be at
-static struct tm mysimtime_struct;
-static time_t mysimtime;
+pthread_t th_fg_rx; // fligh gear receive thread
+
+void* nps_flightgear_receive(void* data __attribute__((unused)));
 
 double htond(double x)
 {
@@ -102,12 +103,8 @@ void nps_flightgear_init(const char *host,  unsigned int port, unsigned int port
   flightgear.initial_time = t;
   flightgear.time_offset = time_offset;
 
-  // some variables to set my simulation time at 1200 1st jan 1970
-  // For some reason, 6 corresponds to ~ midday in FG. in the timeformat it
-  // corresponds to 6 hours after 0000, so 6 am. Dont know whats not working,
-  // dont care as long as it works.
-  mysimtime_struct.tm_hour = 6;
-  mysimtime = mktime(&mysimtime_struct);
+  // launch rx thread
+  pthread_create(&th_fg_rx, NULL, nps_flightgear_receive, NULL);
 }
 
 /**
@@ -140,8 +137,6 @@ void nps_flightgear_send_fdm()
   fgfdm.fuel_quantity[0] = htonf(0.);
 
   fgfdm.cur_time = htonl(flightgear.initial_time + rint(fdm.time));
-  // fgfdm.cur_time = 0; //for setting papato my time
-  // printf("Inside nps_flightgeaer: %d \n", htonl(flightgear.initial_time + rint(fdm.time)));
   // if cur_time is zero, flightgear would take the real current time
   //gui.cur_time = 0;
   // warp is used as an offset to the current time in seconds
@@ -206,21 +201,9 @@ void nps_flightgear_send()
   gui.num_tanks = 1;
   gui.fuel_quantity[0] = 0.;
 
-  // printf("Inside nps_flightgeaer: %d \n", htonl(flightgear.initial_time + rint(fdm.time)));
-  // gui.cur_time = flightgear.initial_time + rint(fdm.time);
-//   printf("Fg init time: %d \n", flightgear.initial_time);
-//   printf("Fdm time: %f \n", rint(fdm.time));
-//   printf("HTONL... \n");
-//   printf("Fg init time: %d \n", htonl(flightgear.initial_time));
-//   printf("Fdm time: %d \n", htonl(rint(fdm.time)));
-//   printf("============================ \n");
-  // gui.cur_time = 1490943215; // this mod holds the time static at 
-  gui.cur_time = mysimtime;
-
-  // The defaults; the line below uncommented in original
-  // gui.cur_time = flightgear.initial_time + rint(fdm.time);
+  gui.cur_time = flightgear.initial_time + rint(fdm.time);
   // if cur_time is zero, flightgear would take the real current time
-  // gui.cur_time = 0;
+  //gui.cur_time = 0;
   // warp is used as an offset to the current time in seconds
   gui.warp = flightgear.time_offset;
 
@@ -245,7 +228,8 @@ void nps_flightgear_send()
 /**
  * Receive Flight Gear environment messages
  */
-void nps_flightgear_receive() {
+void* nps_flightgear_receive(void* data __attribute__((unused)))
+{
 
   if (flightgear.socket_in != -1) {
     // socket is correctly opened
@@ -254,32 +238,37 @@ void nps_flightgear_receive() {
     size_t s_env = sizeof(env);
     int bytes_read;
 
-    //read first message
-    memset(&env, 0, s_env);
-    bytes_read = recvfrom(flightgear.socket_in, (char*)(&env), s_env, MSG_DONTWAIT, NULL, NULL);
-    while (bytes_read != -1) { // while we read a message (empty buffer)
-      if (bytes_read == (int)s_env){
-        // Update wind info
-        nps_atmosphere_set_wind_ned(
-            (double)env.wind_from_north,
-            (double)env.wind_from_east,
-            (double)env.wind_from_down);
-      }
-      else {
-        //error
-        printf("WARNING : ignoring packet with size %d (%d expected)", bytes_read, (int)s_env);
-      }
-
-      //read next message
+    while(TRUE)
+    {
+      //read first message
       memset(&env, 0, s_env);
-      bytes_read = recvfrom(flightgear.socket_in, (char*)(&env), s_env, MSG_DONTWAIT, NULL, NULL);
-    }
+      bytes_read = recvfrom(flightgear.socket_in, (char*)(&env), s_env, MSG_WAITALL, NULL, NULL);
+      while (bytes_read != -1) { // while we read a message (empty buffer)
+        if (bytes_read == (int)s_env){
+          // Update wind info
+          pthread_mutex_lock(&fdm_mutex);
+          nps_atmosphere_set_wind_ned(
+              (double)env.wind_from_north,
+              (double)env.wind_from_east,
+              (double)env.wind_from_down);
+          pthread_mutex_unlock(&fdm_mutex);
+        }
+        else {
+          //error
+          printf("WARNING : ignoring packet with size %d (%d expected)", bytes_read, (int)s_env);
+        }
 
-    if ((errno & (EAGAIN | EWOULDBLOCK)) == 0) {
-      perror("nps_flightgear_receive recvfrom()");
+        //read next message
+        memset(&env, 0, s_env);
+        bytes_read = recvfrom(flightgear.socket_in, (char*)(&env), s_env, MSG_WAITALL, NULL, NULL);
+      }
+
+      if ((errno & (EAGAIN | EWOULDBLOCK)) == 0) {
+        perror("nps_flightgear_receive recvfrom()");
+      }
     }
   }
-
+  return NULL;
 }
 
 

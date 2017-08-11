@@ -41,11 +41,11 @@ TEST STICK DATA OUTPUT:
   Axis 0 : parameters = [-32768,32768]
   Axis 1 : parameters = [-32768,32768]
   Input device name: "2Axes 11Keys Game  Pad" on SDL device "0"
-  buttons 0 0 0 0 0 0 0 0 0 0 0 | hat 0 | axes -1 -1 
-  buttons 0 0 0 0 0 0 0 0 0 0 0 | hat 0 | axes -1 -1 
+  buttons 0 0 0 0 0 0 0 0 0 0 0 | hat 0 | axes -1 -1
+  buttons 0 0 0 0 0 0 0 0 0 0 0 | hat 0 | axes -1 -1
   buttons 0 0 0 0 0 0 0 0 0 0 0 | hat 0 | axes -1 -1
   ...
-   
+
 
 -->
 
@@ -110,9 +110,9 @@ TEST STICK DATA OUTPUT:
       <field name="block_id" value="IndexOfBlock('land')"/>
     </message>
 
-    <!-- Set "kill_throttle" in AUTO2/NAV -->
+    <!-- Set "autopilot.kill_throttle" in AUTO2/NAV -->
     <message class="ground" name="DL_SETTING" on_event="select && start">
-      <field name="index" value="IndexOfSetting(kill_throttle)"/>
+      <field name="index" value="IndexOfSetting(autopilot.kill_throttle)"/>
       <field name="value" value="2"/>
     </message>
 
