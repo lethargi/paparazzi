@@ -3,6 +3,7 @@
 <airframe name="ardrone2">
 
   <firmware name="rotorcraft">
+    <configure name="PREFIX" value="/opt/arm-2012.03/bin/arm-none-linux-gnueabi"/>
     <target name="ap" board="ardrone2"/>
 
     <target name="nps" board="pc">
@@ -35,16 +36,18 @@
     <module name="video_thread">
     </module>
 
+    <module name="cv_colorfilter">
+        <define name="COLORFILTER_CAMERA" value="front_camera"/>
+        <define name="COLORFILTER_FPS" value="1"/>
+    </module>
     <module name="video_rtp_stream">
       <define name="VIEWVIDEO_CAMERA" value="front_camera"/>
       <define name="VIEWVIDEO_DOWNSIZE_FACTOR" value="4"/>
       <define name="VIEWVIDEO_QUALITY_FACTOR" value="60"/>
+      <define name="VIEWVIDEO_FPS" value="1"/>
     </module>
 
-    <!--<module name="cv_colorfilter">
-        <define name="COLORFILTER_CAMERA" value="front_camera"/>
-    </module>
-    <module name="orange_avoider"/>   -->
+    <!-- <module name="orange_avoider"/>   -->
     <!-- <module name="manan_test"/> -->
   </modules>
 
@@ -72,7 +75,8 @@
   </section>
 
   <command_laws>
-    <call fun="motor_mixing_run(autopilot_motors_on,FALSE,values)"/>
+      <!-- <call fun="motor_mixing_run(autopilot_motors_on,FALSE,values)"/> -->
+    <call fun="motor_mixing_run(autopilot_get_motors_on(),FALSE,values)"/>
     <set servo="TOP_LEFT" value="motor_mixing.commands[MOTOR_FRONT_LEFT]"/>
     <set servo="TOP_RIGHT" value="motor_mixing.commands[MOTOR_FRONT_RIGHT]"/>
     <set servo="BOTTOM_RIGHT" value="motor_mixing.commands[MOTOR_BACK_RIGHT]"/>

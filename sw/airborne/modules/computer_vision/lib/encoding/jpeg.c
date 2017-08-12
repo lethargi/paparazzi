@@ -624,7 +624,7 @@ static uint8_t *jpeg_huffman(JPEG_ENCODER_STRUCTURE *jpeg_encoder_structure, uin
   const uint16_t *DcCodeTable, *DcSizeTable, *AcCodeTable, *AcSizeTable;
 
   int16_t *Temp_Ptr, Coeff, LastDc;
-  uint16_t AbsCoeff, HuffCode, HuffSize, RunLength = 0, DataSize = 0, index;
+  uint16_t AbsCoeff, HuffCode, HuffSize, RunLength = 0, DataSize = 0, index2;
 
   int16_t bits_in_next_word;
   uint16_t numbits;
@@ -691,9 +691,9 @@ static uint8_t *jpeg_huffman(JPEG_ENCODER_STRUCTURE *jpeg_encoder_structure, uin
         DataSize = bitsize [AbsCoeff >> 8] + 8;
       }
 
-      index = RunLength * 10 + DataSize;
-      HuffCode = AcCodeTable [index];
-      HuffSize = AcSizeTable [index];
+      index2 = RunLength * 10 + DataSize;
+      HuffCode = AcCodeTable [index2];
+      HuffSize = AcSizeTable [index2];
 
       Coeff &= (1 << DataSize) - 1;
       data = (HuffCode << DataSize) | Coeff;

@@ -116,7 +116,7 @@ struct viewvideo_t viewvideo = {
  * Handles all the video streaming and saving of the image shots
  * This is a separate thread, so it needs to be thread safe!
  */
-static struct image_t *viewvideo_function(struct UdpSocket *socket, struct image_t *img, uint32_t *rtp_frame_nr)
+static struct image_t *viewvideo_function(struct UdpSocket *socket2, struct image_t *img, uint32_t *rtp_frame_nr)
 {
   // Resize image if needed
   struct image_t img_small;
@@ -170,7 +170,7 @@ static struct image_t *viewvideo_function(struct UdpSocket *socket, struct image
     if (viewvideo.use_rtp) {
       // Send image with RTP
       rtp_frame_send(
-        socket,              // UDP socket
+        socket2,              // UDP socket
         &img_jpeg,
         0,                        // Format 422
         VIEWVIDEO_QUALITY_FACTOR, // Jpeg-Quality
