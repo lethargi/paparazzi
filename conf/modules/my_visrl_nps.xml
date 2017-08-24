@@ -1,0 +1,33 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="my_visrl_nps" dir="my_visrl">
+  <doc>
+      <description>Module that implements the SIMULATED vision for the
+          experimental vision-based RL navigation for the thesis of Manan
+          Siddiquee</description>
+  </doc>
+
+  <!--
+  <settings>
+    <dl_settings>
+      <dl_settings NAME="RL params">
+          <dl_setting MAX="100" MIN="5" STEP="5" VAR="rl_eps" shortname="epsilon" module="my_visrl/visrl" type="int"/>
+      </dl_settings>
+    </dl_settings>
+  </settings>
+-->
+
+  <header>
+    <file name="vis_nps.h"/>
+  </header>
+
+  <makefile target="nps">
+    <file name="vis_nps.c"/>
+    <raw>
+        nps.LDFLAGS += -lcurl
+        nps.LDFLAGS += -ljpeg
+        nps.LDFLAGS += -glib
+    </raw>
+  </makefile>
+</module>
+

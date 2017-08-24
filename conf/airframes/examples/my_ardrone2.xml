@@ -36,10 +36,20 @@
     <module name="video_thread">
     </module>
 
+	<!--
     <module name="cv_colorfilter">
         <define name="COLORFILTER_CAMERA" value="front_camera"/>
         <define name="COLORFILTER_FPS" value="1"/>
     </module>
+	-->
+    <!--
+    -->
+    <module name="my_visrl_ap">
+        <define name="VIS_CAMERA" value="front_camera"/>
+        <define name="VIS_FPS" value="1"/>
+    </module>
+    <!-- <module name="my_visrl_nps"/> -->
+
     <module name="video_rtp_stream">
       <define name="VIEWVIDEO_CAMERA" value="front_camera"/>
       <define name="VIEWVIDEO_DOWNSIZE_FACTOR" value="4"/>
@@ -48,7 +58,10 @@
     </module>
 
     <!-- <module name="orange_avoider"/>   -->
-    <!-- <module name="manan_test"/> -->
+
+    <module name="my_visrl">
+    </module>
+
   </modules>
 
   <commands>

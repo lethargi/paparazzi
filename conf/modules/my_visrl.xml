@@ -1,0 +1,66 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="my_visrl">
+  <doc>
+      <description>Module that implements the experimental vision-based RL
+          navigation for the thesis of Manan Siddiquee</description>
+      <!--
+    <define name="VIS_CAMERA" value="front_camera|bottom_camera" description="Video device to use"/>
+    <define name="VIS_FPS" value="0" description="The (maximum) frequency to run the calculations at. If zero, it will max out at the camera frame rate"/>
+-->
+  </doc>
+
+  <settings>
+    <dl_settings>
+      <dl_settings NAME="RL params">
+          <dl_setting MAX="100" MIN="5" STEP="5" VAR="rl_eps" shortname="epsilon" module="my_visrl/visrl" type="int"/>
+      </dl_settings>
+    </dl_settings>
+  </settings>
+
+  <!-- <depends>my_visrl_vision</depends> -->
+  <!-- <depends>my_visrl_ap</depends> -->
+
+  <header>
+    <file name="visrl.h"/>
+  </header>
+  <!-- <init fun="my_init()"/> -->
+  <!--<periodic fun="a" freq="0.5" autorun="TRUE"/>-->
+  <makefile target="ap">
+      <!-- <file name="vis_ap.c"/> -->
+    <file name="mynavfuncs.c" dir="modules/my_visrl/"/>
+    <file name="mydict.c" dir="modules/my_visrl/"/>
+    <file name="visrl.c" dir="modules/my_visrl/"/>
+  </makefile>
+  <makefile target="nps">
+      <!-- <file name="vis_nps.c"/> -->
+    <file name="mynavfuncs.c" dir="modules/my_visrl/"/>
+    <file name="mydict.c" dir="modules/my_visrl/"/>
+    <file name="visrl.c" dir="modules/my_visrl/"/>
+    <!--<raw>$(TARGET).CFLAGS += -lcurl</raw>-->
+    <!--raw>
+     ap.CFLAGS += "-I/usr/include/
+     ap.LDFLAGS += "-L/usr/lib/ -lcurl"
+    </raw-->
+<!--> QUESTION STILL REMAINS HOW TO COMPILE TO AP<-->
+    <raw>
+        nps.LDFLAGS += -lcurl
+        nps.LDFLAGS += -ljpeg
+        nps.LDFLAGS += -glib
+        <!-- nps.LDFLAGS += -lgtk-2.0-dev -->
+        <!--
+        ap.LDFLAGS += -lcurl
+        ap.LDFLAGS += -ljpeg
+        ap.LDFLAGS += -glib
+        -->
+    </raw>
+  </makefile>
+  <!--
+  <makefile target="ap|nps">
+    <file name="mynavfuncs.c" dir="modules/manan_test/"/>
+    <file name="mydict.c" dir="modules/manan_test/"/>
+    <file name="visrl.c" dir="modules/manan_test/"/>
+  </makefile>
+-->
+</module>
+

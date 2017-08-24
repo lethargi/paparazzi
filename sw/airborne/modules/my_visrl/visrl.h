@@ -1,3 +1,6 @@
+#ifndef MYVISRL_H
+#define MYVISRL_H
+
 #include <stdint.h>
 // #include <glib.h>
 
@@ -44,3 +47,15 @@ extern uint8_t load_qdict_fromtxt(void);
 
 extern uint8_t copy_qdict(void);
 extern uint8_t copy_logs(void);
+
+
+char *get_state_ext(void);
+float get_myheading(void);
+void update_headind(void);
+
+
+uint8_t pick_action(char *state);
+uint8_t rl_get_reward(void);
+uint8_t copy_file(char *old_filename, char  *new_filename);
+
+#endif

@@ -23,26 +23,26 @@
  * @file modules/computer_vision/colorfilter.h
  */
 
-#ifndef COLORFILTER_CV_PLUGIN_H
-#define COLORFILTER_CV_PLUGIN_H
+#ifndef VIS_AP_H
+#define VIS_AP_H
 
 #include <stdint.h>
 #include "modules/computer_vision/cv.h"
 
 // Module functions
-extern void colorfilter_init(void);
-
-extern uint8_t color_lum_min;
-extern uint8_t color_lum_max;
-
-extern uint8_t color_cb_min;
-extern uint8_t color_cb_max;
-
-extern uint8_t color_cr_min;
-extern uint8_t color_cr_max;
-
-extern int color_count;
+uint8_t colmax(uint32_t colarr[3][3],uint8_t maxcolarr[3]);
+void my_image_yuv422_colorcounter(struct image_t *input);
+extern struct image_t *colorfilter_func(struct image_t *img);
 
 extern struct video_listener *listener;
 
-#endif /* COLORFILTER_CV_PLUGIN_H */
+extern uint32_t count_arr[3][3];
+extern uint32_t sumcount_arr[3];
+extern uint8_t domcol_arr[3];
+
+extern uint8_t print_cvarrs(void);
+extern uint8_t cv_3grids(void);
+
+extern void vis_ap_init(void);
+
+#endif /* VIS_AP_H */

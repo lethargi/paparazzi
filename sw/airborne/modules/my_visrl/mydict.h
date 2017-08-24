@@ -1,3 +1,7 @@
+
+#ifndef MYDICT_H
+#define MYDICT_H
+
 struct md_node {
     struct md_node *next;
 
@@ -36,3 +40,5 @@ uint8_t md_import_from_dat(md_linkedlist *mylist, char* keys_filename,
 uint8_t md_export_to_text(md_linkedlist* mylist, char* qdict_filename, char* visits_filename);
 uint8_t md_export_to_dat(md_linkedlist* mylist, char* keys_filename,
         char* values_filename, char* visits_filename);
+
+#endif

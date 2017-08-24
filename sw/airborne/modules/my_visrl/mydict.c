@@ -15,7 +15,7 @@ char statevisits_file_addrs[] = "statevisits.txt";
 #include <unistd.h>
 #include <string.h>
 
-#include "modules/manan_test/mydict.h"
+#include "modules/my_visrl/mydict.h"
 
 
 md_linkedlist *md_init_linkedlist(void)

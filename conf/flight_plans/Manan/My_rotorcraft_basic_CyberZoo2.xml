@@ -6,8 +6,10 @@
     #include "subsystems/ahrs.h"
     #include "subsystems/electrical.h"
     #include "subsystems/datalink/datalink.h"
-	#include "modules/manan_test/manan_test.h"
-	#include "modules/manan_test/visrl.h"
+    <!-- #include "modules/manan_test/vis_nps.h" -->
+	#include "modules/my_visrl/vis_ap.h"
+	#include "modules/my_visrl/visrl.h"
+	#include "modules/my_visrl/mynavfuncs.h"
 </header>
   <waypoints>
     <waypoint name="HOME" x="0.0" y="0.0"/>
@@ -43,21 +45,21 @@
   </sectors>
   <blocks>
     <block name="Wait GPS">
-      <call fun="NavKillThrottle()"/>
+      <call_once fun="NavKillThrottle()"/>
       <while cond="!GpsFixValid()"/>
     </block>
     <block name="Geo init">
       <while cond="LessThan(NavBlockTime(), 10)"/>
-      <call fun="NavSetGroundReferenceHere()"/>
+      <call_once fun="NavSetGroundReferenceHere()"/>
     </block>
     <block name="Holding point">
-      <call fun="NavKillThrottle()"/>
+      <call_once fun="NavKillThrottle()"/>
       <attitude pitch="0" roll="0" throttle="0" until="FALSE" vmode="throttle"/>
     </block>
     <block name="MyTakeoff">
-      <call fun="NavResurrect()"/>
+      <call_once fun="NavResurrect()"/>
       <exception cond="stateGetPositionEnu_f()->z > 2.0" deroute="Standby"/>
-      <call fun="NavSetWaypointHere(WP_CLIMB)"/>
+      <call_once fun="NavSetWaypointHere(WP_CLIMB)"/>
       <stay climb="nav_climb_vspeed" vmode="climb" wp="CLIMB"/>
       <deroute block="Standby"/>
     </block>
@@ -69,6 +71,10 @@
       <stay wp="GOAL"/>
     </block>
     <!--
+    <block name="vis_ap_init">
+        <call_once fun="vis_ap_init()"/>
+        <stay wp="GOAL"/>
+    </block>
     <block name="InitQdict">
       <call fun="NavSetWaypointHere(WP_GOAL)"/>
         <call fun="init_qdict()"/>
@@ -134,7 +140,7 @@
     </block>
 -->
     <block name="RandomizeStart">
-      <call fun="NavSetWaypointHere(WP_CURPOS)"/>
+      <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
       <call fun="rl_randomize_start(WP_GOAL,WP_HOME)"/>
       <call fun="setAltToWp(WP_GOAL,WP_HOME)"/>
       <call fun="rl_smooth_turn(head_roll)"/>
@@ -147,11 +153,11 @@
     </block>
     <block name="SetupEpisode">
         <!-- <go wp="HOME"/> -->
-      <call fun="NavSetWaypointHere(WP_CURPOS)"/>
+      <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
       <go from="CURPOS" wp="HOME" hmode="route" approaching_time="0"/>
-      <call fun="setHeadingNorth()"/>
+      <call_once fun="setHeadingNorth()"/>
       <stay wp="HOME" until="stage_time>5"/>
-      <call fun="NavSetWaypointHere(WP_GOAL)"/>
+      <call_once fun="NavSetWaypointHere(WP_GOAL)"/>
       <call fun="setAltToWp(WP_GOAL,WP_HOME)"/>
       <stay wp="GOAL" until="stage_time>1"/>
     </block>
@@ -242,22 +248,22 @@
     </block>
     -->
     <block name="WriteQDict">
-      <call fun="NavSetWaypointHere(WP_TEMP)"/>
+      <call_once fun="NavSetWaypointHere(WP_TEMP)"/>
       <call fun="write_qdict()"/>
       <stay wp="TEMP"/>
     </block>
     <block name="ReadQDict">
-      <call fun="NavSetWaypointHere(WP_TEMP)"/>
+      <call_once fun="NavSetWaypointHere(WP_TEMP)"/>
       <call fun="load_qdict()"/>
       <stay wp="TEMP"/>
     </block>
     <block name="ReadQDict_TXT">
-      <call fun="NavSetWaypointHere(WP_TEMP)"/>
+      <call_once fun="NavSetWaypointHere(WP_TEMP)"/>
       <call fun="load_qdict_fromtxt()"/>
       <stay wp="TEMP"/>
     </block>
     <block name="land here" strip_button="Land Here" strip_icon="land-right.png">
-      <call fun="NavSetWaypointHere(WP_TD)"/>
+      <call_once fun="NavSetWaypointHere(WP_TD)"/>
     </block>
     <block name="land">
       <go wp="TD"/>

@@ -1,0 +1,34 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="my_visrl_ap" dir="my_visrl">
+  <doc>
+      <description>Module that implements the vision in the AUTOPILOT build for
+          the experimental vision-based RL navigation for the thesis of Manan
+          Siddiquee</description>
+    <define name="VIS_CAMERA" value="front_camera|bottom_camera" description="Video device to use"/>
+    <define name="VIS_FPS" value="0" description="The (maximum) frequency to run the calculations at. If zero, it will max out at the camera frame rate"/>
+  </doc>
+
+  <!--
+  <settings>
+    <dl_settings>
+      <dl_settings NAME="RL params">
+          <dl_setting MAX="100" MIN="5" STEP="5" VAR="rl_eps" shortname="epsilon" module="my_visrl/visrl" type="int"/>
+      </dl_settings>
+    </dl_settings>
+  </settings>
+-->
+
+  <depends>video_thread</depends>
+
+  <header>
+    <file name="vis_ap.h"/>
+  </header>
+
+  <init fun="vis_ap_init()"/>
+
+  <makefile target="ap">
+    <file name="vis_ap.c"/>
+  </makefile>
+</module>
+

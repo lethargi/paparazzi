@@ -1,6 +1,18 @@
-#include "modules/manan_test/visrl.h"
-#include "modules/manan_test/manan_test.h"
-#include "modules/manan_test/mydict.h"
+#include "modules/my_visrl/visrl.h"
+
+// #ifdef VIS_NPS_H
+// #endif
+
+/*
+#ifdef VIS_AP_H
+#endif
+*/
+// #include "modules/manan_test/vis_nps.h"
+#include "modules/my_visrl/vis_ap.h"
+
+#include "modules/my_visrl/mynavfuncs.h"
+#include "modules/my_visrl/mydict.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -121,16 +133,16 @@ uint8_t rl_inc_maxepochs(void)
     return 0;
 }
 
-uint8_t pick_action(char *state)
+uint8_t pick_action(char *mystate)
 {
     uint8_t picked_action = 0;
     total_state_visits++;
 
     md_node *curnode;
-    curnode = md_search(ll_qdict,state);
+    curnode = md_search(ll_qdict,mystate);
 
     if (curnode == NULL) {
-        curnode = md_prepend_list(ll_qdict,state);
+        curnode = md_prepend_list(ll_qdict,mystate);
         picked_action = rand() % 3;
         /*
         currow = (float *)calloc(3,sizeof(float));
@@ -230,15 +242,15 @@ void update_headind(void)
 {
     float myhead = get_myheading();
     float hby2 = M_PI/8;
-    uint8_t i = 0;
+    uint8_t bin_i = 0;
     if ((myhead < hby2) || (myhead >= headings_rad[7] + hby2)) {
-        headind = i;
+        headind = bin_i;
     }
     else {
-        for (uint8_t i=1; i<8;i++){
-            if ((myhead >= headings_rad[i-1] + hby2) &&
-                (myhead < headings_rad[i] + hby2)) {
-                    headind = i;
+        for (bin_i=1; bin_i<8;bin_i++){
+            if ((myhead >= headings_rad[bin_i-1] + hby2) &&
+                (myhead < headings_rad[bin_i] + hby2)) {
+                    headind = bin_i;
                 }
         }
     }
