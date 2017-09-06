@@ -1,13 +1,16 @@
 <!DOCTYPE flight_plan SYSTEM "../flight_plan.dtd">
 
-<flight_plan alt="41" ground_alt="39.5" lat0="60.2806185" lon0="5.2225626" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="1">
+<flight_plan alt="2.8" ground_alt="1.4" lat0="42.3489323" lon0="-71.0083311" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="1">
   <header>
 	#include "autopilot.h"
     #include "subsystems/ahrs.h"
     #include "subsystems/electrical.h"
     #include "subsystems/datalink/datalink.h"
-    <!-- #include "modules/manan_test/vis_nps.h" -->
+<!--
+    #include "modules/my_visrl/vis_nps.h"
+-->
 	#include "modules/my_visrl/vis_ap.h"
+
 	#include "modules/my_visrl/visrl.h"
 	#include "modules/my_visrl/mynavfuncs.h"
 </header>
@@ -16,7 +19,7 @@
     <waypoint name="CLIMB" x="0.0" y="2.5"/>
     <waypoint x="3" y="3" name="TEMP"/>
     <waypoint x="3" y="3.5" name="CURPOS"/>
-    <waypoint x="3" y="4" lon="5.225104" name="TESTWP"/>
+    <waypoint x="3" y="4" name="TESTWP"/>
     <waypoint x="0" y="0" name="STDBY"/>
     <waypoint x="0" y="0" name="GOAL"/>
     <waypoint x="3" y="7" name="HeightRef"/>
@@ -119,7 +122,7 @@
         <call fun="cv_3grids()"/>
       <stay wp="GOAL"/>
     </block>
--->
+    -->
     <!--
     <block name="AppendQdict">
         <call fun="append_qdict()"/>
@@ -138,7 +141,7 @@
         <call fun="print_cvarrs()"/>
       <stay wp="GOAL"/>
     </block>
--->
+    -->
     <block name="RandomizeStart">
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
       <call fun="rl_randomize_start(WP_GOAL,WP_HOME)"/>

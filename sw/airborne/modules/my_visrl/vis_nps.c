@@ -11,7 +11,8 @@
  */
 
 #include "modules/my_visrl/vis_nps.h"
-#include "stdio.h"
+#include <stdio.h>
+#include <string.h>
 
 
 // dont know where all these imports are from (most prolly for the curl)

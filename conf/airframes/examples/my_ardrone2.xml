@@ -48,7 +48,11 @@
         <define name="VIS_CAMERA" value="front_camera"/>
         <define name="VIS_FPS" value="1"/>
     </module>
-    <!-- <module name="my_visrl_nps"/> -->
+
+    <!--
+    <module name="my_visrl_nps"/>
+    -->
+
 
     <module name="video_rtp_stream">
       <define name="VIEWVIDEO_CAMERA" value="front_camera"/>
