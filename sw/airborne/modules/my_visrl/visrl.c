@@ -66,6 +66,8 @@ uint32_t total_state_visits = 0;
 int8_t head_roll;
 
 // file to write and qtable; add descriptions of these files
+// FILE LOCATIONS DURING NPS RUNS
+/*
 char qdict_txt_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict.txt";
 char qdictkeys_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict_keys.dat";
 char qdictvalues_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict_values.dat";
@@ -74,6 +76,19 @@ char statevisits_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/Save
 char log_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/log.txt";
 char epi_log_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/epi_log.txt";
 char savelocation[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/";
+char copy_location[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/__LastSaves/";
+*/
+// FILE LOCATION WHEN RUNNING IN THE UAV
+char qdict_txt_file_addrs[] = "/home/default/qdict.txt";
+char qdictkeys_file_addrs[] = "/home/default/qdict_keys.dat";
+char qdictvalues_file_addrs[] = "/home/default/qdict_values.dat";
+char statevisitsvalues_file_addrs[] = "/home/defaultstatevisits_values.dat";
+char statevisits_file_addrs[] = "/home/default/statevisits.txt";
+char log_file_addrs[] = "/home/default/log.txt";
+char epi_log_file_addrs[] = "/home/default/epi_log.txt";
+char copy_location[] = "/home/default/";
+// char savelocation[] = "/home/default/_Study/AE9999_Thesis/playground/SavedQtabs/";
+
 
 FILE *qdict_txt_file;
 FILE *qdictkeys_file;
@@ -104,6 +119,8 @@ uint8_t init_qdict(void)
     epi_log_file = fopen(epi_log_file_addrs,"w"); //create or reset epi logfile
     fclose(log_file);
     fclose(epi_log_file);
+    /* Sept 7 Commented out for debugs
+    */
 
     ll_qdict = md_init_linkedlist();
     printf("Size Of ll_Qdict:%d\n",ll_qdict->length);
@@ -181,7 +198,7 @@ uint8_t pick_action(char *mystate)
 
 char *get_state_ext(void)
 {
-    cv_3grids();
+    cv_3grids();        // function only used to get cv data during simulation
     for (int i = 0; i < 3; i++) {
         countfracs[i] = sumcount_arr[i]/5000;
     }
@@ -215,6 +232,7 @@ char *get_state_ext(void)
             // goals_visited,hitwall,headind); // with headindex
             // goals_visited,hitwall);      // without headingindex
 
+    /*
     int length = snprintf( NULL, 0, "%d,%d,%d;%d;%d",
             domcol_arr[0],domcol_arr[1],domcol_arr[2],
             // countfracs[0],countfracs[1],//countfracs[2],
@@ -222,6 +240,15 @@ char *get_state_ext(void)
             goals_visited,hitwall);      // without headingindex
     char *curstate = malloc( length + 1 );
     snprintf( curstate, length + 1, "%d,%d,%d;%d;%d",
+            domcol_arr[0],domcol_arr[1],domcol_arr[2],
+            // countfracs[0],countfracs[1],//countfracs[2],
+            // goals_visited,hitwall,headind); // with headindex
+            goals_visited,hitwall);      // without headingindex
+    */
+
+    // char curstate[30];
+    char *curstate = malloc( sizeof(char)*20 );
+    sprintf(curstate,"%d,%d,%d;%d;%d",
             domcol_arr[0],domcol_arr[1],domcol_arr[2],
             // countfracs[0],countfracs[1],//countfracs[2],
             // goals_visited,hitwall,headind); // with headindex
@@ -549,7 +576,6 @@ uint8_t copy_file(char *old_filename, char  *new_filename)
 uint8_t copy_qdict(void)
 {
     char acopyloc[200];
-    char copy_location[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/__LastSaves/";
     //https://stackoverflow.com/questions/8257714/how-to-convert-an-int-to-string-in-c
     int length = snprintf( NULL, 0, "%s%d/", copy_location, episodes_simulated);
     char* path = malloc( length + 1 );
@@ -585,14 +611,13 @@ uint8_t copy_qdict(void)
 uint8_t copy_logs(void)
 {
     char acopyloc[200];
-    char copy_location[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/__LastSaves/";
 
     strcpy(acopyloc,copy_location);
-    strcat(acopyloc,"epi_log.txt");
+    strcat(acopyloc,"epi_log_cp.txt");
     copy_file(epi_log_file_addrs,acopyloc);
 
     strcpy(acopyloc,copy_location);
-    strcat(acopyloc,"log.txt");
+    strcat(acopyloc,"log_cp.txt");
     copy_file(log_file_addrs,acopyloc);
 
     return FALSE;

@@ -42,6 +42,10 @@ uint32_t count_arr[3][3] = {{0}};
 uint32_t sumcount_arr[3] = {0,0,0};
 uint8_t domcol_arr[3] = {0,0,0};
 
+float red_thresh = 0.40;
+float green_thresh = 0.40;
+float blue_thresh = 0.40;
+
 
 uint8_t colmax(uint32_t colarr[3][3],uint8_t maxcolarr[3])
 {
@@ -113,9 +117,9 @@ void my_image_yuv422_colorcounter(struct image_t *input)
             }
 
             // colorize pixel above threshold and colorize; otherwise make BW
-            if (((f_red > 0.40) && (f_green > 0.40)) ||
-                ((f_red > 0.40) && (f_blue > 0.40)) ||
-                ((f_blue > 0.40) && (f_green > 0.40))) {
+            if (((f_red > red_thresh) && (f_green > green_thresh)) ||
+                ((f_red > red_thresh) && (f_blue > blue_thresh)) ||
+                ((f_blue > blue_thresh) && (f_green > green_thresh))) {
                 source[0] = 240;        // U
                 source[2] = 240;        // V
                 whitecount++;
@@ -123,19 +127,19 @@ void my_image_yuv422_colorcounter(struct image_t *input)
                 source[1] = 254;
                 source[3] = 254;
             }
-            else if (f_red > 0.40) {
+            else if (f_red > red_thresh) {
                 source[0] = 10;        // U
                 source[2] = 240;        // V
                 count_arr[0][coltoapp]++;
                 sumcount_arr[0]++;
             }
-            else if (f_green > 0.40) {
+            else if (f_green > green_thresh) {
                 source[0] = 10;        // U
                 source[2] = 10;        // V
                 count_arr[1][coltoapp]++;
                 sumcount_arr[1]++;
             }
-            else if (f_blue > 0.40) {
+            else if (f_blue > blue_thresh) {
                 source[0] = 240;        // U
                 source[2] = 10;        // V
                 count_arr[2][coltoapp]++;
@@ -149,7 +153,7 @@ void my_image_yuv422_colorcounter(struct image_t *input)
             source += 4;
         }
     }
-    printf("white:%d \n",whitecount);
+    // printf("white:%d \n",whitecount);
     colmax(count_arr,domcol_arr);
 }
 
@@ -169,6 +173,7 @@ struct image_t *colorfilter_func(struct image_t *img)
   my_image_yuv422_colorcounter(img);
 
     //Print the statez
+    /* Prints the color state information
     printf("\tcol1 \tcol2 \tcol3\n");
     for (int ri = 0; ri < 3; ri++) {
         printf("%c:",colors[ri]);
@@ -177,6 +182,7 @@ struct image_t *colorfilter_func(struct image_t *img)
         }
         printf("\n");
     }
+    */
 
 
     /*

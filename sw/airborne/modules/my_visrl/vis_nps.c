@@ -56,6 +56,10 @@ uint32_t count_arr[3][3] = {{0}};
 uint32_t sumcount_arr[3] = {0,0,0};
 uint8_t domcol_arr[3] = {0,0,0};
 
+float red_thresh = 0.40;
+float green_thresh = 0.40;
+float blue_thresh = 0.40;
+
 // GList* list = NULL;
 // GHashTable* qdict = g_hash_table_new(g_str_hash, g_str_equal);
 
@@ -254,9 +258,9 @@ uint8_t count_pixels_in_three_grids(struct BmpStruct *bmpstructPtr)
             greenfrac = (float) *pxg / (float) colvalsum;
             bluefrac = (float) *pxb / (float) colvalsum;
 
-            if (redfrac > 0.75) { arrtoapp=0; }
-            else if (greenfrac > 0.75) { arrtoapp=1; }
-            else if (bluefrac > 0.65) { arrtoapp=2; }
+            if (redfrac > red_thresh) { arrtoapp=0; }
+            else if (greenfrac > green_thresh) { arrtoapp=1; }
+            else if (bluefrac > blue_thresh) { arrtoapp=2; }
 
             if (arrtoapp < 3) {
                 if (coli < width1) { count_arr[arrtoapp][0]++; }

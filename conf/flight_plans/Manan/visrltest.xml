@@ -70,129 +70,47 @@
        <call fun="init_qdict()"/>
       <stay wp="STDBY"/>
     </block>
-    <block name="WaitOnGoal">
+    <block name="INIT_QDICT">
+       <call fun="init_qdict()"/>
       <stay wp="GOAL"/>
     </block>
-    <!--
-    <block name="Print State">
-      <call fun="init_qdict()"/>
+    <block name="INIT_RL">
       <call fun="rl_init()"/>
       <stay wp="GOAL"/>
     </block>
-    -->
-    <!--
-    <block name="vis_ap_init">
-        <call_once fun="vis_ap_init()"/>
-        <stay wp="GOAL"/>
-    </block>
-    <block name="InitQdict">
-      <call fun="NavSetWaypointHere(WP_GOAL)"/>
-        <call fun="init_qdict()"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="YawRight">
-      <call fun="NavSetWaypointHere(WP_GOAL)"/>
-      <call fun="increase_nav_heading_deg(&nav_heading, 30)"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="YawLeft">
-      <call fun="NavSetWaypointHere(WP_GOAL)"/>
-      <call fun="increase_nav_heading_deg(&nav_heading, -30)"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="For">
-      <call fun="NavSetWaypointHere(WP_GOAL)"/>
-      <call fun="moveWaypointForwards(WP_GOAL,2)"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="Bac">
-      <call fun="NavSetWaypointHere(WP_GOAL)"/>
-      <call fun="moveWaypointForwards(WP_GOAL,-2)"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="TESTBLOCK">
-      <call fun="setHeadingNorth()"/>
-      <call fun="NavSetWaypointHere(WP_GOAL)"/>
-      <go wp="GOAL"/>
-      <stay wp="GOAL"/>
-    </block>
-
-    <block name="GoToGoal">
-      <go wp="GOAL"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="GoToTemp">
-      <go wp="TEMP"/>
-      <stay wp="TEMP"/>
-    </block>
-    <block name="3Grids">
-        <call fun="cv_3grids()"/>
-      <stay wp="GOAL"/>
-    </block>
-    -->
-    <!--
-    <block name="AppendQdict">
-        <call fun="append_qdict()"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="PrintQdict">
-        <call fun="print_qdict()"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="SizeQdict">
-        <call fun="size_qdict()"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="PrintCVArrs">
-        <call fun="cv_3grids()"/>
-        <call fun="print_cvarrs()"/>
-      <stay wp="GOAL"/>
-    </block>
-    -->
-    <block name="RandomizeStart">
-      <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
-      <call fun="rl_randomize_start(WP_GOAL,WP_HOME)"/>
-      <call fun="setAltToWp(WP_GOAL,WP_HOME)"/>
-      <call fun="rl_smooth_turn(head_roll)"/>
-      <stay wp="CURPOS" until="stage_time>8"/>
-      <go from="CURPOS" wp="GOAL" hmode="route" approaching_time="0"/>
-      <stay wp="GOAL" until="stage_time>5"/>
-      <!-- <call fun="setHeadingNorth()"/> -->
-      <!-- <call fun="NavSetWaypointHere(WP_GOAL)"/> -->
-      <deroute block="InitRL"/>
-    </block>
-    <block name="SetupEpisode">
-        <!-- <go wp="HOME"/> -->
-      <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
-      <go from="CURPOS" wp="HOME" hmode="route" approaching_time="0"/>
-      <call_once fun="setHeadingNorth()"/>
-      <stay wp="HOME" until="stage_time>5"/>
-      <call_once fun="NavSetWaypointHere(WP_GOAL)"/>
-      <call fun="setAltToWp(WP_GOAL,WP_HOME)"/>
-      <stay wp="GOAL" until="stage_time>1"/>
-    </block>
-    <block name="InitRL">
-      <call fun="rl_init()"/>
-      <stay until="stage_time>1" wp="GOAL"/>
-    </block>
-    <block name="DoOneStep">
-      <while cond="!rl_isterminal">
+    <block name="RL_SET_CUR">
         <call fun="rl_set_cur()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="RL_write_step_log">
         <call fun="rl_write_step_log()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="RL_take_cur_action">
         <call fun="rl_take_cur_action()"/>
-        <stay until="stage_time>1" wp="GOAL"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="RL_set_next">
         <call fun="rl_set_nxt()"/>
-        <!-- <call fun="rl_update_qtab()"/> -->
+      <stay wp="GOAL"/>
+    </block>
+    <block name="RL_update_qdict">
         <call fun="rl_update_qdict()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="RL_check_terminal">
         <call fun="rl_check_terminal()"/>
-      </while>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="PrintQDict">
+      <call fun="print_qdict()"/>
+      <stay wp="GOAL"/>
     </block>
     <block name="EndEp">
       <call fun="rl_write_episode_log()"/>
       <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
 	  <exception cond="episodes_simulated > rl_maxepochs" deroute="IncEps"/>
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
-      <deroute block="SetupEpisode"/>
       <!-- <deroute block="RandomizeStart"/> -->
     </block>
     <block name="IncEps">
@@ -205,7 +123,6 @@
       <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
 	  <exception cond="episodes_simulated > 899" deroute="EndRl"/>
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
-	  <deroute block="SetupEpisode"/>
     </block>
     <block name="EndRl">
       <call fun="rl_write_episode_log()"/>
@@ -232,31 +149,6 @@
       <call fun="copy_qdict()"/>
       <stay wp="GOAL"/>
     </block>
-    <!--
-    <block name="WriteEpLog">
-      <call fun="rl_write_episode_log()"/>
-    </block>
-    <block name="PrintQtab">
-      <call fun="rl_print_qtab()"/>
-      <stay wp="GOAL"/>
-    </block>
-    -->
-    <block name="PrintQDict">
-      <call fun="print_qdict()"/>
-      <stay wp="GOAL"/>
-    </block>
-    <!--
-    <block name="ReadQtab">
-      <call fun="NavSetWaypointHere(WP_TEMP)"/>
-      <call fun="rl_read_qtab()"/>
-      <stay wp="TEMP"/>
-    </block>
-    <block name="WriteQtab">
-      <call fun="NavSetWaypointHere(WP_TEMP)"/>
-      <call fun="rl_write_qtab()"/>
-      <stay wp="TEMP"/>
-    </block>
-    -->
     <block name="WriteQDict">
       <call_once fun="NavSetWaypointHere(WP_TEMP)"/>
       <call fun="write_qdict()"/>

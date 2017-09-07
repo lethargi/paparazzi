@@ -23,4 +23,6 @@ extern uint8_t domcol_arr[3];
 extern uint8_t print_cvarrs(void);
 extern uint8_t cv_3grids(void);
 
+extern float red_thresh, green_thresh, blue_thresh;
+
 #endif
