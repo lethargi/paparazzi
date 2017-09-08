@@ -6,10 +6,10 @@
     #include "subsystems/ahrs.h"
     #include "subsystems/electrical.h"
     #include "subsystems/datalink/datalink.h"
-<!--
     #include "modules/my_visrl/vis_nps.h"
--->
+<!--
 	#include "modules/my_visrl/vis_ap.h"
+-->
 
 	#include "modules/my_visrl/visrl.h"
 	#include "modules/my_visrl/mynavfuncs.h"
@@ -68,6 +68,7 @@
     </block>
     <block name="Standby" strip_button="Standby" strip_icon="home.png">
        <call fun="init_qdict()"/>
+       <call fun="set_nav_heading(0)"/>
       <stay wp="STDBY"/>
     </block>
     <block name="INIT_QDICT">

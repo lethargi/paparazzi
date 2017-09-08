@@ -20,7 +20,6 @@
 // #include <limits.h>
 #include <float.h>
 
-
 // think this contains state information from that file
 #include "firmwares/rotorcraft/navigation.h"
 #include "state.h"
@@ -28,7 +27,6 @@
 
 #define NAV_C
 #include "generated/flight_plan.h"
-
 
 
 float headings_rad[8] = {0, M_PI/4., M_PI/2., 3*M_PI/4.,
@@ -68,6 +66,7 @@ int8_t head_roll;
 // file to write and qtable; add descriptions of these files
 // FILE LOCATIONS DURING NPS RUNS
 /*
+*/
 char qdict_txt_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict.txt";
 char qdictkeys_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict_keys.dat";
 char qdictvalues_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict_values.dat";
@@ -77,7 +76,8 @@ char log_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/l
 char epi_log_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/epi_log.txt";
 char savelocation[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/";
 char copy_location[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/__LastSaves/";
-*/
+
+/*
 // FILE LOCATION WHEN RUNNING IN THE UAV
 char qdict_txt_file_addrs[] = "/home/default/qdict.txt";
 char qdictkeys_file_addrs[] = "/home/default/qdict_keys.dat";
@@ -87,7 +87,9 @@ char statevisits_file_addrs[] = "/home/default/statevisits.txt";
 char log_file_addrs[] = "/home/default/log.txt";
 char epi_log_file_addrs[] = "/home/default/epi_log.txt";
 char copy_location[] = "/home/default/";
+// savelocation commented out for UAV implementation; may need fixing
 // char savelocation[] = "/home/default/_Study/AE9999_Thesis/playground/SavedQtabs/";
+ */
 
 
 FILE *qdict_txt_file;
@@ -160,7 +162,7 @@ uint8_t pick_action(char *mystate)
 
     if (curnode == NULL) {
         curnode = md_prepend_list(ll_qdict,mystate);
-        picked_action = rand() % 3;
+        picked_action = rand() % 4;
         /*
         currow = (float *)calloc(3,sizeof(float));
         currow_statevisits = (uint16_t *)calloc(3,sizeof(uint16_t));
@@ -185,7 +187,7 @@ uint8_t pick_action(char *mystate)
         else {
             // do random
             act_type = "R";
-            picked_action = rand() % 3;
+            picked_action = rand() % 4;
         }
         // printf("\n BefStateVisits \n");
         curnode->visits[picked_action]++;
@@ -398,6 +400,7 @@ uint8_t rl_set_nxt(void)
     state_buffer = get_state_ext();
     strcpy(nxt_sta,state_buffer);
     nxt_act = pick_action(nxt_sta);
+    printf("\nCurAct:%d\n",nxt_act);
     rl_get_reward();
     free(state_buffer);
 
@@ -423,7 +426,8 @@ uint8_t rl_take_cur_action(void)
             }
         }
     }
-    else {
+    // if i have to turn
+    else if (cur_act != 3) {
         headatcompass = (headatcompass == 1) ? 0 : 1;
         // select index of heading from headings_rad array
         if (cur_act == 1) {
@@ -442,10 +446,29 @@ uint8_t rl_take_cur_action(void)
         }
         // set the heading
         set_nav_heading(headings_rad[headind]);
-
     }
+    // if i am picking the option to keep turning until sth is seen
+    else if (cur_act == 3) {
+        update_headind();
+        printf("\nInAct3:start\n");
+        for (int i = 0; i < 3; i++) {
+            printf("\nInAct3:for\n");
+            if (domcol_arr[i]) {
+                printf("\nInAct3:ifchecktru\n");
+                steps_taken++;
+                return FALSE;
+            }
+        }
+        printf("\nInAct3:ifcheckfalse\n");
+        set_nav_heading(headings_rad[(headind+1)%8]);
+        state_buffer = get_state_ext();
+        strcpy(nxt_sta,state_buffer);
+        printf("\nInAct3:newsta:%s\n",nxt_sta);
+        return TRUE;
+    }
+
     steps_taken++;
-    return 0;
+    return FALSE;
 }
 
 uint8_t rl_update_qdict(void)
