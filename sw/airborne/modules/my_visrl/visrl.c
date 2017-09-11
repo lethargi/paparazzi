@@ -38,8 +38,12 @@ uint8_t headatcompass = 1;
 // States, actions and reward
 char *state_buffer;
 static char *act_type = "R";
-static uint8_t cur_act, nxt_act;
+static uint8_t cur_act = 0;
+static uint8_t nxt_act = 0;
+static uint8_t start_option = 0; //boolean to check if performing option
+static uint8_t end_option = 0; //boolean to check if performing option
 static char *cur_sta, *nxt_sta;
+static char *option_start_sta;  //stores the starting state of options for Qtab updates
 static uint8_t hitwall = 0;
 uint8_t rl_isterminal = 0;
 static float cur_rew = 0;
@@ -130,6 +134,7 @@ uint8_t init_qdict(void)
     // These are never freed
     cur_sta = (char *)malloc(30*sizeof(char));
     nxt_sta = (char *)malloc(30*sizeof(char));
+    option_start_sta = (char *)malloc(30*sizeof(char));
     return 0;
 }
 
@@ -154,6 +159,25 @@ uint8_t rl_inc_maxepochs(void)
 
 uint8_t pick_action(char *mystate)
 {
+    printf("StartOpt:%d EndOpt:%d ",start_option,end_option);
+    // if performing option of turning till color, return option action
+    if (cur_act == 3) {
+        start_option = 0; //already performing option
+        uint8_t seeing_color = 0;
+        for (int i = 0; i < 3; i++) {
+            // printf("\nInAct3:for\n");
+            if (domcol_arr[i]) { // using the basic color array; maybe shud use the state info
+                seeing_color = 1;
+            }
+        }
+        if (!seeing_color) {
+            return 3;
+        }
+        else {
+            end_option = 1;
+        }
+    }
+
     uint8_t picked_action = 0;
     total_state_visits++;
 
@@ -194,7 +218,13 @@ uint8_t pick_action(char *mystate)
         // printf("\n AftStateVisits \n");
     }
     // printf(" Visits:%u ", currow_statevisits[picked_action]);
-    printf(" Action:%u ", picked_action);
+
+    // if picking option, set boolean to true;
+    if (picked_action == 3) {
+        start_option = 1;
+        end_option = 0;
+    }
+    printf(" Action:%u", picked_action);
     return picked_action;
 }
 
@@ -366,6 +396,9 @@ uint8_t rl_set_cur(void)
 {
     cur_sta = nxt_sta;
     cur_act = nxt_act;
+    if (start_option) {
+        strcpy(option_start_sta,cur_sta);
+    }
     return 0;
 }
 
@@ -385,6 +418,11 @@ uint8_t rl_get_reward(void)
             cur_rew += countfracs[0]; //reward for red
             cur_rew -= countfracs[1]; //deduct for green
         }
+
+        // if we are selecting an option include extra penalty
+        if (cur_act == 3) {
+            cur_rew -= 10;
+        }
     }
     else {
         hitwall = 0;
@@ -400,7 +438,7 @@ uint8_t rl_set_nxt(void)
     state_buffer = get_state_ext();
     strcpy(nxt_sta,state_buffer);
     nxt_act = pick_action(nxt_sta);
-    printf("\nCurAct:%d\n",nxt_act);
+    // printf("\nCurAct:%d\n",nxt_act);
     rl_get_reward();
     free(state_buffer);
 
@@ -427,7 +465,8 @@ uint8_t rl_take_cur_action(void)
         }
     }
     // if i have to turn
-    else if (cur_act != 3) {
+    // else if (cur_act != 3) {
+    else {
         headatcompass = (headatcompass == 1) ? 0 : 1;
         // select index of heading from headings_rad array
         if (cur_act == 1) {
@@ -437,7 +476,7 @@ uint8_t rl_take_cur_action(void)
                 headind = len_headings - 1;
             }
         }
-        else if (cur_act == 2) {
+        else if ((cur_act == 2) || (cur_act == 3)) {
             // increase_nav_heading_deg(&nav_heading, 45);
             headind++;
             if (headind == len_headings) {
@@ -448,6 +487,7 @@ uint8_t rl_take_cur_action(void)
         set_nav_heading(headings_rad[headind]);
     }
     // if i am picking the option to keep turning until sth is seen
+    /*
     else if (cur_act == 3) {
         update_headind();
         printf("\nInAct3:start\n");
@@ -466,6 +506,7 @@ uint8_t rl_take_cur_action(void)
         printf("\nInAct3:newsta:%s\n",nxt_sta);
         return TRUE;
     }
+    */
 
     steps_taken++;
     return FALSE;
@@ -473,6 +514,18 @@ uint8_t rl_take_cur_action(void)
 
 uint8_t rl_update_qdict(void)
 {
+    // if running options
+    if (cur_act == 3) {
+        // if option didnt end, dont update qtab
+        if (!end_option) {
+            printf(" No Q updates \n");
+            return 0;
+        }
+        // if option ended overwrite cur_sta with option starting state
+        else {
+            strcpy(cur_sta,option_start_sta);
+        }
+    }
     // printf("SizeOfQdict:%d ;",g_hash_table_size(myqdict));
     float Qcur, Qnxt, Qcur1;
 

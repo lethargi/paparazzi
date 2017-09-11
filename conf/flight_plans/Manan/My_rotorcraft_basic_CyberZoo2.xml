@@ -1,6 +1,6 @@
 <!DOCTYPE flight_plan SYSTEM "../flight_plan.dtd">
 
-<flight_plan alt="2.8" ground_alt="1.4" lat0="42.3489323" lon0="-71.0083311" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="1">
+<flight_plan alt="2.75" ground_alt="1.35" lat0="42.3489323" lon0="-71.0083311" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="1">
   <header>
 	#include "autopilot.h"
     #include "subsystems/ahrs.h"
@@ -29,10 +29,10 @@
     <waypoint lat="60.2947578" lon="5.2255819" name="p3"/>
     <waypoint lat="60.2947389" lon="5.2245349" name="p4"/>
 -->
-    <waypoint x="-3.8" y="3" name="SZ1"/>
+    <waypoint x="-3.7" y="3" name="SZ1"/>
     <waypoint x="3.8" y="3" name="SZ2"/>
     <waypoint x="3.8" y="-4" name="SZ3"/>
-    <waypoint x="-3.8" y="-4" name="SZ4"/>
+    <waypoint x="-3.7" y="-4" name="SZ4"/>
     <waypoint x="0.25" y="0.25" name="BoundaryChecker"/>
     <waypoint height="12." name="CAM" x="-20" y="-50"/>
     <waypoint name="XYFINDER" x="30" y="-30"/>
