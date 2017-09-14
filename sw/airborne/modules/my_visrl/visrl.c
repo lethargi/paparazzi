@@ -1,15 +1,5 @@
 #include "modules/my_visrl/visrl.h"
 
-// #ifdef VIS_NPS_H
-// #endif
-
-/*
-#ifdef VIS_AP_H
-#endif
-*/
-// #include "modules/manan_test/vis_nps.h"
-#include "modules/my_visrl/vis_ap.h"
-
 #include "modules/my_visrl/mynavfuncs.h"
 #include "modules/my_visrl/mydict.h"
 
@@ -67,7 +57,7 @@ int8_t head_roll;
 
 // file to write and qtable; add descriptions of these files
 // FILE LOCATIONS DURING NPS RUNS
-/*
+#ifdef VISRL_NPS
 char qdict_txt_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict.txt";
 char qdictkeys_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict_keys.dat";
 char qdictvalues_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict_values.dat";
@@ -77,7 +67,7 @@ char log_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/l
 char epi_log_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/epi_log.txt";
 char savelocation[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/";
 char copy_location[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/__LastSaves/";
-*/
+#else
 // FILE LOCATION WHEN RUNNING IN THE UAV
 char qdict_txt_file_addrs[] = "/home/default/qdict.txt";
 char qdictkeys_file_addrs[] = "/home/default/qdict_keys.dat";
@@ -88,6 +78,7 @@ char log_file_addrs[] = "/home/default/log.txt";
 char epi_log_file_addrs[] = "/home/default/epi_log.txt";
 char copy_location[] = "/home/default/";
 // char savelocation[] = "/home/default/_Study/AE9999_Thesis/playground/SavedQtabs/";
+#endif
 
 
 FILE *qdict_txt_file;

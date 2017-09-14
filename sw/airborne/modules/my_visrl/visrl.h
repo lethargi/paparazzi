@@ -4,6 +4,14 @@
 #include <stdint.h>
 // #include <glib.h>
 
+#ifdef VISRL_NPS
+#include "modules/my_visrl/vis_nps.h"
+#endif
+// #else
+#ifdef VISRL_AP
+#include "modules/my_visrl/vis_ap.h"
+#endif
+
 #define GetSign(v) ( ( (v) < 0 ) ? -1 : ( (v) > 0 ) )
 // #define GetCurX() (stateGetNedToBodyEulers_i()->psi)
 // #define GetCurY() (stateGetNedToBodyEulers_i()->psi)

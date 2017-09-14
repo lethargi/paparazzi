@@ -4,10 +4,10 @@
   <doc>
       <description>Module that implements the experimental vision-based RL
           navigation for the thesis of Manan Siddiquee</description>
-      <!--
+    <!--
     <define name="VIS_CAMERA" value="front_camera|bottom_camera" description="Video device to use"/>
     <define name="VIS_FPS" value="0" description="The (maximum) frequency to run the calculations at. If zero, it will max out at the camera frame rate"/>
--->
+    -->
   </doc>
 
   <settings>
@@ -15,9 +15,15 @@
       <dl_settings NAME="RL params">
           <dl_setting MAX="100" MIN="5" STEP="5" VAR="rl_eps" shortname="epsilon" module="my_visrl/visrl" type="int"/>
       </dl_settings>
+      <dl_settings NAME="Colorfilter">
+         <dl_setting var="red_thresh" min="0" step="0.01" max="1" shortname="r_thresh" />
+         <dl_setting var="green_thresh" min="0" step="0.01" max="1" shortname="g_thresh" />
+         <dl_setting var="blue_thresh" min="0" step="0.01" max="1" shortname="b_thresh" />
+      </dl_settings>
     </dl_settings>
   </settings>
 
+  <depends>video_thread</depends>
   <!-- <depends>my_visrl_vision</depends> -->
   <!-- <depends>my_visrl_ap</depends> -->
 
@@ -27,13 +33,17 @@
   <!-- <init fun="my_init()"/> -->
   <!--<periodic fun="a" freq="0.5" autorun="TRUE"/>-->
   <makefile target="ap">
-      <!-- <file name="vis_ap.c"/> -->
+    <define name="VISRL_AP"/>
+        <define name="VIS_CAMERA" value="front_camera"/>
+        <define name="VIS_FPS" value="1"/>
+    <file name="vis_ap.c" dir="modules/my_visrl/"/>
     <file name="mynavfuncs.c" dir="modules/my_visrl/"/>
     <file name="mydict.c" dir="modules/my_visrl/"/>
     <file name="visrl.c" dir="modules/my_visrl/"/>
   </makefile>
   <makefile target="nps">
-      <!-- <file name="vis_nps.c"/> -->
+    <define name="VISRL_NPS"/>
+    <file name="vis_nps.c" dir="modules/my_visrl/"/>
     <file name="mynavfuncs.c" dir="modules/my_visrl/"/>
     <file name="mydict.c" dir="modules/my_visrl/"/>
     <file name="visrl.c" dir="modules/my_visrl/"/>

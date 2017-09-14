@@ -47,18 +47,13 @@
     </module>
 	-->
     <!--
-    -->
- 
-
     <module name="my_visrl_ap">
         <define name="VIS_CAMERA" value="front_camera"/>
         <define name="VIS_FPS" value="1"/>
     </module>
-
-
+    -->
     <!--
     <module name="my_visrl_nps"/>
-
     -->
 
 
