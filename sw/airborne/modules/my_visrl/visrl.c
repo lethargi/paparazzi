@@ -19,7 +19,7 @@
 #define NAV_C
 #include "generated/flight_plan.h"
 
-
+#include "subsystems/datalink/telemetry.h"
 
 float headings_rad[8] = {0, M_PI/4., M_PI/2., 3*M_PI/4.,
                         M_PI, 5*M_PI/4. , 3*M_PI/2. , 7*M_PI/4.};
@@ -36,7 +36,7 @@ static uint8_t hitwall = 0;
 uint8_t rl_isterminal = 0;
 static float cur_rew = 0;
 
-uint16_t rl_maxepochs = 100;
+uint16_t rl_maxepochs = 50;
 
 static float rl_gamma = 0.9;
 static float rl_alp = 0.3;
@@ -99,6 +99,39 @@ FILE *epi_log_file;
 
 md_linkedlist *ll_qdict;
 
+
+
+//send message about vision output
+static void send_visrl(struct transport_tx *trans, struct link_device *dev)
+{
+  pprz_msg_send_VISRL(trans, dev, AC_ID,
+                            &count_arr[0][0],&count_arr[0][1],&count_arr[0][2],
+                            &count_arr[1][0],&count_arr[1][1],&count_arr[1][2],
+                            &domcol_arr[0],&domcol_arr[1],&domcol_arr[2]);
+//                         &airspeed, &v_ctl_auto_airspeed_setpoint,
+//                         &v_ctl_auto_airspeed_controlled, &v_ctl_auto_groundspeed_setpoint);
+}
+
+void visrl_init(void) {
+    // send message
+    register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_VISRL, send_visrl);
+
+    // initalize other required stuffs
+    log_file = fopen(log_file_addrs,"w"); //create or reset logfile
+    epi_log_file = fopen(epi_log_file_addrs,"w"); //create or reset epi logfile
+    fclose(log_file);
+    fclose(epi_log_file);
+    /* Sept 7 Commented out for debugs
+    */
+
+    ll_qdict = md_init_linkedlist();
+    printf("Size Of ll_Qdict:%d\n",ll_qdict->length);
+
+    // These are never freed
+    cur_sta = (char *)malloc(20*sizeof(char));
+    nxt_sta = (char *)malloc(20*sizeof(char));
+}
+
 uint8_t init_qdict(void)
 {
     // run only once per training
@@ -136,7 +169,7 @@ uint8_t rl_inc_eps(void)
 }
 uint8_t rl_inc_maxepochs(void)
 {
-    rl_maxepochs += 100;
+    rl_maxepochs += 50;
     printf("\nMaxEpochs:%d\n",rl_maxepochs);
     return 0;
 }
@@ -196,7 +229,7 @@ char *get_state_ext(void)
 
     //check for goals visited
     if (goals_visited == 0) {
-        if (countfracs[0] > 7) {
+        if (countfracs[0] > 10) {
             goals_visited = 1;
         }
         if (countfracs[1] > 7) {
@@ -459,7 +492,8 @@ uint8_t rl_update_qdict(void)
 uint8_t rl_check_terminal(void)
 {
     // this can be stated better
-    if (goals_visited != 3) {
+    // if (goals_visited != 3) {
+    if (goals_visited != 1) {
         // printf("non-terminal \n");
         rl_isterminal = 0;
     }

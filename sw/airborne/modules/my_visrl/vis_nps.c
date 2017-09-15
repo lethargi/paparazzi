@@ -26,8 +26,16 @@
 
 #include <jpeglib.h>
 
-
 // #include "generated/flight_plan.h"
+
+//RGB TO YUV CONVERSION https://stackoverflow.com/questions/1737726/how-to-perform-rgb-yuv-conversion-in-c-c
+#define CLIP(X) ( (X) > 255 ? 255 : (X) < 0 ? 0 : X)
+
+// RGB -> YUV
+#define RGB2Y(R, G, B) CLIP(( (  66 * (R) + 129 * (G) +  25 * (B) + 128) >> 8) +  16)
+#define RGB2U(R, G, B) CLIP(( ( -38 * (R) -  74 * (G) + 112 * (B) + 128) >> 8) + 128)
+#define RGB2V(R, G, B) CLIP(( ( 112 * (R) -  94 * (G) -  18 * (B) + 128) >> 8) + 128)
+
 
 struct MemoryStruct
 {
@@ -56,9 +64,9 @@ uint32_t count_arr[3][3] = {{0}};
 uint32_t sumcount_arr[3] = {0,0,0};
 uint8_t domcol_arr[3] = {0,0,0};
 
-float red_thresh = 0.40;
-float green_thresh = 0.40;
-float blue_thresh = 0.40;
+float red_thresh = 0.70;
+float green_thresh = 0.99;
+float blue_thresh = 0.99;
 
 // GList* list = NULL;
 // GHashTable* qdict = g_hash_table_new(g_str_hash, g_str_equal);
@@ -228,6 +236,7 @@ uint8_t colmax(uint32_t colarr[3][3],uint8_t maxcolarr[3])
 uint8_t count_pixels_in_three_grids(struct BmpStruct *bmpstructPtr)
 {
     unsigned char *curpx, *pxr, *pxg, *pxb;
+    uint8_t yval, uval, vval;
     uint16_t height = bmpstructPtr->height;
     uint16_t width = bmpstructPtr->width;
     uint16_t width1 = width/3;
@@ -245,7 +254,7 @@ uint8_t count_pixels_in_three_grids(struct BmpStruct *bmpstructPtr)
     int colvalsum;
     float redfrac,bluefrac,greenfrac;
 
-    uint8_t arrtoapp = 100;
+    uint8_t arrtoapp;
     for(int rowi = 0; rowi < height; rowi++) {
         for(int coli = 0; coli < width; coli++) {
             arrtoapp = 100;
@@ -258,8 +267,17 @@ uint8_t count_pixels_in_three_grids(struct BmpStruct *bmpstructPtr)
             greenfrac = (float) *pxg / (float) colvalsum;
             bluefrac = (float) *pxb / (float) colvalsum;
 
+            yval = RGB2Y(*pxr,*pxg,*pxb);
+            uval = RGB2U(*pxr,*pxg,*pxb);
+            vval = RGB2V(*pxr,*pxg,*pxb);
+
+            /*
+            printf("\nRGB: %d %d %d\n",*pxr,*pxg,*pxb);
+            printf("\nYUV: %d %d %d\n",yval,uval,vval);
+            */
+
             if (redfrac > red_thresh) { arrtoapp=0; }
-            else if (greenfrac > green_thresh) { arrtoapp=1; }
+            // else if (greenfrac > green_thresh) { arrtoapp=1; }
             else if (bluefrac > blue_thresh) { arrtoapp=2; }
 
             if (arrtoapp < 3) {

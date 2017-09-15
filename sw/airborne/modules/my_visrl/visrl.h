@@ -21,6 +21,8 @@ extern uint16_t rl_maxepochs;
 extern int8_t headind;
 extern int8_t head_roll;
 
+extern void visrl_init();
+
 
 // extern uint8_t rl_randomize_start(uint8_t waypoint);
 extern uint8_t rl_randomize_start(uint8_t waypoint, uint8_t altref_wp);

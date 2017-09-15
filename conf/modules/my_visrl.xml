@@ -30,7 +30,8 @@
   <header>
     <file name="visrl.h"/>
   </header>
-  <!-- <init fun="my_init()"/> -->
+
+  <init fun="visrl_init()"/>
   <!--<periodic fun="a" freq="0.5" autorun="TRUE"/>-->
   <makefile target="ap">
     <define name="VISRL_AP"/>

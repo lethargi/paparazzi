@@ -1,6 +1,6 @@
 <!DOCTYPE flight_plan SYSTEM "../flight_plan.dtd">
 
-<flight_plan alt="2.8" ground_alt="1.4" lat0="42.3489323" lon0="-71.0083311" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="1">
+<flight_plan alt="4" ground_alt="1.4" lat0="42.3489323" lon0="-71.0083311" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="1">
   <header>
 	#include "autopilot.h"
     #include "subsystems/ahrs.h"
@@ -70,10 +70,14 @@
       <deroute block="Standby"/>
     </block>
     <block name="Standby" strip_button="Standby" strip_icon="home.png">
-       <call fun="init_qdict()"/>
+        <!-- <call fun="init_qdict()"/> -->
       <stay wp="STDBY"/>
     </block>
     <block name="WaitOnGoal">
+      <stay wp="GOAL"/>
+    </block>
+    <block name="3Grids">
+      <call fun="cv_3grids()"/>
       <stay wp="GOAL"/>
     </block>
     <!--
@@ -127,10 +131,6 @@
     <block name="GoToTemp">
       <go wp="TEMP"/>
       <stay wp="TEMP"/>
-    </block>
-    <block name="3Grids">
-        <call fun="cv_3grids()"/>
-      <stay wp="GOAL"/>
     </block>
     -->
     <!--
@@ -206,7 +206,7 @@
       <call fun="write_qdict()"/>
       <call fun="copy_qdict()"/>
       <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
-	  <exception cond="episodes_simulated > 899" deroute="EndRl"/>
+	  <exception cond="episodes_simulated > 450" deroute="EndRl"/>
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
 	  <deroute block="SetupEpisode"/>
     </block>
