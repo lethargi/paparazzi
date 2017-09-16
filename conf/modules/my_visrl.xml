@@ -14,8 +14,12 @@
     <dl_settings>
       <dl_settings NAME="RL params">
           <dl_setting MAX="100" MIN="5" STEP="5" VAR="rl_eps" shortname="epsilon" module="my_visrl/visrl" type="int"/>
+          <dl_setting MAX="1.0" MIN="0.0" STEP="0.01" VAR="rl_alp" shortname="alpha" module="my_visrl/visrl" type="float"/>
+          <dl_setting MAX="1.0" MIN="0.0" STEP="0.01" VAR="rl_gamma" shortname="gamma" module="my_visrl/visrl" type="float"/>
+          <!--
       </dl_settings>
       <dl_settings NAME="Colorfilter">
+-->
          <dl_setting var="red_thresh" min="0" step="0.01" max="1" shortname="r_thresh" />
          <dl_setting var="green_thresh" min="0" step="0.01" max="1" shortname="g_thresh" />
          <dl_setting var="blue_thresh" min="0" step="0.01" max="1" shortname="b_thresh" />

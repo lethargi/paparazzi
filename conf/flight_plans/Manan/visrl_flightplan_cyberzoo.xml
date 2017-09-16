@@ -7,10 +7,13 @@
     #include "subsystems/ahrs.h"
     #include "subsystems/electrical.h"
     #include "subsystems/datalink/datalink.h"
-<!--
+
+    #ifdef VISRL_NPS
     #include "modules/my_visrl/vis_nps.h"
--->
+    #endif
+    #ifdef VISRL_AP
 	#include "modules/my_visrl/vis_ap.h"
+    #endif
 
 	#include "modules/my_visrl/visrl.h"
 	#include "modules/my_visrl/mynavfuncs.h"

@@ -5,7 +5,7 @@
 struct md_node {
     struct md_node *next;
 
-    char *key;
+    char key[20];
     float values[3];
     // using int here is inefficient in terms of memory
     int visits[3];

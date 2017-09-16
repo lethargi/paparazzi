@@ -168,7 +168,7 @@
         <!-- <go wp="HOME"/> -->
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
       <go from="CURPOS" wp="HOME" hmode="route" approaching_time="0"/>
-      <call_once fun="setHeadingNorth()"/>
+      <call fun="setHeadingNorth()"/>
       <stay wp="HOME" until="stage_time>5"/>
       <call_once fun="NavSetWaypointHere(WP_GOAL)"/>
       <call fun="setAltToWp(WP_GOAL,WP_HOME)"/>

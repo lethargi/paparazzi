@@ -45,11 +45,11 @@ md_node* md_create(char *key, md_node *next)
     md_node *new_node = (md_node*)malloc(sizeof(md_node));
     if(new_node == NULL)
     {
-        printf("Error creating node\n");
+        printf("\nError creating node\n");
         return 0;
         // exit(0);
     }
-    new_node->key = key;
+    strcpy(new_node->key,key);
 
     // value and visits functions initialized at 0
     for(int i = 0; i<3; i++) {

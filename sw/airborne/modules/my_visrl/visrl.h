@@ -40,6 +40,8 @@ extern uint8_t rl_print_qtab(void);
 extern uint8_t rl_isterminal;
 extern uint16_t episodes_simulated;
 extern uint8_t rl_eps;
+extern float rl_gamma;
+extern float rl_alp;
 
 extern uint8_t rl_write_episode_log(void);
 extern uint8_t rl_write_step_log(void);

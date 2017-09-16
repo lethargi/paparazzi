@@ -38,14 +38,14 @@ static float cur_rew = 0;
 
 uint16_t rl_maxepochs = 50;
 
-static float rl_gamma = 0.9;
-static float rl_alp = 0.3;
+float rl_gamma = 0.9;
+float rl_alp = 0.3;
 uint8_t rl_eps = 60;
 
 // Some vars for state
 // goals_visited 0 for none; 1 for red; 2 for green; 3 for both
 uint8_t goals_visited = 0;
-uint8_t countfracs[3] = {0,0,0};
+float countfracs[3] = {0,0,0};
 // counter for steps and episodes
 static uint16_t steps_taken = 0;
 uint16_t episodes_simulated = 0;
@@ -112,7 +112,8 @@ static void send_visrl(struct transport_tx *trans, struct link_device *dev)
 //                         &v_ctl_auto_airspeed_controlled, &v_ctl_auto_groundspeed_setpoint);
 }
 
-void visrl_init(void) {
+void visrl_init(void)
+{
     // send message
     register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_VISRL, send_visrl);
 
@@ -125,7 +126,7 @@ void visrl_init(void) {
     */
 
     ll_qdict = md_init_linkedlist();
-    printf("Size Of ll_Qdict:%d\n",ll_qdict->length);
+    // printf("Size Of ll_Qdict:%d\n",ll_qdict->length);
 
     // These are never freed
     cur_sta = (char *)malloc(20*sizeof(char));
@@ -185,18 +186,6 @@ uint8_t pick_action(char *mystate)
     if (curnode == NULL) {
         curnode = md_prepend_list(ll_qdict,mystate);
         picked_action = rand() % 3;
-        /*
-        currow = (float *)calloc(3,sizeof(float));
-        currow_statevisits = (uint16_t *)calloc(3,sizeof(uint16_t));
-        for (int i = 0; i < 3; i++) {
-            currow[i] = 0;
-            currow_statevisits[i] = 0;
-        }
-        g_hash_table_insert(myqdict,g_strdup(state),currow);
-
-        currow_statevisits[picked_action]++;
-        g_hash_table_insert(mystatevisitsdict,g_strdup(state),currow_statevisits);
-        */
     }
     else {
         uint8_t policy_roll = rand() % 100;
@@ -211,12 +200,10 @@ uint8_t pick_action(char *mystate)
             act_type = "R";
             picked_action = rand() % 3;
         }
-        // printf("\n BefStateVisits \n");
         curnode->visits[picked_action]++;
-        // printf("\n AftStateVisits \n");
     }
     // printf(" Visits:%u ", currow_statevisits[picked_action]);
-    printf(" Action:%u ", picked_action);
+    // printf(" %u ", picked_action);
     return picked_action;
 }
 
@@ -224,12 +211,12 @@ char *get_state_ext(void)
 {
     cv_3grids();        // function only used to get cv data during simulation
     for (int i = 0; i < 3; i++) {
-        countfracs[i] = sumcount_arr[i]/5000;
+        countfracs[i] = (float)sumcount_arr[i]/(float)5000;
     }
 
     //check for goals visited
     if (goals_visited == 0) {
-        if (countfracs[0] > 10) {
+        if (countfracs[0] > 9) {
             goals_visited = 1;
         }
         if (countfracs[1] > 7) {
@@ -247,29 +234,6 @@ char *get_state_ext(void)
         }
     }
 
-    // curstate[30];
-    // char *curstate = g_strdup_printf("%d,%d,%d;%d,%d;%d;%d;%d",
-
-//     char *curstate = g_strdup_printf("%d,%d,%d;%d;%d",
-//             domcol_arr[0],domcol_arr[1],domcol_arr[2],
-            // countfracs[0],countfracs[1],//countfracs[2],
-            // goals_visited,hitwall,headind); // with headindex
-            // goals_visited,hitwall);      // without headingindex
-
-    /*
-    int length = snprintf( NULL, 0, "%d,%d,%d;%d;%d",
-            domcol_arr[0],domcol_arr[1],domcol_arr[2],
-            // countfracs[0],countfracs[1],//countfracs[2],
-            // goals_visited,hitwall,headind); // with headindex
-            goals_visited,hitwall);      // without headingindex
-    char *curstate = malloc( length + 1 );
-    snprintf( curstate, length + 1, "%d,%d,%d;%d;%d",
-            domcol_arr[0],domcol_arr[1],domcol_arr[2],
-            // countfracs[0],countfracs[1],//countfracs[2],
-            // goals_visited,hitwall,headind); // with headindex
-            goals_visited,hitwall);      // without headingindex
-    */
-
     // char curstate[30];
     char *curstate = malloc( sizeof(char)*20 );
     sprintf(curstate,"%d,%d,%d;%d;%d",
@@ -278,7 +242,9 @@ char *get_state_ext(void)
             // goals_visited,hitwall,headind); // with headindex
             goals_visited,hitwall);      // without headingindex
 
-    printf("Ep:%d Step:%d State:%s ",episodes_simulated+1,steps_taken,curstate);
+    // printf("Ep:%d Step:%d State:%s ",episodes_simulated+1,steps_taken,curstate);
+    printf("%3d %4d",episodes_simulated+1,steps_taken);
+    // printf(" Size Of ll_Qdict:%d ",ll_qdict->length);
     return curstate;
 }
 
@@ -319,13 +285,10 @@ uint8_t rl_smooth_turn(uint8_t targhead_ind)
         dh_i = (dh_i > 0)? 8 - dh_i : 8 + dh_i;
     }
 
-    // if (abs(dh_i) > 1) {
     dh_i = GetSign(dh_i);
-    // }
 
     float targ_heading = headings_rad[headind+dh_i];
     set_nav_heading(targ_heading);
-    // printf("InSmoothTurn %d %d %d %f %f \n",dh_i, headind, targhead_ind, targ_heading, headings_rad[headind]);
     return TRUE;
 }
 
@@ -381,12 +344,15 @@ uint8_t rl_init(void)
     update_headind();
     printf("\n RL initialized ");
     printf(" TotVis:%u \n", total_state_visits);
+    printf("Ep Steps Rew :: cur_sta cur_act nxt_sta nxt_act : Qcur Qnxt Qcur1 ::\n");
     return 0;
+
 }
 
 uint8_t rl_set_cur(void)
 {
-    cur_sta = nxt_sta;
+    // cur_sta = nxt_sta;
+    strcpy(cur_sta,nxt_sta);
     cur_act = nxt_act;
     return 0;
 }
@@ -397,7 +363,8 @@ uint8_t rl_get_reward(void)
     if (hitwall == 0) {
         // cur_rew = reward_function[nxt_sta];
         if (goals_visited == 0) {
-            cur_rew += countfracs[0]+countfracs[1];
+            // cur_rew += countfracs[0]+countfracs[1];
+            cur_rew += (countfracs[0]+countfracs[1])*3;
         }
         else if (goals_visited == 1) {
             cur_rew += countfracs[1]; //get reward for green
@@ -412,7 +379,8 @@ uint8_t rl_get_reward(void)
         hitwall = 0;
         cur_rew = -20;
     }
-    printf("Rew:%02.1f ",cur_rew);
+    // printf("Rew:%02.1f ",cur_rew);
+    printf(" %03.1f ",cur_rew);
     episode_rewards += cur_rew;
     return 0;
 }
@@ -436,7 +404,7 @@ uint8_t rl_take_cur_action(void)
         // logic for detecting hitting wall
         if (!InsideMyWorld(WaypointX(WP_BoundaryChecker),WaypointY(WP_BoundaryChecker))) {
             hitwall = 1;
-            printf(" HITWALL ");
+            // printf(" HITWALL ");
         }
         else {
             if (headatcompass == 1) {
@@ -474,8 +442,8 @@ uint8_t rl_take_cur_action(void)
 
 uint8_t rl_update_qdict(void)
 {
-    // printf("SizeOfQdict:%d ;",g_hash_table_size(myqdict));
     float Qcur, Qnxt, Qcur1;
+    printf(":: %s %u  %s %u :", cur_sta, cur_act, nxt_sta, nxt_act);
 
     md_node *qtab_curnode = md_search(ll_qdict,cur_sta); //(float *)g_hash_table_lookup(myqdict,cur_sta);
     md_node *qtab_nxtnode = md_search(ll_qdict,nxt_sta); // (float *)g_hash_table_lookup(myqdict,nxt_sta);
@@ -484,8 +452,7 @@ uint8_t rl_update_qdict(void)
     Qcur1 = Qcur + rl_alp*(cur_rew + rl_gamma*Qnxt - Qcur);
     qtab_curnode->values[cur_act] = Qcur1;
     sumofQchanges += abs(Qcur1 - Qcur);
-    printf("Qcur:%03.1f Qnxt:%03.1f Qcur1:%03.1f :: \n", Qcur, Qnxt, Qcur1);
-    // printf("\n");
+    printf("%03.1f %03.1f %03.1f :: \n", Qcur, Qnxt, Qcur1);
     return 0;
 }
 
@@ -494,7 +461,6 @@ uint8_t rl_check_terminal(void)
     // this can be stated better
     // if (goals_visited != 3) {
     if (goals_visited != 1) {
-        // printf("non-terminal \n");
         rl_isterminal = 0;
     }
     else {

@@ -99,7 +99,19 @@ void nps_flightgear_init(const char *host,  unsigned int port, unsigned int port
   }
 
   // get current time to use as inital when computing cur_time for FG
-  time_t t = time(NULL);
+
+  // Setting FG initial time
+  struct tm info;
+  info.tm_year = 2001 - 1900;
+  info.tm_mon = 7 - 1;
+  info.tm_mday = 4;
+  info.tm_hour = 0;
+  info.tm_min = 0;
+  info.tm_sec = 1;
+  info.tm_isdst = -1;
+
+  // time_t t = time(NULL);
+  time_t t = mktime(&info);
   flightgear.initial_time = t;
   flightgear.time_offset = time_offset;
 
