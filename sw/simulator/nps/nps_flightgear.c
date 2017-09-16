@@ -136,7 +136,8 @@ void nps_flightgear_send_fdm()
   fgfdm.num_tanks = htonl(1);
   fgfdm.fuel_quantity[0] = htonf(0.);
 
-  fgfdm.cur_time = htonl(flightgear.initial_time + rint(fdm.time));
+  // fgfdm.cur_time = htonl(flightgear.initial_time + rint(fdm.time));
+  fgfdm.cur_time = htonl(flightgear.initial_time);
   // if cur_time is zero, flightgear would take the real current time
   //gui.cur_time = 0;
   // warp is used as an offset to the current time in seconds
@@ -201,7 +202,8 @@ void nps_flightgear_send()
   gui.num_tanks = 1;
   gui.fuel_quantity[0] = 0.;
 
-  gui.cur_time = flightgear.initial_time + rint(fdm.time);
+  // gui.cur_time = flightgear.initial_time + rint(fdm.time);
+  gui.cur_time = flightgear.initial_time;
   // if cur_time is zero, flightgear would take the real current time
   //gui.cur_time = 0;
   // warp is used as an offset to the current time in seconds

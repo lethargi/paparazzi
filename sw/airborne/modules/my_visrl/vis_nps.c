@@ -65,8 +65,8 @@ uint32_t sumcount_arr[3] = {0,0,0};
 uint8_t domcol_arr[3] = {0,0,0};
 
 float red_thresh = 0.70;
-float green_thresh = 0.99;
-float blue_thresh = 0.99;
+float green_thresh = 1.00;
+float blue_thresh = 1.00;
 
 // GList* list = NULL;
 // GHashTable* qdict = g_hash_table_new(g_str_hash, g_str_equal);
