@@ -217,7 +217,7 @@ struct image_t *colorfilter_func(struct image_t *img)
 
 void vis_ap_init(void)
 {
-  listener = cv_add_to_device(&VIS_CAMERA, colorfilter_func, VIS_FPS);
+  listener = cv_add_to_device(&VISRL_CAMERA, colorfilter_func, VISRL_FPS);
 }
 
 extern uint8_t cv_3grids(void) { return 0; }

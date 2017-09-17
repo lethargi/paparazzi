@@ -4,6 +4,8 @@
   <doc>
       <description>Module that implements the experimental vision-based RL
           navigation for the thesis of Manan Siddiquee</description>
+    <define name="VISRL_CAMERA" value="front_camera|bottom_camera" description="Video device to use"/>
+    <define name="VISRL_FPS" value="0" description="The (maximum) frequency to run the calculations at. If zero, it will max out at the camera frame rate"/>
     <!--
     <define name="VIS_CAMERA" value="front_camera|bottom_camera" description="Video device to use"/>
     <define name="VIS_FPS" value="0" description="The (maximum) frequency to run the calculations at. If zero, it will max out at the camera frame rate"/>
