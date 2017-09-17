@@ -6,9 +6,9 @@ struct md_node {
     struct md_node *next;
 
     char key[20];
-    float values[3];
+    float values[4];
     // using int here is inefficient in terms of memory
-    int visits[3];
+    int visits[4];
 
     uint8_t best_action;
 } ;

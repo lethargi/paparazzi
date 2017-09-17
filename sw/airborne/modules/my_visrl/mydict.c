@@ -17,6 +17,9 @@ char statevisits_file_addrs[] = "statevisits.txt";
 
 #include "modules/my_visrl/mydict.h"
 
+//IMPORT AND EXPORTS HAVE NOT BEEN ADAPTED FOR EXTRA ACTION; ie option of
+//turn till color is seen
+
 
 md_linkedlist *md_init_linkedlist(void)
 {
@@ -32,7 +35,7 @@ void md_node_best_action(md_node *cursor)
 {
     float cur_best_val = -FLT_MAX;
     // uint8_t cur_best_act;
-    for (int i = 0; i < 3; i++){
+    for (int i = 0; i < 4; i++){
         if (cursor->values[i] > cur_best_val) {
             cur_best_val = cursor->values[i];
             cursor->best_action = i;
@@ -52,7 +55,7 @@ md_node* md_create(char *key, md_node *next)
     strcpy(new_node->key,key);
 
     // value and visits functions initialized at 0
-    for(int i = 0; i<3; i++) {
+    for(int i = 0; i<4; i++) {
         new_node->values[i] = 0;
         new_node->visits[i] = 0;
     }

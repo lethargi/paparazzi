@@ -169,11 +169,11 @@ struct image_t *colorfilter_func(struct image_t *img)
     // printf("T4\n");
 
   // Filter
-  char colors[] = "RGB";
   my_image_yuv422_colorcounter(img);
 
     //Print the statez
     /* Prints the color state information
+  char colors[] = "RGB";
     printf("\tcol1 \tcol2 \tcol3\n");
     for (int ri = 0; ri < 3; ri++) {
         printf("%c:",colors[ri]);

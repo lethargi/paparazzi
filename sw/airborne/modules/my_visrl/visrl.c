@@ -30,8 +30,12 @@ uint8_t headatcompass = 1;
 // States, actions and reward
 char *state_buffer;
 static char *act_type = "R";
-static uint8_t cur_act, nxt_act;
+static uint8_t cur_act = 0;
+static uint8_t nxt_act = 0;
+static uint8_t start_option = 0; //boolean to check if performing option
+static uint8_t end_option = 0; //boolean to check if performing option
 static char *cur_sta, *nxt_sta;
+static char *option_start_sta;  //stores the starting state of options for Qtab updates
 static uint8_t hitwall = 0;
 uint8_t rl_isterminal = 0;
 static float cur_rew = 0;
@@ -77,6 +81,7 @@ char statevisits_file_addrs[] = "/home/default/statevisits.txt";
 char log_file_addrs[] = "/home/default/log.txt";
 char epi_log_file_addrs[] = "/home/default/epi_log.txt";
 char copy_location[] = "/home/default/";
+// savelocation commented out for UAV implementation; may need fixing
 // char savelocation[] = "/home/default/_Study/AE9999_Thesis/playground/SavedQtabs/";
 #endif
 
@@ -153,6 +158,7 @@ uint8_t init_qdict(void)
     // These are never freed
     cur_sta = (char *)malloc(30*sizeof(char));
     nxt_sta = (char *)malloc(30*sizeof(char));
+    option_start_sta = (char *)malloc(30*sizeof(char));
     return 0;
 }
 
@@ -177,6 +183,25 @@ uint8_t rl_inc_maxepochs(void)
 
 uint8_t pick_action(char *mystate)
 {
+    printf("StartOpt:%d EndOpt:%d ",start_option,end_option);
+    // if performing option of turning till color, return option action
+    if (cur_act == 3) {
+        start_option = 0; //already performing option
+        uint8_t seeing_color = 0;
+        for (int i = 0; i < 3; i++) {
+            // printf("\nInAct3:for\n");
+            if (domcol_arr[i]) { // using the basic color array; maybe shud use the state info
+                seeing_color = 1;
+            }
+        }
+        if (!seeing_color) {
+            return 3;
+        }
+        else {
+            end_option = 1;
+        }
+    }
+
     uint8_t picked_action = 0;
     total_state_visits++;
 
@@ -185,7 +210,7 @@ uint8_t pick_action(char *mystate)
 
     if (curnode == NULL) {
         curnode = md_prepend_list(ll_qdict,mystate);
-        picked_action = rand() % 3;
+        picked_action = rand() % 4;
     }
     else {
         uint8_t policy_roll = rand() % 100;
@@ -198,12 +223,17 @@ uint8_t pick_action(char *mystate)
         else {
             // do random
             act_type = "R";
-            picked_action = rand() % 3;
+            picked_action = rand() % 4;
         }
         curnode->visits[picked_action]++;
     }
     // printf(" Visits:%u ", currow_statevisits[picked_action]);
-    // printf(" %u ", picked_action);
+
+    // if picking option, set boolean to true;
+    if (picked_action == 3) {
+        start_option = 1;
+        end_option = 0;
+    }
     return picked_action;
 }
 
@@ -216,7 +246,7 @@ char *get_state_ext(void)
 
     //check for goals visited
     if (goals_visited == 0) {
-        if (countfracs[0] > 9) {
+        if (countfracs[0] > 7) {
             goals_visited = 1;
         }
         if (countfracs[1] > 7) {
@@ -346,7 +376,6 @@ uint8_t rl_init(void)
     printf(" TotVis:%u \n", total_state_visits);
     printf("Ep Steps Rew :: cur_sta cur_act nxt_sta nxt_act : Qcur Qnxt Qcur1 ::\n");
     return 0;
-
 }
 
 uint8_t rl_set_cur(void)
@@ -354,6 +383,9 @@ uint8_t rl_set_cur(void)
     // cur_sta = nxt_sta;
     strcpy(cur_sta,nxt_sta);
     cur_act = nxt_act;
+    if (start_option) {
+        strcpy(option_start_sta,cur_sta);
+    }
     return 0;
 }
 
@@ -363,8 +395,8 @@ uint8_t rl_get_reward(void)
     if (hitwall == 0) {
         // cur_rew = reward_function[nxt_sta];
         if (goals_visited == 0) {
-            // cur_rew += countfracs[0]+countfracs[1];
-            cur_rew += (countfracs[0]+countfracs[1])*3;
+            cur_rew += countfracs[0]+countfracs[1];
+            //cur_rew += (countfracs[0]+countfracs[1])*3;
         }
         else if (goals_visited == 1) {
             cur_rew += countfracs[1]; //get reward for green
@@ -373,6 +405,11 @@ uint8_t rl_get_reward(void)
         else if (goals_visited == 2) {
             cur_rew += countfracs[0]; //reward for red
             cur_rew -= countfracs[1]; //deduct for green
+        }
+
+        // if we are selecting an option include extra penalty
+        if (cur_act == 3) {
+            cur_rew -= 10;
         }
     }
     else {
@@ -404,7 +441,6 @@ uint8_t rl_take_cur_action(void)
         // logic for detecting hitting wall
         if (!InsideMyWorld(WaypointX(WP_BoundaryChecker),WaypointY(WP_BoundaryChecker))) {
             hitwall = 1;
-            // printf(" HITWALL ");
         }
         else {
             if (headatcompass == 1) {
@@ -425,7 +461,7 @@ uint8_t rl_take_cur_action(void)
                 headind = len_headings - 1;
             }
         }
-        else if (cur_act == 2) {
+        else if ((cur_act == 2) || (cur_act == 3)) {
             // increase_nav_heading_deg(&nav_heading, 45);
             headind++;
             if (headind == len_headings) {
@@ -437,13 +473,27 @@ uint8_t rl_take_cur_action(void)
 
     }
     steps_taken++;
-    return 0;
+    return FALSE;
 }
 
 uint8_t rl_update_qdict(void)
 {
-    float Qcur, Qnxt, Qcur1;
     printf(":: %s %u  %s %u :", cur_sta, cur_act, nxt_sta, nxt_act);
+    // if running options
+    if (cur_act == 3) {
+        // if option didnt end, dont update qtab
+        if (!end_option) {
+            printf(" No Q updates \n");
+            return 0;
+        }
+        // if option ended overwrite cur_sta with option starting state
+        else {
+            strcpy(cur_sta,option_start_sta);
+        }
+    }
+    // printf("SizeOfQdict:%d ;",g_hash_table_size(myqdict));
+    float Qcur, Qnxt, Qcur1;
+    
 
     md_node *qtab_curnode = md_search(ll_qdict,cur_sta); //(float *)g_hash_table_lookup(myqdict,cur_sta);
     md_node *qtab_nxtnode = md_search(ll_qdict,nxt_sta); // (float *)g_hash_table_lookup(myqdict,nxt_sta);
