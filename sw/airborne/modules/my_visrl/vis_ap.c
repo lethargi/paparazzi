@@ -38,7 +38,7 @@ struct video_listener *listener = NULL;
 
 // Filter Settings
 
-uint32_t count_arr[3][3] = {{0}};
+uint32_t count_arr[2][3] = {{0}};
 uint32_t sumcount_arr[3] = {0,0,0};
 uint8_t domcol_arr[3] = {0,0,0};
 

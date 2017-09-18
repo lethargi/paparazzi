@@ -28,16 +28,6 @@
 
 // #include "generated/flight_plan.h"
 
-/*
-//RGB TO YUV CONVERSION https://stackoverflow.com/questions/1737726/how-to-perform-rgb-yuv-conversion-in-c-c
-#define CLIP(X) ( (X) > 255 ? 255 : (X) < 0 ? 0 : X)
-
-// RGB -> YUV
-#define RGB2Y(R, G, B) CLIP(( (  66 * (R) + 129 * (G) +  25 * (B) + 128) >> 8) +  16)
-#define RGB2U(R, G, B) CLIP(( ( -38 * (R) -  74 * (G) + 112 * (B) + 128) >> 8) + 128)
-#define RGB2V(R, G, B) CLIP(( ( 112 * (R) -  94 * (G) -  18 * (B) + 128) >> 8) + 128)
-*/
-
 
 struct MemoryStruct
 {
@@ -62,13 +52,13 @@ struct BmpStruct
 // uint32_t redcount_arr[3] = {0,0,0};
 // uint32_t bluecount_arr[3] = {0,0,0};
 // uint32_t greencount_arr[3] = {0,0,0};
-uint32_t count_arr[3][3] = {{0}};
-uint32_t sumcount_arr[3] = {0,0,0};
+uint32_t count_arr[2][3] = {{0}};
+uint32_t sumcount_arr[2] = {0,0};
 uint8_t domcol_arr[3] = {0,0,0};
 
 float red_thresh = 0.70;
 // float green_thresh = 1.00;
-float blue_thresh = 1.00;
+float blue_thresh = 0.70;
 
 static size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
@@ -216,18 +206,22 @@ unsigned char* get_pointertopix(unsigned char *startpointer , int row, int col, 
     return pointertopix;
 }
 
-uint8_t colmax(uint32_t colarr[3][3],uint8_t maxcolarr[3])
+uint8_t colmax(uint32_t colarr[2][3],uint8_t maxcolarr[3])
 {
     for (int i = 0; i < 3; i++) {
         uint32_t curcolmax = 0;
         uint8_t curcolmax_ind = 0;
-        for (int j = 0; j < 3; j++) {
+        for (int j = 0; j < 2; j++) {
             if (colarr[j][i] > curcolmax) {
                 curcolmax = colarr[j][i];
                 curcolmax_ind = j+1;
             }
         }
-        maxcolarr[i] = curcolmax_ind;
+        // change the array only if (pixels above the threshold) are above a
+        // threshold
+        if (curcolmax > 500) {
+            maxcolarr[i] = curcolmax_ind;
+        }
     }
     return 0;
 }
@@ -240,18 +234,22 @@ uint8_t count_pixels_in_three_grids(struct BmpStruct *bmpstructPtr)
     uint16_t width = bmpstructPtr->width;
     uint16_t width1 = width/3;
     uint16_t width2 = 2*width/3;
-    for (int i = 0; i < 3; i++) {
+    // Reset everything to 0
+    for (int i = 0; i < 2; i++) {
         for (int j = 0; j < 3; j++) {
             count_arr[i][j] = 0;
         }
         sumcount_arr[i] = 0;
         domcol_arr[i] = 0;
     }
+    domcol_arr[2] = 0;
+
+    // for (int i = 0; i < 3; i++) { dom_col[i] = 0; }
 
     unsigned char *bmp_buffer = bmpstructPtr->buffer;
 
     int colvalsum;
-    float redfrac,bluefrac,greenfrac;
+    float redfrac,bluefrac;
 
     uint8_t arrtoapp;
     for(int rowi = 0; rowi < height; rowi++) {
@@ -263,25 +261,12 @@ uint8_t count_pixels_in_three_grids(struct BmpStruct *bmpstructPtr)
             pxb = curpx + 2;
             colvalsum = *pxr + *pxg + *pxb;
             redfrac = (float) *pxr / (float) colvalsum;
-            greenfrac = (float) *pxg / (float) colvalsum;
             bluefrac = (float) *pxb / (float) colvalsum;
 
-            /*
-            yval = RGB2Y(*pxr,*pxg,*pxb);
-            uval = RGB2U(*pxr,*pxg,*pxb);
-            vval = RGB2V(*pxr,*pxg,*pxb);
-            */
-
-            /*
-            printf("\nRGB: %d %d %d\n",*pxr,*pxg,*pxb);
-            printf("\nYUV: %d %d %d\n",yval,uval,vval);
-            */
-
             if (redfrac > red_thresh) { arrtoapp=0; }
-            // else if (greenfrac > green_thresh) { arrtoapp=1; }
-            else if (bluefrac > blue_thresh) { arrtoapp=2; }
+            else if (bluefrac > blue_thresh) { arrtoapp=1; }
 
-            if (arrtoapp < 3) {
+            if (arrtoapp < 2) {
                 if (coli < width1) { count_arr[arrtoapp][0]++; }
                 else if (coli < width2) { count_arr[arrtoapp][1]++; }
                 else { count_arr[arrtoapp][2]++; }
@@ -289,7 +274,7 @@ uint8_t count_pixels_in_three_grids(struct BmpStruct *bmpstructPtr)
         }
     }
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 2; i++) {
         uint32_t sumpix = 0;
         for (int j = 0; j < 3; j++) {
             sumpix += count_arr[i][j];

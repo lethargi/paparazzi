@@ -33,9 +33,14 @@ char *state_buffer;
 static char *act_type = "R";
 static uint8_t cur_act = 0;
 static uint8_t nxt_act = 0;
+
+#ifdef VISRL_USEOPTIONS
 static uint8_t start_option = 0; //boolean to check if performing option
 static uint8_t end_option = 1; //boolean to check if performing option
-static char cur_sta[VISRL_STATESIZE], nxt_sta[VISRL_STATESIZE], option_start_sta[VISRL_STATESIZE];
+static char option_start_sta[VISRL_STATESIZE];
+#endif
+
+static char cur_sta[VISRL_STATESIZE], nxt_sta[VISRL_STATESIZE];
 // static char *cur_sta, *nxt_sta;
 // static char *option_start_sta;  //stores the starting state of options for Qtab updates
 static uint8_t hitwall = 0;
@@ -51,7 +56,7 @@ uint8_t rl_eps = 60;
 // Some vars for state
 // goals_visited 0 for none; 1 for red; 2 for green; 3 for both
 uint8_t goals_visited = 0;
-float countfracs[3] = {0,0,0};
+float countfracs[2] = {0,0};
 // counter for steps and episodes
 static uint16_t steps_taken = 0;
 uint16_t episodes_simulated = 0;
@@ -212,7 +217,7 @@ uint8_t pick_action(char *mystate)
 void get_state_ext(char *curstate)
 {
     cv_3grids();        // function only used to get cv data during simulation
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 2; i++) {
         countfracs[i] = (float)sumcount_arr[i]/(float)5000;
     }
 
@@ -493,8 +498,8 @@ uint8_t rl_update_qdict(void)
 uint8_t rl_check_terminal(void)
 {
     // this can be stated better
-    // if (goals_visited != 3) {
-    if (goals_visited != 1) {
+    if (goals_visited != 3) {
+    // if (goals_visited != 1) {
         rl_isterminal = 0;
     }
     else {
