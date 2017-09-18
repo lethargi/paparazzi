@@ -1,3 +1,4 @@
+#include "modules/my_visrl/visrl.h"
 
 #ifndef MYDICT_H
 #define MYDICT_H
@@ -5,10 +6,10 @@
 struct md_node {
     struct md_node *next;
 
-    char key[20];
-    float values[4];
+    char key[VISRL_STATESIZE];
+    float values[VISRL_ACTIONS];
     // using int here is inefficient in terms of memory
-    int visits[4];
+    int visits[VISRL_ACTIONS];
 
     uint8_t best_action;
 } ;

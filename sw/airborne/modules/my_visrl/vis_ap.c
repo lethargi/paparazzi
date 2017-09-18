@@ -43,7 +43,7 @@ uint32_t sumcount_arr[3] = {0,0,0};
 uint8_t domcol_arr[3] = {0,0,0};
 
 float red_thresh = 0.40;
-float green_thresh = 0.40;
+// float green_thresh = 0.40;
 float blue_thresh = 0.40;
 
 

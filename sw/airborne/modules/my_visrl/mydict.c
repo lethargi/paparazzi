@@ -35,7 +35,7 @@ void md_node_best_action(md_node *cursor)
 {
     float cur_best_val = -FLT_MAX;
     // uint8_t cur_best_act;
-    for (int i = 0; i < 4; i++){
+    for (int i = 0; i < VISRL_ACTIONS; i++){
         if (cursor->values[i] > cur_best_val) {
             cur_best_val = cursor->values[i];
             cursor->best_action = i;
@@ -55,7 +55,7 @@ md_node* md_create(char *key, md_node *next)
     strcpy(new_node->key,key);
 
     // value and visits functions initialized at 0
-    for(int i = 0; i<4; i++) {
+    for(int i = 0; i<VISRL_ACTIONS; i++) {
         new_node->values[i] = 0;
         new_node->visits[i] = 0;
     }
@@ -120,20 +120,25 @@ uint8_t md_import_from_text(md_linkedlist *mylist, char* qdict_filename,
     dummy = fscanf(qdict_txt_file, "%*[^\n]");
     dummy = fscanf(statevisits_txt_file, "%*[^\n]");
 
-    char akey[30];
-    float val[3];//, T;
-    int vis[3];// T_v;
+    char akey[VISRL_STATESIZE];
+    float val[VISRL_ACTIONS];//, T;
+    int vis[VISRL_ACTIONS];// T_v;
     while (!feof(qdict_txt_file)) {
 
         // read values from file and store in cache variable
-        dummy = fscanf(qdict_txt_file, "%s %f %f %f", akey, &val[0], &val[1], &val[2]);
-        dummy = fscanf(statevisits_txt_file, "%s %d %d %d", akey, &vis[0], &vis[1], &vis[2]);
+#ifdef VISRL_USEOPTIONS
+        dummy = fscanf(qdict_txt_file, "%s\t%f\t%f\t%f\t%f", akey, &val[0], &val[1], &val[2], &val[3]);
+        dummy = fscanf(statevisits_txt_file, "%s\t%d\t%d\t%d\t%d", akey, &vis[0], &vis[1], &vis[2], &vis[2]);
+#else
+        dummy = fscanf(qdict_txt_file, "%s\t%f\t%f\t%f", akey, &val[0], &val[1], &val[2]);
+        dummy = fscanf(statevisits_txt_file, "%s\t%d\t%d\t%d", akey, &vis[0], &vis[1], &vis[2]);
+#endif
 
         // create new list element with key
         cursor = md_prepend_list(mylist,strdup(akey));
 
         // fill in other values
-        for (int i = 0; i < 3; i++){
+        for (int i = 0; i < VISRL_ACTIONS; i++){
             cursor->values[i] = val[i];
             cursor->visits[i] = vis[i];
         }
@@ -160,17 +165,17 @@ uint8_t md_import_from_dat(md_linkedlist *mylist, char* keys_filename,
     FILE *visits_file = fopen(visits_filename,"rb");
 //     fwrite(valvisitsarr,sizeof(uint16_t),sizeof(valvisitsarr)/sizeof(uint16_t),statevisitsvalues_file);
 
-    char akey[30];
+    char akey[VISRL_STATESIZE];
 
     if ((keys_file != NULL) && (values_file != NULL) && (visits_file != NULL)) {
         while (!feof(keys_file)) {
             // Read from the dat file
-            dummy = fread(&akey,sizeof(char[30]),1,keys_file);
+            dummy = fread(&akey,sizeof(char[VISRL_STATESIZE]),1,keys_file);
 
             cursor = md_prepend_list(mylist,strdup(akey));
 
-            dummy = fread(cursor->values,sizeof(float),3,values_file);
-            dummy = fread(cursor->visits,sizeof(int),3,visits_file);
+            dummy = fread(cursor->values,sizeof(float),VISRL_ACTIONS,values_file);
+            dummy = fread(cursor->visits,sizeof(int),VISRL_ACTIONS,visits_file);
         }
     }
     else {
@@ -194,26 +199,23 @@ uint8_t md_export_to_text(md_linkedlist* mylist, char* qdict_filename, char* vis
 
     md_node *cursor = mylist->head;
 
-    fprintf(qdict_txt_file,"State \t\t\t | For \t\t | Lef \t\t | Rig \n");
-    fprintf(visits_txt_file,"State \t\t\t | For \t\t | Lef \t\t | Rig \n");
+    fprintf(qdict_txt_file,"State \t| For \t| Lef \t| Rig \t| Opt\n");
+    fprintf(visits_txt_file,"State \t| For \t| Lef \t| Rig \t| Opt\n");
 
     char akey[30];
-    float f, l, r;//, T;
-    int f_v, l_v, r_v;//, T_v;
     while(cursor != NULL)
     {
         strcpy(akey,cursor->key);
 
-        f = cursor->values[0];
-        l = cursor->values[1];
-        r = cursor->values[2];
+        fprintf(qdict_txt_file, "%s", (char *)akey);
+        fprintf(visits_txt_file, "%s", (char *)akey);
+        for (int i = 0; i < VISRL_ACTIONS; i++) {
+            fprintf(qdict_txt_file, "\t%03.3f", cursor->values[i]);
+            fprintf(visits_txt_file, "\t%4u", cursor->visits[i]);
+        }
+        fprintf(qdict_txt_file, "\n");
+        fprintf(visits_txt_file, "\n");
 
-        f_v = cursor->visits[0];
-        l_v = cursor->visits[1];
-        r_v = cursor->visits[2];
-
-        fprintf(qdict_txt_file, "%s %03.3f %03.3f %03.3f \n", (char *)akey, f, l, r);
-        fprintf(visits_txt_file, "%s %4u %4u %4u \n", (char *)akey, f_v, l_v, r_v);
         cursor = cursor->next;
     }
 
@@ -238,8 +240,8 @@ uint8_t md_export_to_dat(md_linkedlist* mylist, char* keys_filename,
     while(cursor != NULL)
     {
         fwrite(cursor->key,sizeof(char),sizeof(cursor->key)/sizeof(char),keys_file);
-        fwrite(cursor->values,sizeof(float),3,values_file);
-        fwrite(cursor->visits,sizeof(int),3,visits_file);
+        fwrite(cursor->values,sizeof(float),VISRL_ACTIONS,values_file);
+        fwrite(cursor->visits,sizeof(int),VISRL_ACTIONS,visits_file);
 
         cursor = cursor->next;
     }

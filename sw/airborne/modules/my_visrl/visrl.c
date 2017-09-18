@@ -21,6 +21,7 @@
 
 #include "subsystems/datalink/telemetry.h"
 
+
 float headings_rad[8] = {0, M_PI/4., M_PI/2., 3*M_PI/4.,
                         M_PI, 5*M_PI/4. , 3*M_PI/2. , 7*M_PI/4.};
 uint8_t len_headings = 8;
@@ -33,9 +34,10 @@ static char *act_type = "R";
 static uint8_t cur_act = 0;
 static uint8_t nxt_act = 0;
 static uint8_t start_option = 0; //boolean to check if performing option
-static uint8_t end_option = 0; //boolean to check if performing option
-static char *cur_sta, *nxt_sta;
-static char *option_start_sta;  //stores the starting state of options for Qtab updates
+static uint8_t end_option = 1; //boolean to check if performing option
+static char cur_sta[VISRL_STATESIZE], nxt_sta[VISRL_STATESIZE], option_start_sta[VISRL_STATESIZE];
+// static char *cur_sta, *nxt_sta;
+// static char *option_start_sta;  //stores the starting state of options for Qtab updates
 static uint8_t hitwall = 0;
 uint8_t rl_isterminal = 0;
 static float cur_rew = 0;
@@ -94,16 +96,7 @@ FILE *statevisits_txt_file;
 FILE *log_file;
 FILE *epi_log_file;
 
-// POSSIBLE MEMORY LEAK!!
-// I dont free the dictionary in the end of the program; If further development
-// is desired, the dictionary needs to be freed using g_hash_table_destroy(myqdict);
-// maybe each element also needs to be freed since they were allocated with calloc.
-// GHashTable *myqdict;
-// GHashTable *mystatevisitsdict;
-// GSList *rewardlist = NULL;
-
 md_linkedlist *ll_qdict;
-
 
 
 //send message about vision output
@@ -127,39 +120,8 @@ void visrl_init(void)
     epi_log_file = fopen(epi_log_file_addrs,"w"); //create or reset epi logfile
     fclose(log_file);
     fclose(epi_log_file);
-    /* Sept 7 Commented out for debugs
-    */
 
     ll_qdict = md_init_linkedlist();
-    // printf("Size Of ll_Qdict:%d\n",ll_qdict->length);
-
-    // These are never freed
-    cur_sta = (char *)malloc(20*sizeof(char));
-    nxt_sta = (char *)malloc(20*sizeof(char));
-}
-
-uint8_t init_qdict(void)
-{
-    // run only once per training
-//     myqdict = g_hash_table_new(g_str_hash, g_str_equal);
-//     mystatevisitsdict = g_hash_table_new(g_str_hash, g_str_equal);
-//     printf("SizeOfQdict:%d\n",g_hash_table_size(myqdict));
-
-    log_file = fopen(log_file_addrs,"w"); //create or reset logfile
-    epi_log_file = fopen(epi_log_file_addrs,"w"); //create or reset epi logfile
-    fclose(log_file);
-    fclose(epi_log_file);
-    /* Sept 7 Commented out for debugs
-    */
-
-    ll_qdict = md_init_linkedlist();
-    printf("Size Of ll_Qdict:%d\n",ll_qdict->length);
-
-    // These are never freed
-    cur_sta = (char *)malloc(30*sizeof(char));
-    nxt_sta = (char *)malloc(30*sizeof(char));
-    option_start_sta = (char *)malloc(30*sizeof(char));
-    return 0;
 }
 
 uint8_t rl_dec_eps(void)
@@ -183,24 +145,27 @@ uint8_t rl_inc_maxepochs(void)
 
 uint8_t pick_action(char *mystate)
 {
-    printf("StartOpt:%d EndOpt:%d ",start_option,end_option);
+#ifdef VISRL_USEOPTIONS
     // if performing option of turning till color, return option action
     if (cur_act == 3) {
         start_option = 0; //already performing option
         uint8_t seeing_color = 0;
+        // printf(" Colors: ");
         for (int i = 0; i < 3; i++) {
-            // printf("\nInAct3:for\n");
             if (domcol_arr[i]) { // using the basic color array; maybe shud use the state info
                 seeing_color = 1;
             }
+            // printf(" %d ",seeing_color);
         }
         if (!seeing_color) {
+            printf(" %d %d ",start_option, end_option);
             return 3;
         }
         else {
             end_option = 1;
         }
     }
+#endif
 
     uint8_t picked_action = 0;
     total_state_visits++;
@@ -229,15 +194,22 @@ uint8_t pick_action(char *mystate)
     }
     // printf(" Visits:%u ", currow_statevisits[picked_action]);
 
+#ifdef VISRL_USEOPTIONS
     // if picking option, set boolean to true;
-    if (picked_action == 3) {
+    if ((picked_action == 3) && (cur_act == 3)) {
+        start_option = 1;
+        end_option = 1;
+    }
+    else if (picked_action == 3) {
         start_option = 1;
         end_option = 0;
     }
+    printf(" %d %d ",start_option, end_option);
+#endif
     return picked_action;
 }
 
-char *get_state_ext(void)
+void get_state_ext(char *curstate)
 {
     cv_3grids();        // function only used to get cv data during simulation
     for (int i = 0; i < 3; i++) {
@@ -265,7 +237,7 @@ char *get_state_ext(void)
     }
 
     // char curstate[30];
-    char *curstate = malloc( sizeof(char)*20 );
+    // char *curstate = malloc( sizeof(char)*20 );
     sprintf(curstate,"%d,%d,%d;%d;%d",
             domcol_arr[0],domcol_arr[1],domcol_arr[2],
             // countfracs[0],countfracs[1],//countfracs[2],
@@ -274,8 +246,6 @@ char *get_state_ext(void)
 
     // printf("Ep:%d Step:%d State:%s ",episodes_simulated+1,steps_taken,curstate);
     printf("%3d %4d",episodes_simulated+1,steps_taken);
-    // printf(" Size Of ll_Qdict:%d ",ll_qdict->length);
-    return curstate;
 }
 
 float get_myheading(void)
@@ -374,18 +344,20 @@ uint8_t rl_init(void)
     update_headind();
     printf("\n RL initialized ");
     printf(" TotVis:%u \n", total_state_visits);
-    printf("Ep Steps Rew :: cur_sta cur_act nxt_sta nxt_act : Qcur Qnxt Qcur1 ::\n");
+    printf("Ep Steps Options Rew :: cur_sta cur_act nxt_sta nxt_act : Qcur Qnxt Qcur1 ::\n");
     return 0;
 }
 
 uint8_t rl_set_cur(void)
 {
-    // cur_sta = nxt_sta;
     strcpy(cur_sta,nxt_sta);
     cur_act = nxt_act;
+    // If starting an options copy the starting state into a buffer
+#ifdef VISRL_USEOPTIONS
     if (start_option) {
         strcpy(option_start_sta,cur_sta);
     }
+#endif
     return 0;
 }
 
@@ -418,17 +390,24 @@ uint8_t rl_get_reward(void)
     }
     // printf("Rew:%02.1f ",cur_rew);
     printf(" %03.1f ",cur_rew);
+#ifdef VISRL_USEOPTIONS
+    if (end_option == 1) {
+        episode_rewards += cur_rew;
+    }
+#else
     episode_rewards += cur_rew;
+#endif
     return 0;
 }
 
 uint8_t rl_set_nxt(void)
 {
-    state_buffer = get_state_ext();
-    strcpy(nxt_sta,state_buffer);
+//     state_buffer = get_state_ext();
+//     strcpy(nxt_sta,state_buffer);
+    get_state_ext(nxt_sta);
     nxt_act = pick_action(nxt_sta);
     rl_get_reward();
-    free(state_buffer);
+    // free(state_buffer);
 
     return 0;
 }
@@ -479,6 +458,7 @@ uint8_t rl_take_cur_action(void)
 uint8_t rl_update_qdict(void)
 {
     printf(":: %s %u  %s %u :", cur_sta, cur_act, nxt_sta, nxt_act);
+#ifdef VISRL_USEOPTIONS
     // if running options
     if (cur_act == 3) {
         // if option didnt end, dont update qtab
@@ -486,14 +466,18 @@ uint8_t rl_update_qdict(void)
             printf(" No Q updates \n");
             return 0;
         }
-        // if option ended overwrite cur_sta with option starting state
         else {
+            // starting one option and ending another; must update for t-1
+            // (i.e. Qcur).
+            if (start_option) {
+                end_option = 0;
+            }
             strcpy(cur_sta,option_start_sta);
         }
     }
+#endif
     // printf("SizeOfQdict:%d ;",g_hash_table_size(myqdict));
     float Qcur, Qnxt, Qcur1;
-    
 
     md_node *qtab_curnode = md_search(ll_qdict,cur_sta); //(float *)g_hash_table_lookup(myqdict,cur_sta);
     md_node *qtab_nxtnode = md_search(ll_qdict,nxt_sta); // (float *)g_hash_table_lookup(myqdict,nxt_sta);
@@ -514,7 +498,7 @@ uint8_t rl_check_terminal(void)
         rl_isterminal = 0;
     }
     else {
-        printf("TERMINAL \n");
+        printf("TERMINAL :: Sum of rewards: %f\n",episode_rewards);
         rl_isterminal = 1;
         episodes_simulated++;
     }

@@ -16,6 +16,16 @@
 // #define GetCurX() (stateGetNedToBodyEulers_i()->psi)
 // #define GetCurY() (stateGetNedToBodyEulers_i()->psi)
 
+#define VISRL_STATESIZE 20
+
+// #define VISRL_USEOPTIONS
+#ifdef VISRL_USEOPTIONS
+#define VISRL_ACTIONS 4
+#else
+#define VISRL_ACTIONS 3
+#endif
+// #define VISRL_USEOPTIONS
+
 // extern GHashTable *myqdict;
 extern uint16_t rl_maxepochs;
 extern int8_t headind;
@@ -50,8 +60,6 @@ extern uint8_t rl_dec_eps(void);
 extern uint8_t rl_inc_eps(void);
 extern uint8_t rl_inc_maxepochs(void);
 
-extern uint8_t init_qdict(void);
-extern uint8_t size_qdict(void);
 extern uint8_t print_qdict(void);
 extern uint8_t write_qdict(void);
 extern uint8_t load_qdict(void);
@@ -61,7 +69,7 @@ extern uint8_t copy_qdict(void);
 extern uint8_t copy_logs(void);
 
 
-char *get_state_ext(void);
+void get_state_ext(char *curstate);
 float get_myheading(void);
 void update_headind(void);
 
