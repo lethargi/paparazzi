@@ -36,15 +36,10 @@ extern struct image_t *colorfilter_func(struct image_t *img);
 
 extern struct video_listener *listener;
 
-extern uint32_t count_arr[2][3];
-extern uint32_t sumcount_arr[2];
-extern uint8_t domcol_arr[3];
-
 extern uint8_t print_cvarrs(void);
 extern uint8_t cv_3grids(void);
 
 extern void vis_ap_init(void);
 
-extern float red_thresh, blue_thresh;
 
 #endif /* VIS_AP_H */

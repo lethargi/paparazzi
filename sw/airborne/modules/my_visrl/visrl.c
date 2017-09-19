@@ -107,12 +107,7 @@ md_linkedlist *ll_qdict;
 //send message about vision output
 static void send_visrl(struct transport_tx *trans, struct link_device *dev)
 {
-  pprz_msg_send_VISRL(trans, dev, AC_ID,
-                            &count_arr[0][0],&count_arr[0][1],&count_arr[0][2],
-                            &count_arr[1][0],&count_arr[1][1],&count_arr[1][2],
-                            &domcol_arr[0],&domcol_arr[1],&domcol_arr[2]);
-//                         &airspeed, &v_ctl_auto_airspeed_setpoint,
-//                         &v_ctl_auto_airspeed_controlled, &v_ctl_auto_groundspeed_setpoint);
+  pprz_msg_send_VISRL(trans, dev, AC_ID, 3, count_arr[0], 3, count_arr[1], 3, domcol_arr, 2, sumcount_arr);
 }
 
 void visrl_init(void)
@@ -216,7 +211,9 @@ uint8_t pick_action(char *mystate)
 
 void get_state_ext(char *curstate)
 {
+#ifdef VISRL_NPS
     cv_3grids();        // function only used to get cv data during simulation
+#endif
     for (int i = 0; i < 2; i++) {
         countfracs[i] = (float)sumcount_arr[i]/(float)5000;
     }

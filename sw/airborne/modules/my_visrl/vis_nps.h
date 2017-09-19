@@ -16,13 +16,7 @@
 #include <inttypes.h>
 #include <unistd.h>
 
-extern uint32_t count_arr[2][3];
-extern uint32_t sumcount_arr[2];
-extern uint8_t domcol_arr[3];
-
 extern uint8_t print_cvarrs(void);
 extern uint8_t cv_3grids(void);
-
-extern float red_thresh, blue_thresh;
 
 #endif

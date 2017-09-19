@@ -28,6 +28,7 @@
 
 // #include "generated/flight_plan.h"
 
+#include "visrl.h" //Contains the defined variables that stores CV output
 
 struct MemoryStruct
 {

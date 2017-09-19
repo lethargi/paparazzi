@@ -29,22 +29,20 @@
 
 #include "modules/computer_vision/lib/vision/image.h"
 
-#ifndef COLORFILTER_FPS
-#define COLORFILTER_FPS 0       ///< Default FPS (zero means run at camera fps)
-#endif
-PRINT_CONFIG_VAR(COLORFILTER_FPS)
+#include "visrl.h" //Contains the defined variables that stores CV output
+
+PRINT_CONFIG_VAR(VISRL_FPS)
 
 struct video_listener *listener = NULL;
 
 // Filter Settings
 
 uint32_t count_arr[2][3] = {{0}};
-uint32_t sumcount_arr[3] = {0,0,0};
+uint32_t sumcount_arr[2] = {0,0};
 uint8_t domcol_arr[3] = {0,0,0};
 
-float red_thresh = 0.40;
-// float green_thresh = 0.40;
-float blue_thresh = 0.40;
+float red_thresh = 0.70;
+float blue_thresh = 0.70;
 
 
 uint8_t colmax(uint32_t colarr[3][3],uint8_t maxcolarr[3])
@@ -75,9 +73,9 @@ void my_image_yuv422_colorcounter(struct image_t *input)
 {
     uint8_t *source = input->buf;
     float red,green,blue,pixcolsum;
-    float f_red,f_green,f_blue;
+    float f_red,f_blue;
     // Reset the output array
-    for (uint8_t ii = 0; ii < 3; ii++) {
+    for (uint8_t ii = 0; ii < 2; ii++) {
         sumcount_arr[ii] = 0;
         for (uint8_t jj = 0; jj <3; jj++) {
             count_arr[ii][jj] = 0;
@@ -104,7 +102,6 @@ void my_image_yuv422_colorcounter(struct image_t *input)
 
             // estimating fractions of rgb
             f_red = red/pixcolsum;
-            f_green = green/pixcolsum;
             f_blue = blue/pixcolsum;
 
             // setting column in output that should be appended
@@ -117,13 +114,13 @@ void my_image_yuv422_colorcounter(struct image_t *input)
             }
 
             // colorize pixel above threshold and colorize; otherwise make BW
-            if (((f_red > red_thresh) && (f_green > green_thresh)) ||
-                ((f_red > red_thresh) && (f_blue > blue_thresh)) ||
-                ((f_blue > blue_thresh) && (f_green > green_thresh))) {
+//             if (((f_red > red_thresh) && (f_green > green_thresh)) ||
+//                 ((f_red > red_thresh) && (f_blue > blue_thresh)) ||
+//                 ((f_blue > blue_thresh) && (f_green > green_thresh))) {
+            if ((f_red > red_thresh) && (f_blue > blue_thresh)) {
                 source[0] = 240;        // U
                 source[2] = 240;        // V
                 whitecount++;
-                // printf("\n=========INHERERE========\n");
                 source[1] = 254;
                 source[3] = 254;
             }
@@ -133,17 +130,19 @@ void my_image_yuv422_colorcounter(struct image_t *input)
                 count_arr[0][coltoapp]++;
                 sumcount_arr[0]++;
             }
+            /*
             else if (f_green > green_thresh) {
                 source[0] = 10;        // U
                 source[2] = 10;        // V
                 count_arr[1][coltoapp]++;
                 sumcount_arr[1]++;
             }
+            */
             else if (f_blue > blue_thresh) {
                 source[0] = 240;        // U
                 source[2] = 10;        // V
-                count_arr[2][coltoapp]++;
-                sumcount_arr[2]++;
+                count_arr[1][coltoapp]++;
+                sumcount_arr[1]++;
             } else {
                 source[0] = 127;        // U
                 source[2] = 127;        // V
@@ -160,13 +159,6 @@ void my_image_yuv422_colorcounter(struct image_t *input)
 // Function
 struct image_t *colorfilter_func(struct image_t *img)
 {
-    // printf("T1\n");
-    // struct image_t img2;
-    // printf("T2\n");
-    // image_create(&img2, img->w, img->h, img->type);
-    // printf("T3\n");
-    // image_copy(img, &img2);
-    // printf("T4\n");
 
   // Filter
   my_image_yuv422_colorcounter(img);
@@ -185,6 +177,7 @@ struct image_t *colorfilter_func(struct image_t *img)
     */
 
 
+  // Draw lines for the columns
     /*
     uint16_t w_first, w_second;
 

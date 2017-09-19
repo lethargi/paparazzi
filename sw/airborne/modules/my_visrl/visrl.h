@@ -26,12 +26,20 @@
 #endif
 // #define VISRL_USEOPTIONS
 
+
+// Variables for the CV functions
+extern uint32_t count_arr[2][3];
+extern uint32_t sumcount_arr[2];
+extern uint8_t domcol_arr[3];
+
+extern float red_thresh, blue_thresh;
+
 // extern GHashTable *myqdict;
 extern uint16_t rl_maxepochs;
 extern int8_t headind;
 extern int8_t head_roll;
 
-extern void visrl_init();
+extern void visrl_init(void);
 
 
 // extern uint8_t rl_randomize_start(uint8_t waypoint);
