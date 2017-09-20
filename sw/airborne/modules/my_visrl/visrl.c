@@ -122,6 +122,9 @@ void visrl_init(void)
     fclose(epi_log_file);
 
     ll_qdict = md_init_linkedlist();
+#ifdef VISRL_AP
+    vis_ap_init();
+#endif
 }
 
 uint8_t rl_dec_eps(void)
@@ -220,20 +223,20 @@ void get_state_ext(char *curstate)
 
     //check for goals visited
     if (goals_visited == 0) {
-        if (countfracs[0] > 7) {
+        if (countfracs[0] > 6) {
             goals_visited = 1;
         }
-        if (countfracs[1] > 7) {
+        if (countfracs[1] > 6) {
             goals_visited = 2;
         }
     }
     else if (goals_visited == 1) {
-        if (countfracs[1] > 7) {
+        if (countfracs[1] > 6) {
             goals_visited = 3;
         }
     }
     else if (goals_visited == 2) {
-        if (countfracs[0] > 7) {
+        if (countfracs[0] > 6) {
             goals_visited = 3;
         }
     }
@@ -366,19 +369,20 @@ uint8_t rl_set_cur(void)
 uint8_t rl_get_reward(void)
 {
     cur_rew = -10;
+    float rew_factor = 1.5;
     if (hitwall == 0) {
         // cur_rew = reward_function[nxt_sta];
         if (goals_visited == 0) {
-            cur_rew += countfracs[0]+countfracs[1];
+            cur_rew += (countfracs[0]+countfracs[1])*rew_factor;
             //cur_rew += (countfracs[0]+countfracs[1])*3;
         }
         else if (goals_visited == 1) {
-            cur_rew += countfracs[1]; //get reward for green
-            cur_rew -= countfracs[0]; //deduct for seeing red
+            cur_rew += (countfracs[1])*rew_factor; //get reward for green
+            cur_rew -= (countfracs[0])*rew_factor; //deduct for seeing red
         }
         else if (goals_visited == 2) {
-            cur_rew += countfracs[0]; //reward for red
-            cur_rew -= countfracs[1]; //deduct for green
+            cur_rew += (countfracs[0])*rew_factor; //reward for red
+            cur_rew -= (countfracs[1])*rew_factor; //deduct for green
         }
 
         // if we are selecting an option include extra penalty
@@ -495,8 +499,8 @@ uint8_t rl_update_qdict(void)
 uint8_t rl_check_terminal(void)
 {
     // this can be stated better
-    if (goals_visited != 3) {
-    // if (goals_visited != 1) {
+    // if (goals_visited != 3) {
+    if (goals_visited != 1) {
         rl_isterminal = 0;
     }
     else {

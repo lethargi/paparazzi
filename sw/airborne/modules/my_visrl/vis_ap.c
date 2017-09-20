@@ -45,18 +45,22 @@ float red_thresh = 0.70;
 float blue_thresh = 0.70;
 
 
-uint8_t colmax(uint32_t colarr[3][3],uint8_t maxcolarr[3])
+uint8_t colmax(uint32_t colarr[2][3],uint8_t maxcolarr[3])
 {
     for (int i = 0; i < 3; i++) {
         uint32_t curcolmax = 0;
         uint8_t curcolmax_ind = 0;
-        for (int j = 0; j < 3; j++) {
+        for (int j = 0; j < 2; j++) {
             if (colarr[j][i] > curcolmax) {
                 curcolmax = colarr[j][i];
                 curcolmax_ind = j+1;
             }
         }
-        maxcolarr[i] = curcolmax_ind;
+        // change the array only if (pixels above the threshold) are above a
+        // threshold
+        if (curcolmax > 500) {
+            maxcolarr[i] = curcolmax_ind;
+        }
     }
     return 0;
 }
@@ -138,12 +142,14 @@ void my_image_yuv422_colorcounter(struct image_t *input)
                 sumcount_arr[1]++;
             }
             */
+            /*
             else if (f_blue > blue_thresh) {
                 source[0] = 240;        // U
                 source[2] = 10;        // V
                 count_arr[1][coltoapp]++;
                 sumcount_arr[1]++;
-            } else {
+            } */
+            else {
                 source[0] = 127;        // U
                 source[2] = 127;        // V
             }

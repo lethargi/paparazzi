@@ -82,7 +82,7 @@
     </block>
     -->
     <block name="Standby" strip_button="Standby" strip_icon="home.png">
-       <call fun="init_qdict()"/>
+      <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
       <stay wp="STDBY"/>
     </block>
     <block name="WaitOnGoal">

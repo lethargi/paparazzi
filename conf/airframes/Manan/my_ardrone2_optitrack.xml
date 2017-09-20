@@ -31,37 +31,19 @@
   <modules main_freq="512">
     <module name="bat_voltage_ardrone2"/>
     <module name="stereocam_droplet" />
-
+    <!--module name="logger_file"/-->
     <module name="video_thread"/>
 
-    <!--
-    <module name="cv_colorfilter">
-        <define name="COLORFILTER_CAMERA" value="front_camera"/>
-        <define name="COLORFILTER_FPS" value="1"/>
+    <module name="my_visrl">
+        <define name="VISRL_CAMERA" value="front_camera"/>
+        <define name="VISRL_FPS" value="1"/>
     </module>
-    -->
-    <!--
-    -->
- 
-    <module name="my_visrl_ap">
-        <define name="VIS_CAMERA" value="front_camera"/>
-        <define name="VIS_FPS" value="1"/>
-    </module>
-
-    <!--
-    <module name="my_visrl_nps"/>
-    -->
 
     <module name="video_rtp_stream">
       <define name="VIEWVIDEO_CAMERA" value="front_camera"/>
       <define name="VIEWVIDEO_DOWNSIZE_FACTOR" value="4"/>
       <define name="VIEWVIDEO_QUALITY_FACTOR" value="60"/>
       <define name="VIEWVIDEO_FPS" value="1"/>
-    </module>
-
-    <!-- <module name="orange_avoider"/>   -->
-
-    <module name="my_visrl">
     </module>
 
   </modules>
