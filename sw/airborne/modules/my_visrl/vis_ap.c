@@ -41,8 +41,11 @@ uint32_t count_arr[2][3] = {{0}};
 uint32_t sumcount_arr[2] = {0,0};
 uint8_t domcol_arr[3] = {0,0,0};
 
-float red_thresh = 0.70;
+// dont understand why i have to define again here when they are included in
+// visrl.h
+float red_thresh = 0.45;
 float blue_thresh = 0.70;
+uint16_t min_pix_thresh = 1000;
 
 
 uint8_t colmax(uint32_t colarr[2][3],uint8_t maxcolarr[3])
@@ -58,7 +61,7 @@ uint8_t colmax(uint32_t colarr[2][3],uint8_t maxcolarr[3])
         }
         // change the array only if (pixels above the threshold) are above a
         // threshold
-        if (curcolmax > 500) {
+        if (curcolmax > min_pix_thresh) {
             maxcolarr[i] = curcolmax_ind;
         }
     }
@@ -79,19 +82,23 @@ void my_image_yuv422_colorcounter(struct image_t *input)
     float red,green,blue,pixcolsum;
     float f_red,f_blue;
     // Reset the output array
-    for (uint8_t ii = 0; ii < 2; ii++) {
-        sumcount_arr[ii] = 0;
-        for (uint8_t jj = 0; jj <3; jj++) {
-            count_arr[ii][jj] = 0;
+
+    /* HOTFIX TO GET STATES WORKING
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 3; j++) {
+            count_arr[i][j] = 0;
         }
+        sumcount_arr[i] = 0;
+        domcol_arr[i] = 0;
     }
+    domcol_arr[2] = 0;
+    */
 
     uint16_t w_first, w_second;
     uint8_t coltoapp;
     w_first = input->w/3;
     w_second = 2*w_first;
     uint16_t whitecount = 0;
-
 
   // Go trough all the pixels
     for (uint16_t y = 0; y < input->h; y++) {
@@ -160,6 +167,7 @@ void my_image_yuv422_colorcounter(struct image_t *input)
     }
     // printf("white:%d \n",whitecount);
     colmax(count_arr,domcol_arr);
+    printf("\n %d %d %d", domcol_arr[0], domcol_arr[1], domcol_arr[2]);
 }
 
 // Function
@@ -184,7 +192,6 @@ struct image_t *colorfilter_func(struct image_t *img)
 
 
   // Draw lines for the columns
-    /*
     uint16_t w_first, w_second;
 
     w_first = img->w/3;
@@ -192,7 +199,7 @@ struct image_t *colorfilter_func(struct image_t *img)
 
 //     struct point_t myfrom = { w_first, 0 };
 //     struct point_t myto = { w_first, img->h };
-    printf("w_first:%d img->h:%d\n",w_first,img->h);
+    // printf("w_first:%d img->h:%d\n",w_first,img->h);
     static uint8_t linecol[4] = {200, 100, 200, 100};
     struct point_t myfrom = { 425, 0 };
     struct point_t myto = { 425, 720 };
@@ -208,6 +215,7 @@ struct image_t *colorfilter_func(struct image_t *img)
 //     struct point_t myfrom3 = { 920, 0 };
 //     struct point_t myto3 = { 920, 720 };
     // image_draw_line_color(img, &myfrom3, &myto3, linecol);
+    /*
     */
     // image_free(&img2);
 

@@ -249,6 +249,16 @@ void get_state_ext(char *curstate)
             // goals_visited,hitwall,headind); // with headindex
             goals_visited,hitwall);      // without headingindex
 
+    // reset CV counters HOTFIX
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 3; j++) {
+            count_arr[i][j] = 0;
+        }
+        sumcount_arr[i] = 0;
+        domcol_arr[i] = 0;
+    }
+    domcol_arr[2] = 0;
+
     // printf("Ep:%d Step:%d State:%s ",episodes_simulated+1,steps_taken,curstate);
     printf("%3d %4d",episodes_simulated+1,steps_taken);
 }

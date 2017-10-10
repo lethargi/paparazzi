@@ -57,9 +57,12 @@ uint32_t count_arr[2][3] = {{0}};
 uint32_t sumcount_arr[2] = {0,0};
 uint8_t domcol_arr[3] = {0,0,0};
 
+// dont understand why i have to define again here when they are included in
+// visrl.h
 float red_thresh = 0.70;
 // float green_thresh = 1.00;
 float blue_thresh = 0.70;
+uint16_t min_pix_thresh = 500;
 
 static size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
@@ -220,7 +223,7 @@ uint8_t colmax(uint32_t colarr[2][3],uint8_t maxcolarr[3])
         }
         // change the array only if (pixels above the threshold) are above a
         // threshold
-        if (curcolmax > 500) {
+        if (curcolmax > min_pix_thresh) {
             maxcolarr[i] = curcolmax_ind;
         }
     }

@@ -33,6 +33,7 @@ extern uint32_t sumcount_arr[2];
 extern uint8_t domcol_arr[3];
 
 extern float red_thresh, blue_thresh;
+extern uint16_t min_pix_thresh;
 
 // extern GHashTable *myqdict;
 extern uint16_t rl_maxepochs;
