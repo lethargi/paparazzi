@@ -53,6 +53,8 @@ float rl_gamma = 0.9;
 float rl_alp = 0.3;
 uint8_t rl_eps = 60;
 
+uint8_t red_goal_reach_thresh = 6;
+
 // Some vars for state
 // goals_visited 0 for none; 1 for red; 2 for green; 3 for both
 uint8_t goals_visited = 0;
@@ -110,10 +112,25 @@ static void send_visrl(struct transport_tx *trans, struct link_device *dev)
   pprz_msg_send_VISRL(trans, dev, AC_ID, 3, count_arr[0], 3, count_arr[1], 3, domcol_arr, 2, sumcount_arr);
 }
 
+void reset_cv_counters(void)
+{
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 3; j++) {
+            count_arr[i][j] = 0;
+        }
+        sumcount_arr[i] = 0;
+        domcol_arr[i] = 0;
+    }
+    domcol_arr[2] = 0;
+}
+
 void visrl_init(void)
 {
     // send message
     register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_VISRL, send_visrl);
+
+    // reset CV counters
+    reset_cv_counters();
 
     // initalize other required stuffs
     log_file = fopen(log_file_addrs,"w"); //create or reset logfile
@@ -178,7 +195,8 @@ uint8_t pick_action(char *mystate)
 
     if (curnode == NULL) {
         curnode = md_prepend_list(ll_qdict,mystate);
-        picked_action = rand() % 4;
+        picked_action = rand() % VISRL_ACTIONS;
+        act_type = "R";
     }
     else {
         uint8_t policy_roll = rand() % 100;
@@ -191,7 +209,7 @@ uint8_t pick_action(char *mystate)
         else {
             // do random
             act_type = "R";
-            picked_action = rand() % 4;
+            picked_action = rand() % VISRL_ACTIONS;
         }
         curnode->visits[picked_action]++;
     }
@@ -223,7 +241,7 @@ void get_state_ext(char *curstate)
 
     //check for goals visited
     if (goals_visited == 0) {
-        if (countfracs[0] > 6) {
+        if (countfracs[0] > red_goal_reach_thresh) {
             goals_visited = 1;
         }
         if (countfracs[1] > 6) {
@@ -236,7 +254,7 @@ void get_state_ext(char *curstate)
         }
     }
     else if (goals_visited == 2) {
-        if (countfracs[0] > 6) {
+        if (countfracs[0] > red_goal_reach_thresh) {
             goals_visited = 3;
         }
     }
@@ -250,14 +268,7 @@ void get_state_ext(char *curstate)
             goals_visited,hitwall);      // without headingindex
 
     // reset CV counters HOTFIX
-    for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 3; j++) {
-            count_arr[i][j] = 0;
-        }
-        sumcount_arr[i] = 0;
-        domcol_arr[i] = 0;
-    }
-    domcol_arr[2] = 0;
+    reset_cv_counters();
 
     // printf("Ep:%d Step:%d State:%s ",episodes_simulated+1,steps_taken,curstate);
     printf("%3d %4d",episodes_simulated+1,steps_taken);
@@ -305,6 +316,17 @@ uint8_t rl_smooth_turn(uint8_t targhead_ind)
     float targ_heading = headings_rad[headind+dh_i];
     set_nav_heading(targ_heading);
     return TRUE;
+}
+
+uint8_t rl_reset_heading(void)
+{
+    uint8_t targhead;
+#ifdef VISRL_NPS
+    targhead = 0; //dont understan why these are these values
+#else
+    targhead = 5;
+#endif
+    return rl_smooth_turn(targhead);;
 }
 
 uint8_t rl_randomize_start(uint8_t waypoint, uint8_t altref_wp)
@@ -474,6 +496,7 @@ uint8_t rl_take_cur_action(void)
 uint8_t rl_update_qdict(void)
 {
     printf(":: %s %u  %s %u :", cur_sta, cur_act, nxt_sta, nxt_act);
+    uint8_t update_act;
 #ifdef VISRL_USEOPTIONS
     // if running options
     if (cur_act == 3) {
@@ -493,10 +516,22 @@ uint8_t rl_update_qdict(void)
     }
 #endif
     // printf("SizeOfQdict:%d ;",g_hash_table_size(myqdict));
+
     float Qcur, Qnxt, Qcur1;
 
     md_node *qtab_curnode = md_search(ll_qdict,cur_sta); //(float *)g_hash_table_lookup(myqdict,cur_sta);
     md_node *qtab_nxtnode = md_search(ll_qdict,nxt_sta); // (float *)g_hash_table_lookup(myqdict,nxt_sta);
+
+    /* QLEARNING
+    if strcmp(act_type,"G") {
+       update_act = nxt_act;
+    }
+    else {
+       md_node_best_action(qtab_nxtnode);
+       update_act = qtab_nxtnode->best_action;
+    }
+    */
+
     Qcur = qtab_curnode->values[cur_act];
     Qnxt = qtab_nxtnode->values[nxt_act];
     Qcur1 = Qcur + rl_alp*(cur_rew + rl_gamma*Qnxt - Qcur);

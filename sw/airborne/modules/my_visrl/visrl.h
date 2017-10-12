@@ -34,6 +34,7 @@ extern uint8_t domcol_arr[3];
 
 extern float red_thresh, blue_thresh;
 extern uint16_t min_pix_thresh;
+extern uint8_t red_goal_reach_thresh;
 
 // extern GHashTable *myqdict;
 extern uint16_t rl_maxepochs;
@@ -41,7 +42,7 @@ extern int8_t headind;
 extern int8_t head_roll;
 
 extern void visrl_init(void);
-
+extern void reset_cv_counters(void);
 
 // extern uint8_t rl_randomize_start(uint8_t waypoint);
 extern uint8_t rl_randomize_start(uint8_t waypoint, uint8_t altref_wp);
@@ -81,7 +82,7 @@ extern uint8_t copy_logs(void);
 void get_state_ext(char *curstate);
 float get_myheading(void);
 void update_headind(void);
-
+uint8_t rl_reset_heading(void);
 
 uint8_t pick_action(char *state);
 uint8_t rl_get_reward(void);

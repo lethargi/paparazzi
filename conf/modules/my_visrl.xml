@@ -18,6 +18,7 @@
          <dl_setting var="red_thresh" min="0" step="0.01" max="1" shortname="r_thresh" type="float"/>
          <dl_setting var="blue_thresh" min="0" step="0.01" max="1" shortname="b_thresh" type="float"/>
          <dl_setting var="min_pix_thresh" min="0" step="100" max="10000" shortname="min_pix_thresh" type="int" />
+         <dl_setting var="red_goal_reach_thresh" min="1" step="1" max="10" shortname="red_goal_thresh" type="int" />
       </dl_settings>
     </dl_settings>
   </settings>

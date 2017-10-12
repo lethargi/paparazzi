@@ -17,10 +17,9 @@
 </header>
   <waypoints>
     <waypoint name="HOME" x="0.0" y="0.0"/>
+    <waypoint name="StartPos" lat="51.990634" lon="4.376789"/>
     <waypoint name="CLIMB" x="0.0" y="2.5"/>
-    <waypoint name="TEMP" x="3" y="3"/>
     <waypoint name="CURPOS" x="3" y="3.5"/>
-    <waypoint name="TESTWP" x="3" y="4"/>
     <waypoint name="STDBY" x="0" y="0"/>
     <waypoint name="GOAL" x="0" y="0"/>
     <waypoint name="HeightRef" x="3" y="7"/>
@@ -29,8 +28,10 @@
     <waypoint lat="51.990639" lon="4.376732" name="SZ3"/>
     <waypoint lat="51.990667" lon="4.376803" name="SZ4"/>
     <waypoint name="BoundaryChecker" x="0.25" y="0.25"/>
+    <!--
     <waypoint height="12." name="CAM" x="-20" y="-50"/>
     <waypoint name="XYFINDER" x="30" y="-30"/>
+    -->
     <waypoint name="TD" x="5" y="-5"/>
   </waypoints>
   <sectors>
@@ -61,18 +62,34 @@
     <block name="Takeoff" strip_button="Takeoff" strip_icon="takeoff.png">
       <exception cond="stateGetPositionEnu_f()->z > 1.0" deroute="Standby"/>
       <call_once fun="NavSetWaypointHere(WP_CLIMB)"/>
+      <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
       <stay climb="nav_climb_vspeed" vmode="climb" wp="CLIMB"/>
     </block>
     <block name="Standby" strip_button="Standby" strip_icon="home.png">
-      <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
       <stay wp="STDBY"/>
     </block>
     <block name="WaitOnGoal">
       <stay wp="GOAL"/>
     </block>
+    <block name="RL_Reset_Heading">
+      <call fun="rl_reset_heading()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="yaw_left">
+      <call fun="increase_nav_heading(25)"/>
+    </block>
+    <block name="sink">
+      <stay wp="GOAL"/>
+    </block>
+    <block name="yaw_right">
+      <call fun="increase_nav_heading(-25)"/>
+    </block>
+    <block name="sink2">
+      <stay wp="GOAL"/>
+    </block>
     <block name="RandomizeStart">
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
-      <call fun="rl_randomize_start(WP_GOAL,WP_HOME)"/>
+      <call fun="rl_randomize_start(WP_GOAL,WP_StartPos)"/>
       <call fun="setAltToWp(WP_GOAL,WP_HOME)"/>
       <call fun="rl_smooth_turn(head_roll)"/>
       <stay until="stage_time>8" wp="CURPOS"/>
@@ -82,9 +99,9 @@
     </block>
     <block name="SetupEpisode">
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
-      <go approaching_time="0" from="CURPOS" hmode="route" wp="HOME"/>
-      <call_once fun="setHeadingNorth()"/>
-      <stay until="stage_time>5" wp="HOME"/>
+      <go approaching_time="0" from="CURPOS" hmode="route" wp="StartPos"/>
+      <call fun="rl_reset_heading()"/>
+      <stay until="stage_time>5" wp="StartPos"/>
       <call_once fun="NavSetWaypointHere(WP_GOAL)"/>
       <call fun="setAltToWp(WP_GOAL,WP_HOME)"/>
       <stay until="stage_time>1" wp="GOAL"/>
@@ -148,19 +165,19 @@
       <stay wp="GOAL"/>
     </block>
     <block name="WriteQDict">
-      <call_once fun="NavSetWaypointHere(WP_TEMP)"/>
+      <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
       <call fun="write_qdict()"/>
-      <stay wp="TEMP"/>
+      <stay wp="STDBY"/>
     </block>
     <block name="ReadQDict">
-      <call_once fun="NavSetWaypointHere(WP_TEMP)"/>
+      <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
       <call fun="load_qdict()"/>
-      <stay wp="TEMP"/>
+      <stay wp="STDBY"/>
     </block>
     <block name="ReadQDict_TXT">
-      <call_once fun="NavSetWaypointHere(WP_TEMP)"/>
+      <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
       <call fun="load_qdict_fromtxt()"/>
-      <stay wp="TEMP"/>
+      <stay wp="STDBY"/>
     </block>
     <block name="land here" strip_button="Land Here" strip_icon="land-right.png">
       <call_once fun="NavSetWaypointHere(WP_TD)"/>
