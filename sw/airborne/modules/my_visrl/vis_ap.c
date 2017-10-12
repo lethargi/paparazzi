@@ -38,7 +38,10 @@ struct video_listener *listener = NULL;
 // Filter Settings
 
 uint32_t count_arr[2][3] = {{0}};
+uint32_t redcount_arr[3] = {0,0,0};
+// uint32_t bluecount_arr[3] = {{0}};
 uint32_t sumcount_arr[2] = {0,0};
+uint32_t redsum = 0;
 uint8_t domcol_arr[3] = {0,0,0};
 
 // dont understand why i have to define again here when they are included in
@@ -63,6 +66,9 @@ uint8_t colmax(uint32_t colarr[2][3],uint8_t maxcolarr[3])
         // threshold
         if (curcolmax > min_pix_thresh) {
             maxcolarr[i] = curcolmax_ind;
+        }
+        else {
+            maxcolarr[i] = 0;
         }
     }
     return 0;
@@ -99,6 +105,12 @@ void my_image_yuv422_colorcounter(struct image_t *input)
     w_first = input->w/3;
     w_second = 2*w_first;
     uint16_t whitecount = 0;
+
+    //reset relevant arrays and memory to 0
+    for (int i = 0; i < 3; i++) {
+        redcount_arr[i] = 0;
+    }
+    redsum = 0;
 
   // Go trough all the pixels
     for (uint16_t y = 0; y < input->h; y++) {
@@ -138,17 +150,8 @@ void my_image_yuv422_colorcounter(struct image_t *input)
             else if (f_red > red_thresh) {
                 source[0] = 10;        // U
                 source[2] = 240;        // V
-                count_arr[0][coltoapp]++;
-                sumcount_arr[0]++;
+                redcount_arr[coltoapp]++;
             }
-            /*
-            else if (f_green > green_thresh) {
-                source[0] = 10;        // U
-                source[2] = 10;        // V
-                count_arr[1][coltoapp]++;
-                sumcount_arr[1]++;
-            }
-            */
             /*
             else if (f_blue > blue_thresh) {
                 source[0] = 240;        // U
@@ -165,9 +168,16 @@ void my_image_yuv422_colorcounter(struct image_t *input)
             source += 4;
         }
     }
+
+    // Copying red CV output to count_arr
+    for (int i = 0; i < 3; i++) {
+        count_arr[0][i] = redcount_arr[i];
+        redsum += redcount_arr[i];
+    }
     // printf("white:%d \n",whitecount);
     colmax(count_arr,domcol_arr);
     printf("\n %d %d %d", domcol_arr[0], domcol_arr[1], domcol_arr[2]);
+    printf(" | %d %d %d", count_arr[0][0], count_arr[0][1], count_arr[0][2]);
 }
 
 // Function
@@ -192,10 +202,10 @@ struct image_t *colorfilter_func(struct image_t *img)
 
 
   // Draw lines for the columns
-    uint16_t w_first, w_second;
-
-    w_first = img->w/3;
-    w_second = 2*w_first;
+//     uint16_t w_first, w_second;
+// 
+//     w_first = img->w/3;
+//     w_second = 2*w_first;
 
 //     struct point_t myfrom = { w_first, 0 };
 //     struct point_t myto = { w_first, img->h };

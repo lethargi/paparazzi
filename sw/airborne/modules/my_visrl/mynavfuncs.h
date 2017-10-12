@@ -8,7 +8,6 @@
 // use ANGLE_FLOAT_OF_BFP for real value??
 #define GetCurHeading() (stateGetNedToBodyEulers_f()->psi)
 
-extern uint8_t set_nav_heading(float newheading);
 extern uint8_t increase_nav_heading(float increment);
 extern uint8_t setHeadingNorth(void);
 extern uint8_t moveWaypointForwards(uint8_t waypoint, float distanceMeters);

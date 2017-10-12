@@ -112,25 +112,12 @@ static void send_visrl(struct transport_tx *trans, struct link_device *dev)
   pprz_msg_send_VISRL(trans, dev, AC_ID, 3, count_arr[0], 3, count_arr[1], 3, domcol_arr, 2, sumcount_arr);
 }
 
-void reset_cv_counters(void)
-{
-    for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 3; j++) {
-            count_arr[i][j] = 0;
-        }
-        sumcount_arr[i] = 0;
-        domcol_arr[i] = 0;
-    }
-    domcol_arr[2] = 0;
-}
 
 void visrl_init(void)
 {
     // send message
     register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_VISRL, send_visrl);
 
-    // reset CV counters
-    reset_cv_counters();
 
     // initalize other required stuffs
     log_file = fopen(log_file_addrs,"w"); //create or reset logfile
@@ -267,8 +254,6 @@ void get_state_ext(char *curstate)
             // goals_visited,hitwall,headind); // with headindex
             goals_visited,hitwall);      // without headingindex
 
-    // reset CV counters HOTFIX
-    reset_cv_counters();
 
     // printf("Ep:%d Step:%d State:%s ",episodes_simulated+1,steps_taken,curstate);
     printf("%3d %4d",episodes_simulated+1,steps_taken);
@@ -314,7 +299,7 @@ uint8_t rl_smooth_turn(uint8_t targhead_ind)
     dh_i = GetSign(dh_i);
 
     float targ_heading = headings_rad[headind+dh_i];
-    set_nav_heading(targ_heading);
+    nav_set_heading_rad(targ_heading);
     return TRUE;
 }
 
@@ -486,7 +471,7 @@ uint8_t rl_take_cur_action(void)
             }
         }
         // set the heading
-        set_nav_heading(headings_rad[headind]);
+        nav_set_heading_rad(headings_rad[headind]);
 
     }
     steps_taken++;

@@ -3,17 +3,10 @@
 #include "firmwares/rotorcraft/navigation.h"
 #include "state.h"
 
-uint8_t set_nav_heading(float newheading)
-{
-    // printf("Oldhead: %f; NewHead: %f\n", ANGLE_FLOAT_OF_BFP(nav_heading), newheading);
-    nav_heading = ANGLE_BFP_OF_REAL(newheading);
-    INT32_ANGLE_NORMALIZE(nav_heading); // HEADING HAS INT32_ANGLE_FRAC....
-    return FALSE;
-}
 //Increases the NAV heading. Assumes heading is an INT32_ANGLE. It is bound in this function.
 uint8_t increase_nav_heading(float increment)
 {
-  nav_heading += ANGLE_FLOAT_OF_BFP(increment);
+  nav_heading += ANGLE_BFP_OF_REAL(RadOfDeg(increment));
   // Check if your turn made it go out of bounds...
   INT32_ANGLE_NORMALIZE(nav_heading); // HEADING HAS INT32_ANGLE_FRAC....
   return FALSE;

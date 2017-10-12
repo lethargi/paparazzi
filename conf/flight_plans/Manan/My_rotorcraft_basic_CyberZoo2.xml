@@ -37,8 +37,6 @@
     <waypoint x="3.9" y="-4" name="SZ3"/>
     <waypoint x="-3.9" y="-4" name="SZ4"/>
     <waypoint x="0.25" y="0.25" name="BoundaryChecker"/>
-    <waypoint height="12." name="CAM" x="-20" y="-50"/>
-    <waypoint name="XYFINDER" x="30" y="-30"/>
     <waypoint name="TD" x="5" y="-5"/>
   </waypoints>
   <sectors>
@@ -78,6 +76,18 @@
     </block>
     <block name="3Grids">
       <call fun="cv_3grids()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="RL_Reset_Heading">
+      <call fun="rl_reset_heading()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="yaw_left">
+      <call fun="increase_nav_heading(-90)"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="yaw_right">
+      <call fun="increase_nav_heading(90)"/>
       <stay wp="GOAL"/>
     </block>
     <!--

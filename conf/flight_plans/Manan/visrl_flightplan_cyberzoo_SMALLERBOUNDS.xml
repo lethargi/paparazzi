@@ -77,14 +77,10 @@
     </block>
     <block name="yaw_left">
       <call fun="increase_nav_heading(25)"/>
-    </block>
-    <block name="sink">
       <stay wp="GOAL"/>
     </block>
     <block name="yaw_right">
       <call fun="increase_nav_heading(-25)"/>
-    </block>
-    <block name="sink2">
       <stay wp="GOAL"/>
     </block>
     <block name="RandomizeStart">
