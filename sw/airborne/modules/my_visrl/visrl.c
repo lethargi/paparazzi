@@ -22,9 +22,13 @@
 #include "subsystems/datalink/telemetry.h"
 
 
-float headings_rad[8] = {0, M_PI/4., M_PI/2., 3*M_PI/4.,
-                        M_PI, 5*M_PI/4. , 3*M_PI/2. , 7*M_PI/4.};
-uint8_t len_headings = 8;
+// float headings_rad[8] = {0, M_PI/4., M_PI/2., 3*M_PI/4.,
+//                         M_PI, 5*M_PI/4. , 3*M_PI/2. , 7*M_PI/4.};
+// uint8_t len_headings = 8;
+float headings_rad[16] = {0, M_PI/8., M_PI/4., 3*M_PI/8., M_PI/2., 5*M_PI/8.,
+        3*M_PI/4., 7*M_PI/8., M_PI, 9*M_PI/8., 5*M_PI/4.,  11*M_PI/8, 3*M_PI/2. ,
+        13*M_PI/8, 7*M_PI/4., 15*M_PI/8};
+uint8_t len_headings = 16;
 int8_t headind = 0;
 uint8_t headatcompass = 1;
 
@@ -280,13 +284,14 @@ float get_myheading(void)
 void update_headind(void)
 {
     float myhead = get_myheading();
-    float hby2 = M_PI/8;
+    // float hby2 = M_PI/8;
+    float hby2 = M_PI/16;
     uint8_t bin_i = 0;
-    if ((myhead < hby2) || (myhead >= headings_rad[7] + hby2)) {
+    if ((myhead < hby2) || (myhead >= headings_rad[15] + hby2)) {
         headind = bin_i;
     }
     else {
-        for (bin_i=1; bin_i<8;bin_i++){
+        for (bin_i=1; bin_i<16;bin_i++){
             if ((myhead >= headings_rad[bin_i-1] + hby2) &&
                 (myhead < headings_rad[bin_i] + hby2)) {
                     headind = bin_i;
@@ -303,8 +308,8 @@ uint8_t rl_smooth_turn(uint8_t targhead_ind)
         return FALSE;
     }
 
-    if (abs(dh_i) > 4) {
-        dh_i = (dh_i > 0)? 8 - dh_i : 8 + dh_i;
+    if (abs(dh_i) > 8) {
+        dh_i = (dh_i > 0)? 16 - dh_i : 16 + dh_i;
     }
 
     dh_i = GetSign(dh_i);
@@ -320,7 +325,7 @@ uint8_t rl_reset_heading(void)
 #ifdef VISRL_NPS
     targhead = 0; //dont understan why these are these values
 #else
-    targhead = 5;
+    targhead = 10; // will need to check for real implement
 #endif
     return rl_smooth_turn(targhead);;
 }
@@ -336,7 +341,7 @@ uint8_t rl_randomize_start(uint8_t waypoint, uint8_t altref_wp)
         y_roll = (float) (rand() % 70 - 35)/10;
     }
     float refalt = waypoint_get_alt(altref_wp);
-    head_roll = rand() % 8;
+    head_roll = rand() % 16;
     printf("\n %f %f %f %d %f \n", x_roll,y_roll,refalt,head_roll,headings_rad[head_roll]);
 
     // Now determine where to place the waypoint you want to go to
