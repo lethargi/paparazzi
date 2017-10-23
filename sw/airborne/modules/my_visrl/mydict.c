@@ -35,12 +35,15 @@ void md_node_best_action(md_node *cursor)
 {
     float cur_best_val = -FLT_MAX;
     // uint8_t cur_best_act;
+    // printf(":: BA ");
     for (int i = 0; i < VISRL_ACTIONS; i++){
+        // printf(" %d %.1e %.1e :",i,cursor->values[i],cur_best_val);
         if (cursor->values[i] > cur_best_val) {
             cur_best_val = cursor->values[i];
             cursor->best_action = i;
         }
     }
+    // printf("Best:%d ::",cursor->best_action);
 }
 
 md_node* md_create(char *key, md_node *next)

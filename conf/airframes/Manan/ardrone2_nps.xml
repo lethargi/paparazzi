@@ -1,6 +1,6 @@
 <!DOCTYPE airframe SYSTEM "../airframe.dtd">
 
-<airframe name="ardrone2">
+<airframe name="ardrone2_nps">
 
   <firmware name="rotorcraft">
     <target name="ap" board="ardrone2">
@@ -43,6 +43,8 @@
     <module name="my_visrl">
         <define name="VISRL_CAMERA" value="front_camera"/>
         <define name="VISRL_FPS" value="1"/>
+        <!--define name="VISRL_TWOGOALS"/-->
+        <!--define name="VISRL_SARSA"/-->
     </module>
 
     <module name="video_rtp_stream">

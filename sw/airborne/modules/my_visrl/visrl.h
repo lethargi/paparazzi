@@ -35,9 +35,11 @@ extern uint8_t domcol_arr[3];
 extern float red_thresh, blue_thresh;
 extern uint16_t min_pix_thresh;
 extern uint8_t red_goal_reach_thresh;
+extern uint8_t blue_goal_reach_thresh;
 
 // extern GHashTable *myqdict;
-extern uint16_t rl_maxepochs;
+extern uint16_t rl_max_eps_epochs;
+extern uint16_t rl_max_train_epochs;
 extern int8_t headind;
 extern int8_t head_roll;
 
@@ -51,7 +53,13 @@ extern uint8_t rl_smooth_turn(uint8_t targhead_ind);
 extern uint8_t rl_init(void);
 extern uint8_t rl_set_cur(void);
 extern uint8_t rl_set_nxt(void);
+
 extern uint8_t rl_take_cur_action(void);
+extern void rl_action_forward(void);
+extern void rl_action_left(void);
+extern void rl_action_right(void);
+
+
 extern uint8_t rl_update_qdict(void);
 extern uint8_t rl_check_terminal(void);
 extern uint8_t rl_print_qtab(void);

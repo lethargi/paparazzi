@@ -47,13 +47,17 @@ static uint8_t hitwall = 0;
 uint8_t rl_isterminal = 0;
 static float cur_rew = 0;
 
-uint16_t rl_maxepochs = 50;
+uint16_t rl_max_eps_epochs = 100;
+uint16_t rl_max_eps_epochs_increase = 100;
+uint16_t rl_max_train_epochs = 900;
+uint8_t rl_eps_increase = 5;
 
 float rl_gamma = 0.9;
 float rl_alp = 0.3;
 uint8_t rl_eps = 60;
 
-uint8_t red_goal_reach_thresh = 6;
+uint8_t red_goal_reach_thresh = 5;
+uint8_t blue_goal_reach_thresh = 3;
 
 // Some vars for state
 // goals_visited 0 for none; 1 for red; 2 for green; 3 for both
@@ -139,14 +143,14 @@ uint8_t rl_dec_eps(void)
 }
 uint8_t rl_inc_eps(void)
 {
-    rl_eps += 5;
+    rl_eps += rl_eps_increase;
     printf("\nEps:%d\n",rl_eps);
     return 0;
 }
 uint8_t rl_inc_maxepochs(void)
 {
-    rl_maxepochs += 50;
-    printf("\nMaxEpochs:%d\n",rl_maxepochs);
+    rl_max_eps_epochs += rl_max_eps_epochs_increase;
+    printf("\nMaxEpochs:%d\n",rl_max_eps_epochs);
     return 0;
 }
 
@@ -181,6 +185,7 @@ uint8_t pick_action(char *mystate)
     curnode = md_search(ll_qdict,mystate);
 
     if (curnode == NULL) {
+        printf(" NewState ");
         curnode = md_prepend_list(ll_qdict,mystate);
         picked_action = rand() % VISRL_ACTIONS;
         act_type = "R";
@@ -231,12 +236,15 @@ void get_state_ext(char *curstate)
         if (countfracs[0] > red_goal_reach_thresh) {
             goals_visited = 1;
         }
-        if (countfracs[1] > 6) {
+#ifdef VISRL_TWOGOALS
+        if (countfracs[1] > blue_goal_reach_thresh) {
             goals_visited = 2;
         }
+#endif
     }
+#ifdef VISRL_TWOGOALS
     else if (goals_visited == 1) {
-        if (countfracs[1] > 6) {
+        if (countfracs[1] > blue_goal_reach_thresh) {
             goals_visited = 3;
         }
     }
@@ -245,11 +253,14 @@ void get_state_ext(char *curstate)
             goals_visited = 3;
         }
     }
+#endif
 
     // char curstate[30];
     // char *curstate = malloc( sizeof(char)*20 );
-    sprintf(curstate,"%d,%d,%d;%d;%d",
+    // sprintf(curstate,"%d,%d,%d;%d;%d",
+    sprintf(curstate,"%d,%d,%d;%d;%d;%d",
             domcol_arr[0],domcol_arr[1],domcol_arr[2],
+            (int) floor(countfracs[0]),
             // countfracs[0],countfracs[1],//countfracs[2],
             // goals_visited,hitwall,headind); // with headindex
             goals_visited,hitwall);      // without headingindex
@@ -435,44 +446,56 @@ uint8_t rl_set_nxt(void)
     return 0;
 }
 
+void rl_action_forward(void)
+{
+    NavSetWaypointHere(WP_BoundaryChecker);
+    moveWaypointForwards(WP_BoundaryChecker,0.6);
+    // logic for detecting hitting wall
+    if (!InsideMyWorld(WaypointX(WP_BoundaryChecker),WaypointY(WP_BoundaryChecker))) {
+        hitwall = 1;
+    }
+    else {
+        if (headatcompass == 1) {
+            moveWaypointForwards(WP_GOAL,0.5);
+        }
+        else {
+            moveWaypointForwards(WP_GOAL,0.70710678118);
+        }
+    }
+}
+
+void rl_action_left(void)
+{
+    headind--;
+    if (headind == -1) {
+        headind = len_headings - 1;
+    }
+    nav_set_heading_rad(headings_rad[headind]);
+}
+
+void rl_action_right(void)
+{
+    headind++;
+    if (headind == len_headings) {
+        headind = 0;
+    }
+    nav_set_heading_rad(headings_rad[headind]);
+}
+
 uint8_t rl_take_cur_action(void)
 {
     if (cur_act == 0) {
-        NavSetWaypointHere(WP_BoundaryChecker);
-        moveWaypointForwards(WP_BoundaryChecker,0.6);
-        // logic for detecting hitting wall
-        if (!InsideMyWorld(WaypointX(WP_BoundaryChecker),WaypointY(WP_BoundaryChecker))) {
-            hitwall = 1;
-        }
-        else {
-            if (headatcompass == 1) {
-                moveWaypointForwards(WP_GOAL,0.5);
-            }
-            else {
-                moveWaypointForwards(WP_GOAL,0.70710678118);
-            }
-        }
+        rl_action_forward();
     }
     else {
         headatcompass = (headatcompass == 1) ? 0 : 1;
         // select index of heading from headings_rad array
         if (cur_act == 1) {
-            // increase_nav_heading_deg(&nav_heading, -45);
-            headind--;
-            if (headind == -1) {
-                headind = len_headings - 1;
-            }
+            rl_action_left();
         }
         else if ((cur_act == 2) || (cur_act == 3)) {
-            // increase_nav_heading_deg(&nav_heading, 45);
-            headind++;
-            if (headind == len_headings) {
-                headind = 0;
-            }
+            rl_action_right();
         }
-        // set the heading
-        nav_set_heading_rad(headings_rad[headind]);
-
     }
     steps_taken++;
     return FALSE;
@@ -507,18 +530,22 @@ uint8_t rl_update_qdict(void)
     md_node *qtab_curnode = md_search(ll_qdict,cur_sta); //(float *)g_hash_table_lookup(myqdict,cur_sta);
     md_node *qtab_nxtnode = md_search(ll_qdict,nxt_sta); // (float *)g_hash_table_lookup(myqdict,nxt_sta);
 
-    /* QLEARNING
-    if strcmp(act_type,"G") {
+    // QLEARNING
+    // Maybe i shouldnt be using strcmp here
+#ifdef VISRL_SARSA
+    update_act = nxt_act;
+#else
+    if (!strcmp(act_type,"G")) {
        update_act = nxt_act;
     }
     else {
        md_node_best_action(qtab_nxtnode);
        update_act = qtab_nxtnode->best_action;
     }
-    */
+#endif
 
     Qcur = qtab_curnode->values[cur_act];
-    Qnxt = qtab_nxtnode->values[nxt_act];
+    Qnxt = qtab_nxtnode->values[update_act];
     Qcur1 = Qcur + rl_alp*(cur_rew + rl_gamma*Qnxt - Qcur);
     qtab_curnode->values[cur_act] = Qcur1;
     sumofQchanges += abs(Qcur1 - Qcur);
@@ -529,8 +556,11 @@ uint8_t rl_update_qdict(void)
 uint8_t rl_check_terminal(void)
 {
     // this can be stated better
-    // if (goals_visited != 3) {
+#ifdef VISRL_TWOGOALS
+    if (goals_visited != 3) {
+#else
     if (goals_visited != 1) {
+#endif
         rl_isterminal = 0;
     }
     else {
@@ -547,8 +577,8 @@ uint8_t rl_write_episode_log(void)
     printf("===============\n");
     printf("\nWriting to file;");
     log_file = fopen(log_file_addrs,"a");
-    fprintf(log_file,"%u %u %.1f %.1f %u\n",episodes_simulated,steps_taken,
-            sumofQchanges,episode_rewards,ll_qdict->length);
+    fprintf(log_file,"%u %u %.1f %.1f %u %d\n",episodes_simulated,steps_taken,
+            sumofQchanges,episode_rewards,ll_qdict->length,rl_eps);
     // fwrite(qtab,sizeof(float),sizeof(qtab)/sizeof(float),qtab_file);
     fclose(log_file);
     printf("Done\n");

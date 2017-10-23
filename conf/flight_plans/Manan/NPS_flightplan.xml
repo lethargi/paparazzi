@@ -1,6 +1,6 @@
 <!DOCTYPE flight_plan SYSTEM "../flight_plan.dtd">
 
-<flight_plan alt="4" ground_alt="1.18" lat0="42.3489323" lon0="-71.0083311" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="1">
+<flight_plan alt="2.5" ground_alt="1.18" lat0="42.3489323" lon0="-71.0083311" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="1">
   <header>
 	#include "autopilot.h"
     #include "subsystems/ahrs.h"
@@ -54,7 +54,7 @@
     </block>
     <block name="Geo init">
       <while cond="LessThan(NavBlockTime(), 10)"/>
-      <call_once fun="NavSetGroundReferenceHere()"/>
+      <!--call_once fun="NavSetGroundReferenceHere()"/-->
     </block>
     <block name="Holding point">
       <call_once fun="NavKillThrottle()"/>
@@ -82,13 +82,25 @@
       <call fun="rl_reset_heading()"/>
       <stay wp="GOAL"/>
     </block>
-    <block name="yaw_left">
-      <call fun="increase_nav_heading(-90)"/>
+    <block name="RL_FOR">
+      <call_once fun="rl_action_forward()"/>
       <stay wp="GOAL"/>
     </block>
-    <block name="yaw_right">
-      <call fun="increase_nav_heading(90)"/>
+    <block name="RL_LEF">
+      <call_once fun="rl_action_left()"/>
       <stay wp="GOAL"/>
+    </block>
+    <block name="RL_RIG">
+      <call_once fun="rl_action_right()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="GOTOSET">
+        <!-- <call_once fun="waypoint_set_xy_i(WP_TESTWP, toset_xloc, toset_yloc)"/> -->
+      <call_once fun="set_loc_and_att(WP_TESTWP)"/>
+      <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
+      <go from="CURPOS" wp="TESTWP" hmode="route" approaching_time="0"/>
+      <call_once fun="nav_set_heading_deg(toset_head)"/>
+      <stay wp="TESTWP"/>
     </block>
     <!--
     <block name="Print State">
@@ -203,7 +215,7 @@
     <block name="EndEp">
       <call fun="rl_write_episode_log()"/>
       <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
-	  <exception cond="episodes_simulated > rl_maxepochs" deroute="IncEps"/>
+	  <exception cond="episodes_simulated > rl_max_eps_epochs" deroute="IncEps"/>
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
       <deroute block="SetupEpisode"/>
       <!-- <deroute block="RandomizeStart"/> -->
@@ -216,7 +228,7 @@
       <call fun="write_qdict()"/>
       <call fun="copy_qdict()"/>
       <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
-	  <exception cond="episodes_simulated > 450" deroute="EndRl"/>
+	  <exception cond="episodes_simulated > rl_max_train_epochs" deroute="EndRl"/>
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
 	  <deroute block="SetupEpisode"/>
     </block>

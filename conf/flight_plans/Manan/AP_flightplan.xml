@@ -75,12 +75,16 @@
       <call fun="rl_reset_heading()"/>
       <stay wp="GOAL"/>
     </block>
-    <block name="yaw_left">
-      <call fun="increase_nav_heading(25)"/>
+    <block name="RL_FOR">
+      <call_once fun="rl_action_forward()"/>
       <stay wp="GOAL"/>
     </block>
-    <block name="yaw_right">
-      <call fun="increase_nav_heading(-25)"/>
+    <block name="RL_LEF">
+      <call_once fun="rl_action_left()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="RL_RIG">
+      <call_once fun="rl_action_right()"/>
       <stay wp="GOAL"/>
     </block>
     <block name="RandomizeStart">
@@ -119,7 +123,7 @@
     </block>
     <block name="EndEp">
       <call fun="rl_write_episode_log()"/>
-      <exception cond="episodes_simulated > rl_maxepochs" deroute="IncEps"/>
+      <exception cond="episodes_simulated > rl_max_eps_epochs" deroute="IncEps"/>
       <deroute block="SetupEpisode"/>
     </block>
     <block name="IncEps">
@@ -129,7 +133,7 @@
       <call fun="print_qdict()"/>
       <call fun="write_qdict()"/>
       <call fun="copy_qdict()"/>
-      <exception cond="episodes_simulated > 899" deroute="EndRl"/>
+      <exception cond="episodes_simulated > rl_max_train_epochs" deroute="EndRl"/>
       <deroute block="SetupEpisode"/>
     </block>
     <block name="EndRl">

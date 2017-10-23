@@ -3,6 +3,10 @@
 #include "firmwares/rotorcraft/navigation.h"
 #include "state.h"
 
+extern float toset_xloc = 0;
+extern float toset_yloc = 0;
+extern float toset_head = 0;
+
 //Increases the NAV heading. Assumes heading is an INT32_ANGLE. It is bound in this function.
 uint8_t increase_nav_heading(float increment)
 {
@@ -120,4 +124,10 @@ uint8_t setAltToWp(uint8_t waypoint_toset, uint8_t waypoint_ref)
       // waypoint_set_here(waypoint);
       waypoint_set_alt(waypoint_toset, wpheight);
       return FALSE;
+}
+
+uint8_t set_loc_and_att(uint8_t waypoint)
+{
+	waypoint_set_xy_i(waypoint,POS_BFP_OF_REAL(toset_xloc), POS_BFP_OF_REAL(toset_yloc));
+    return 0;
 }

@@ -38,10 +38,15 @@ struct video_listener *listener = NULL;
 // Filter Settings
 
 uint32_t count_arr[2][3] = {{0}};
-uint32_t redcount_arr[3] = {0,0,0};
-// uint32_t bluecount_arr[3] = {{0}};
 uint32_t sumcount_arr[2] = {0,0};
+uint32_t redcount_arr[3] = {0,0,0};
 uint32_t redsum = 0;
+
+#ifdef VISRL_TWOGOALS
+uint32_t bluecount_arr[3] = {0,0,0};
+uint32_t bluesum = 0;
+#endif
+
 uint8_t domcol_arr[3] = {0,0,0};
 
 // dont understand why i have to define again here when they are included in
@@ -89,17 +94,6 @@ void my_image_yuv422_colorcounter(struct image_t *input)
     float f_red,f_blue;
     // Reset the output array
 
-    /* HOTFIX TO GET STATES WORKING
-    for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 3; j++) {
-            count_arr[i][j] = 0;
-        }
-        sumcount_arr[i] = 0;
-        domcol_arr[i] = 0;
-    }
-    domcol_arr[2] = 0;
-    */
-
     uint16_t w_first, w_second;
     uint8_t coltoapp;
     w_first = input->w/3;
@@ -109,7 +103,13 @@ void my_image_yuv422_colorcounter(struct image_t *input)
     //reset relevant arrays and memory to 0
     for (int i = 0; i < 3; i++) {
         redcount_arr[i] = 0;
+#ifdef VISRL_TWOGOALS
+        bluecount_arr[i] = 0;
     }
+    bluesum = 0;
+#else
+    }
+#endif
     redsum = 0;
 
   // Go trough all the pixels
@@ -152,13 +152,13 @@ void my_image_yuv422_colorcounter(struct image_t *input)
                 source[2] = 240;        // V
                 redcount_arr[coltoapp]++;
             }
-            /*
+#ifdef VISRL_TWOGOALS
             else if (f_blue > blue_thresh) {
                 source[0] = 240;        // U
                 source[2] = 10;        // V
-                count_arr[1][coltoapp]++;
-                sumcount_arr[1]++;
-            } */
+                bluecount_arr[coltoapp]++;
+            }
+#endif
             else {
                 source[0] = 127;        // U
                 source[2] = 127;        // V
@@ -173,6 +173,10 @@ void my_image_yuv422_colorcounter(struct image_t *input)
     for (int i = 0; i < 3; i++) {
         count_arr[0][i] = redcount_arr[i];
         redsum += redcount_arr[i];
+#ifdef VISRL_TWOGOALS
+        count_arr[1][i] = bluecount_arr[i];
+        bluesum += bluecount_arr[i];
+#endif
     }
     // printf("white:%d \n",whitecount);
     colmax(count_arr,domcol_arr);

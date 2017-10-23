@@ -226,6 +226,9 @@ uint8_t colmax(uint32_t colarr[2][3],uint8_t maxcolarr[3])
         if (curcolmax > min_pix_thresh) {
             maxcolarr[i] = curcolmax_ind;
         }
+        else {
+            maxcolarr[i] = 0;
+        }
     }
     return 0;
 }
