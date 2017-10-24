@@ -1,6 +1,15 @@
 #ifndef MYVISRL_H
 #define MYVISRL_H
 
+#define VISRL_STATESIZE 20
+
+// #define VISRL_USEOPTIONS
+#ifdef VISRL_USEOPTIONS
+#define VISRL_ACTIONS 4
+#else
+#define VISRL_ACTIONS 3
+#endif
+
 #include <stdint.h>
 // #include <glib.h>
 
@@ -16,15 +25,8 @@
 // #define GetCurX() (stateGetNedToBodyEulers_i()->psi)
 // #define GetCurY() (stateGetNedToBodyEulers_i()->psi)
 
-#define VISRL_STATESIZE 20
-
 // #define VISRL_USEOPTIONS
-#ifdef VISRL_USEOPTIONS
-#define VISRL_ACTIONS 4
-#else
-#define VISRL_ACTIONS 3
-#endif
-// #define VISRL_USEOPTIONS
+#include "modules/my_visrl/mydict.h"
 
 
 // Variables for the CV functions
@@ -38,8 +40,11 @@ extern uint8_t red_goal_reach_thresh;
 extern uint8_t blue_goal_reach_thresh;
 
 // extern GHashTable *myqdict;
-extern uint16_t rl_max_eps_epochs;
-extern uint16_t rl_max_train_epochs;
+extern uint16_t rl_curmaxeps;
+extern uint16_t rl_maxepsinc;
+extern uint16_t rl_maxeps;
+extern uint8_t rl_eps_increase;
+
 extern int8_t headind;
 extern int8_t head_roll;
 
@@ -66,25 +71,11 @@ extern uint8_t rl_print_qtab(void);
 
 extern uint8_t rl_isterminal;
 extern uint16_t episodes_simulated;
+extern float episode_rewards;
+
 extern uint8_t rl_eps;
 extern float rl_gamma;
 extern float rl_alp;
-
-extern uint8_t rl_write_episode_log(void);
-extern uint8_t rl_write_step_log(void);
-
-extern uint8_t rl_dec_eps(void);
-extern uint8_t rl_inc_eps(void);
-extern uint8_t rl_inc_maxepochs(void);
-
-extern uint8_t print_qdict(void);
-extern uint8_t write_qdict(void);
-extern uint8_t load_qdict(void);
-extern uint8_t load_qdict_fromtxt(void);
-
-extern uint8_t copy_qdict(void);
-extern uint8_t copy_logs(void);
-
 
 void get_state_ext(char *curstate);
 float get_myheading(void);
@@ -95,4 +86,38 @@ uint8_t pick_action(char *state);
 uint8_t rl_get_reward(void);
 uint8_t copy_file(char *old_filename, char  *new_filename);
 
+extern md_linkedlist *ll_qdict;
+
+extern uint8_t rl_dec_eps(void);
+extern uint8_t rl_inc_eps(void);
+extern uint8_t rl_inc_maxepochs(void);
+
+
+// Declaration of some variables for global tracking
+
+extern uint16_t steps_taken;
+extern uint16_t episodes_simulated;
+extern float episode_rewards;
+extern float sum_dQ;
+extern uint32_t total_state_visits;
+extern char *act_type;
+extern uint8_t cur_act;
+extern uint8_t nxt_act;
+extern char cur_sta[VISRL_STATESIZE], nxt_sta[VISRL_STATESIZE];
+
+extern int8_t head_roll;
+
+#ifdef VISRL_USEOPTIONS
+extern uint8_t start_option; //boolean to check if performing option
+extern uint8_t end_option; //boolean to check if performing option
+extern char option_start_sta[VISRL_STATESIZE];
 #endif
+
+extern int8_t headind;
+extern uint8_t headatcompass;
+
+extern uint8_t hitwall;
+extern uint8_t rl_isterminal;
+extern float cur_rew;
+#endif
+

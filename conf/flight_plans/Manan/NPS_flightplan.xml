@@ -14,6 +14,7 @@
 	#include "modules/my_visrl/vis_ap.h"
     #endif
 
+	#include "modules/my_visrl/simsoft.h"
 	#include "modules/my_visrl/visrl.h"
 	#include "modules/my_visrl/mynavfuncs.h"
 </header>
@@ -215,7 +216,7 @@
     <block name="EndEp">
       <call fun="rl_write_episode_log()"/>
       <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
-	  <exception cond="episodes_simulated > rl_max_eps_epochs" deroute="IncEps"/>
+	  <exception cond="episodes_simulated > rl_curmaxeps" deroute="IncEps"/>
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
       <deroute block="SetupEpisode"/>
       <!-- <deroute block="RandomizeStart"/> -->
@@ -228,7 +229,7 @@
       <call fun="write_qdict()"/>
       <call fun="copy_qdict()"/>
       <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
-	  <exception cond="episodes_simulated > rl_max_train_epochs" deroute="EndRl"/>
+	  <exception cond="episodes_simulated > rl_maxeps" deroute="EndRl"/>
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
 	  <deroute block="SetupEpisode"/>
     </block>
@@ -240,48 +241,14 @@
       <call fun="copy_logs()"/>
       <stay wp="GOAL"/>
     </block>
-    <!-- -->
-    <block name="IncMaxEpochs">
-      <call fun="rl_inc_maxepochs()"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="IncEpsilon">
-      <call fun="rl_inc_eps()"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="DecEpsilon">
-      <call fun="rl_dec_eps()"/>
-      <stay wp="GOAL"/>
-    </block>
     <block name="CopyTest">
       <call fun="copy_qdict()"/>
       <stay wp="GOAL"/>
     </block>
-    <!--
-    <block name="WriteEpLog">
-      <call fun="rl_write_episode_log()"/>
-    </block>
-    <block name="PrintQtab">
-      <call fun="rl_print_qtab()"/>
-      <stay wp="GOAL"/>
-    </block>
-    -->
     <block name="PrintQDict">
       <call fun="print_qdict()"/>
       <stay wp="GOAL"/>
     </block>
-    <!--
-    <block name="ReadQtab">
-      <call fun="NavSetWaypointHere(WP_TEMP)"/>
-      <call fun="rl_read_qtab()"/>
-      <stay wp="TEMP"/>
-    </block>
-    <block name="WriteQtab">
-      <call fun="NavSetWaypointHere(WP_TEMP)"/>
-      <call fun="rl_write_qtab()"/>
-      <stay wp="TEMP"/>
-    </block>
-    -->
     <block name="WriteQDict">
       <call_once fun="NavSetWaypointHere(WP_TEMP)"/>
       <call fun="write_qdict()"/>

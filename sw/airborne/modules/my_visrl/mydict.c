@@ -8,6 +8,7 @@ char qdictvalues_file_addrs[] = "qdict_values.dat";
 char statevisitsvalues_file_addrs[] = "statevisits_values.dat";
 char statevisits_file_addrs[] = "statevisits.txt";
 */
+#include "modules/my_visrl/mydict.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -15,7 +16,6 @@ char statevisits_file_addrs[] = "statevisits.txt";
 #include <unistd.h>
 #include <string.h>
 
-#include "modules/my_visrl/mydict.h"
 
 //IMPORT AND EXPORTS HAVE NOT BEEN ADAPTED FOR EXTRA ACTION; ie option of
 //turn till color is seen

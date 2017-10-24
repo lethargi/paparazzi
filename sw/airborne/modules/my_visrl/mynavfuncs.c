@@ -3,9 +3,9 @@
 #include "firmwares/rotorcraft/navigation.h"
 #include "state.h"
 
-extern float toset_xloc = 0;
-extern float toset_yloc = 0;
-extern float toset_head = 0;
+float toset_xloc = 0;
+float toset_yloc = 0;
+float toset_head = 0;
 
 //Increases the NAV heading. Assumes heading is an INT32_ANGLE. It is bound in this function.
 uint8_t increase_nav_heading(float increment)

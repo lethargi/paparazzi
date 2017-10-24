@@ -1,7 +1,8 @@
 #include "modules/my_visrl/visrl.h"
 
 #include "modules/my_visrl/mynavfuncs.h"
-#include "modules/my_visrl/mydict.h"
+
+#include "modules/my_visrl/simsoft.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,26 +35,32 @@ uint8_t headatcompass = 1;
 
 // States, actions and reward
 char *state_buffer;
-static char *act_type = "R";
-static uint8_t cur_act = 0;
-static uint8_t nxt_act = 0;
+char *act_type = "R";
+uint8_t cur_act = 0;
+uint8_t nxt_act = 0;
+char cur_sta[VISRL_STATESIZE], nxt_sta[VISRL_STATESIZE];
 
 #ifdef VISRL_USEOPTIONS
-static uint8_t start_option = 0; //boolean to check if performing option
-static uint8_t end_option = 1; //boolean to check if performing option
-static char option_start_sta[VISRL_STATESIZE];
+uint8_t start_option = 0; //boolean to check if performing option
+uint8_t end_option = 1; //boolean to check if performing option
+char option_start_sta[VISRL_STATESIZE];
 #endif
 
-static char cur_sta[VISRL_STATESIZE], nxt_sta[VISRL_STATESIZE];
 // static char *cur_sta, *nxt_sta;
 // static char *option_start_sta;  //stores the starting state of options for Qtab updates
-static uint8_t hitwall = 0;
+uint8_t hitwall = 0;
 uint8_t rl_isterminal = 0;
-static float cur_rew = 0;
+float cur_rew = 0;
 
-uint16_t rl_max_eps_epochs = 100;
-uint16_t rl_max_eps_epochs_increase = 100;
-uint16_t rl_max_train_epochs = 900;
+// uint16_t rl_max_eps_epochs = 100;
+// uint16_t rl_max_eps_epochs_increase = 100;
+// uint16_t rl_max_train_epochs = 900;
+// uint8_t rl_eps_increase = 5;
+
+
+uint16_t rl_curmaxeps = 50;
+uint16_t rl_maxepsinc = 50;
+uint16_t rl_maxeps = 450;
 uint8_t rl_eps_increase = 5;
 
 float rl_gamma = 0.9;
@@ -68,51 +75,15 @@ uint8_t blue_goal_reach_thresh = 3;
 uint8_t goals_visited = 0;
 float countfracs[2] = {0,0};
 // counter for steps and episodes
-static uint16_t steps_taken = 0;
+uint16_t steps_taken = 0;
 uint16_t episodes_simulated = 0;
 float episode_rewards = 0;
-static float sumofQchanges = 0;
+float sum_dQ = 0;
 uint32_t total_state_visits = 0;
 
 int8_t head_roll;
 
-// file to write and qtable; add descriptions of these files
-// FILE LOCATIONS DURING NPS RUNS
-#ifdef VISRL_NPS
-char qdict_txt_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict.txt";
-char qdictkeys_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict_keys.dat";
-char qdictvalues_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict_values.dat";
-char statevisitsvalues_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/statevisits_values.dat";
-char statevisits_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/statevisits.txt";
-char log_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/log.txt";
-char epi_log_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/epi_log.txt";
-char savelocation[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/";
-char copy_location[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/__LastSaves/";
-#else
-// FILE LOCATION WHEN RUNNING IN THE UAV
-char qdict_txt_file_addrs[] = "/home/default/qdict.txt";
-char qdictkeys_file_addrs[] = "/home/default/qdict_keys.dat";
-char qdictvalues_file_addrs[] = "/home/default/qdict_values.dat";
-char statevisitsvalues_file_addrs[] = "/home/defaultstatevisits_values.dat";
-char statevisits_file_addrs[] = "/home/default/statevisits.txt";
-char log_file_addrs[] = "/home/default/log.txt";
-char epi_log_file_addrs[] = "/home/default/epi_log.txt";
-char copy_location[] = "/home/default/";
-// savelocation commented out for UAV implementation; may need fixing
-// char savelocation[] = "/home/default/_Study/AE9999_Thesis/playground/SavedQtabs/";
-#endif
-
-
-FILE *qdict_txt_file;
-FILE *qdictkeys_file;
-FILE *qdictvalues_file;
-FILE *statevisitsvalues_file;
-FILE *statevisits_txt_file;
-FILE *log_file;
-FILE *epi_log_file;
-
 md_linkedlist *ll_qdict;
-
 
 //send message about vision output
 static void send_visrl(struct transport_tx *trans, struct link_device *dev)
@@ -126,12 +97,8 @@ void visrl_init(void)
     // send message
     register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_VISRL, send_visrl);
 
-
     // initalize other required stuffs
-    log_file = fopen(log_file_addrs,"w"); //create or reset logfile
-    epi_log_file = fopen(epi_log_file_addrs,"w"); //create or reset epi logfile
-    fclose(log_file);
-    fclose(epi_log_file);
+    simsoft_init();
 
     ll_qdict = md_init_linkedlist();
 #ifdef VISRL_AP
@@ -153,8 +120,8 @@ uint8_t rl_inc_eps(void)
 }
 uint8_t rl_inc_maxepochs(void)
 {
-    rl_max_eps_epochs += rl_max_eps_epochs_increase;
-    printf("\nMaxEpochs:%d\n",rl_max_eps_epochs);
+    rl_curmaxeps += rl_maxepsinc;
+    printf("\nMaxEpochs:%d\n",rl_curmaxeps);
     return 0;
 }
 
@@ -373,7 +340,7 @@ uint8_t rl_init(void)
 {
     rl_isterminal = 0;
     steps_taken = 0;
-    sumofQchanges = 0;
+     sum_dQ = 0;
     episode_rewards = 0;
     cur_rew = 0;
     goals_visited = 0;
@@ -553,7 +520,7 @@ uint8_t rl_update_qdict(void)
     Qnxt = qtab_nxtnode->values[update_act];
     Qcur1 = Qcur + rl_alp*(cur_rew + rl_gamma*Qnxt - Qcur);
     qtab_curnode->values[cur_act] = Qcur1;
-    sumofQchanges += abs(Qcur1 - Qcur);
+    sum_dQ += abs(Qcur1 - Qcur);
     printf("%03.1f %03.1f %03.1f :: \n", Qcur, Qnxt, Qcur1);
     return 0;
 }
@@ -574,147 +541,4 @@ uint8_t rl_check_terminal(void)
         episodes_simulated++;
     }
     return 0;
-}
-
-uint8_t rl_write_episode_log(void)
-{
-    // need to include error checks
-    printf("===============\n");
-    printf("\nWriting to file;");
-    log_file = fopen(log_file_addrs,"a");
-    fprintf(log_file,"%u %u %.1f %.1f %u %d\n",episodes_simulated,steps_taken,
-            sumofQchanges,episode_rewards,ll_qdict->length,rl_eps);
-    // fwrite(qtab,sizeof(float),sizeof(qtab)/sizeof(float),qtab_file);
-    fclose(log_file);
-    printf("Done\n");
-    printf("===============\n");
-    return 0;
-}
-
-uint8_t rl_write_step_log(void)
-{
-    // need to include error checks
-    epi_log_file = fopen(epi_log_file_addrs,"a");
-    // Save the RL data for the step
-    fprintf(epi_log_file,"%3u %4u %s %d %s % 3.0f", episodes_simulated, steps_taken,
-            cur_sta, cur_act, act_type, cur_rew);
-    // Save absolute state data
-    fprintf(epi_log_file," % 05.2f % 04.3f % 04.3f", DegOfRad(GetCurHeading()), GetPosX(),
-            GetPosY());
-    // save comamand data
-    fprintf(epi_log_file," % 05.2f % 04.3f % 04.3f",
-            DegOfRad(ANGLE_FLOAT_OF_BFP(nav_heading)), WaypointX(WP_GOAL),
-            WaypointY(WP_GOAL));
-    fprintf(epi_log_file,"\n");
-    fclose(epi_log_file);
-    return 0;
-}
-
-// functions to read and write Q-tables; can be improved overall
-uint8_t print_qdict(void)
-{
-    // printf("\n====== Writing to txt file =========\n");
-    md_export_to_text(ll_qdict, qdict_txt_file_addrs, statevisits_file_addrs);
-    return 0;
-}
-
-uint8_t write_qdict(void)
-{
-    // printf("\n====== Writing to dat file =========\n");
-    md_export_to_dat(ll_qdict, qdictkeys_file_addrs, qdictvalues_file_addrs,
-            statevisitsvalues_file_addrs);
-    // printf("======= Done ==========\n");
-    return 0;
-}
-
-uint8_t load_qdict(void)
-{
-    //safety feature about testing if "myqdict" already exists is unimplemented
-    // printf("\n ===Loading QDICT from dat=== \n");
-    md_import_from_dat(ll_qdict, qdictkeys_file_addrs, qdictvalues_file_addrs,
-            statevisitsvalues_file_addrs);
-    // printf("\n ===Done=== \n");
-    return 0;
-}
-
-uint8_t load_qdict_fromtxt(void)
-{
-    // printf("\n ===Loading QDICT from txt=== \n");
-    md_import_from_text(ll_qdict, qdict_txt_file_addrs,
-            statevisits_file_addrs);
-    // printf("\n ===Done=== \n");
-    return 0;
-}
-
-uint8_t copy_file(char *old_filename, char  *new_filename)
-{
-    FILE  *ptr_old, *ptr_new;
-    int  a;
-
-    ptr_old = fopen(old_filename,"rb");
-    ptr_new = fopen(new_filename,"wb");
-
-    while(1)
-    {
-        a  =  fgetc(ptr_old);
-
-        if(!feof(ptr_old))
-            fputc(a, ptr_new);
-        else
-            break;
-    }
-
-    fclose(ptr_new);
-    fclose(ptr_old);
-    return  0;
-}
-
-uint8_t copy_qdict(void)
-{
-    char acopyloc[200];
-    //https://stackoverflow.com/questions/8257714/how-to-convert-an-int-to-string-in-c
-    int length = snprintf( NULL, 0, "%s%d/", copy_location, episodes_simulated);
-    char* path = malloc( length + 1 );
-    snprintf( path, length + 1, "%s%d/", copy_location, episodes_simulated);
-    mkdir(path,0777);
-
-    strcpy(acopyloc,path);
-    strcat(acopyloc,"statevisits.txt");
-    copy_file(statevisits_file_addrs,acopyloc);
-
-    strcpy(acopyloc,path);
-    strcat(acopyloc,"qdict.txt");
-    copy_file(qdict_txt_file_addrs,acopyloc);
-
-    strcpy(acopyloc,path);
-    strcat(acopyloc,"qdict_keys.dat");
-    copy_file(qdictkeys_file_addrs,acopyloc);
-
-    strcpy(acopyloc,path);
-    strcat(acopyloc,"qdict_values.dat");
-    copy_file(qdictvalues_file_addrs,acopyloc);
-
-    strcpy(acopyloc,path);
-    strcat(acopyloc,"statevisits.dat");
-    copy_file(statevisitsvalues_file_addrs,acopyloc);
-
-    free(path);
-    return FALSE;
-
-
-}
-
-uint8_t copy_logs(void)
-{
-    char acopyloc[200];
-
-    strcpy(acopyloc,copy_location);
-    strcat(acopyloc,"epi_log_cp.txt");
-    copy_file(epi_log_file_addrs,acopyloc);
-
-    strcpy(acopyloc,copy_location);
-    strcat(acopyloc,"log_cp.txt");
-    copy_file(log_file_addrs,acopyloc);
-
-    return FALSE;
 }

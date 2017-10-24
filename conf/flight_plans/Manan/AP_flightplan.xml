@@ -14,6 +14,7 @@
     #endif
 	#include "modules/my_visrl/visrl.h"
 	#include "modules/my_visrl/mynavfuncs.h"
+	#include "modules/my_visrl/simsoft.h"
 </header>
   <waypoints>
     <waypoint name="HOME" x="0.0" y="0.0"/>
