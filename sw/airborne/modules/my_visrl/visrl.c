@@ -229,9 +229,10 @@ void get_state_ext(char *curstate)
     // char curstate[30];
     // char *curstate = malloc( sizeof(char)*20 );
     // sprintf(curstate,"%d,%d,%d;%d;%d",
+    uint8_t sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
     sprintf(curstate,"%d,%d,%d;%d;%d;%d",
             domcol_arr[0],domcol_arr[1],domcol_arr[2],
-            (int) floor(countfracs[0]),
+            sta_cfrac,
             // countfracs[0],countfracs[1],//countfracs[2],
             // goals_visited,hitwall,headind); // with headindex
             goals_visited,hitwall);      // without headingindex
