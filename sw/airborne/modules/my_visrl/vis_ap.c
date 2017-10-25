@@ -176,8 +176,12 @@ void my_image_yuv422_colorcounter(struct image_t *input)
 #ifdef VISRL_TWOGOALS
         count_arr[1][i] = bluecount_arr[i];
         bluesum += bluecount_arr[i];
-#endif
     }
+    sumcount_arr[1] = bluesum;
+#else
+    }
+#endif
+    sumcount_arr[0] = redsum;
     // printf("white:%d \n",whitecount);
     colmax(count_arr,domcol_arr);
     printf("\n %d %d %d", domcol_arr[0], domcol_arr[1], domcol_arr[2]);
@@ -187,7 +191,6 @@ void my_image_yuv422_colorcounter(struct image_t *input)
 // Function
 struct image_t *colorfilter_func(struct image_t *img)
 {
-
   // Filter
   my_image_yuv422_colorcounter(img);
 
@@ -241,4 +244,4 @@ void vis_ap_init(void)
   listener = cv_add_to_device(&VISRL_CAMERA, colorfilter_func, VISRL_FPS);
 }
 
-extern uint8_t cv_3grids(void) { return 0; }
+uint8_t cv_3grids(void) { return 0; }
