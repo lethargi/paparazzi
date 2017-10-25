@@ -143,6 +143,7 @@ uint8_t load_qdict_fromtxt(void)
     // printf("\n ===Loading QDICT from txt=== \n");
     md_import_from_text(ll_qdict, qdict_txt_file_addrs,
             statevisits_file_addrs);
+    printf("Loaded %d states \n",ll_qdict->length);
     // printf("\n ===Done=== \n");
     return 0;
 }

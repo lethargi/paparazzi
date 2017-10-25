@@ -67,8 +67,13 @@ float rl_gamma = 0.9;
 float rl_alp = 0.3;
 uint8_t rl_eps = 60;
 
+#ifdef VISRL_NPS
 uint8_t red_goal_reach_thresh = 5;
 uint8_t blue_goal_reach_thresh = 3;
+#else
+uint8_t red_goal_reach_thresh = 4;
+uint8_t blue_goal_reach_thresh = 3;
+#endif
 
 // Some vars for state
 // goals_visited 0 for none; 1 for red; 2 for green; 3 for both
@@ -90,7 +95,6 @@ static void send_visrl(struct transport_tx *trans, struct link_device *dev)
 {
   pprz_msg_send_VISRL(trans, dev, AC_ID, 3, count_arr[0], 3, count_arr[1], 3, domcol_arr, 2, sumcount_arr);
 }
-
 
 void visrl_init(void)
 {
