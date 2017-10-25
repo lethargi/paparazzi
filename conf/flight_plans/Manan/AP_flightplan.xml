@@ -124,7 +124,7 @@
     </block>
     <block name="EndEp">
       <call fun="rl_write_episode_log()"/>
-      <exception cond="episodes_simulated > rl_max_eps_epochs" deroute="IncEps"/>
+      <exception cond="episodes_simulated > rl_curmaxeps" deroute="IncEps"/>
       <deroute block="SetupEpisode"/>
     </block>
     <block name="IncEps">
@@ -134,7 +134,7 @@
       <call fun="print_qdict()"/>
       <call fun="write_qdict()"/>
       <call fun="copy_qdict()"/>
-      <exception cond="episodes_simulated > rl_max_train_epochs" deroute="EndRl"/>
+      <exception cond="episodes_simulated > rl_maxeps" deroute="EndRl"/>
       <deroute block="SetupEpisode"/>
     </block>
     <block name="EndRl">

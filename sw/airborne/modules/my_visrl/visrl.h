@@ -45,8 +45,6 @@ extern uint16_t rl_maxepsinc;
 extern uint16_t rl_maxeps;
 extern uint8_t rl_eps_increase;
 
-extern int8_t headind;
-extern int8_t head_roll;
 
 extern void visrl_init(void);
 
@@ -69,9 +67,6 @@ extern uint8_t rl_update_qdict(void);
 extern uint8_t rl_check_terminal(void);
 extern uint8_t rl_print_qtab(void);
 
-extern uint8_t rl_isterminal;
-extern uint16_t episodes_simulated;
-extern float episode_rewards;
 
 extern uint8_t rl_eps;
 extern float rl_gamma;
