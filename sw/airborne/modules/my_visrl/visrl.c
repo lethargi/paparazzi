@@ -373,7 +373,12 @@ uint8_t rl_set_cur(void)
 
 uint8_t rl_get_reward(void)
 {
-    cur_rew = -10;
+    if (cur_act == 0){
+        cur_rew = -20;
+    }
+    else {
+        cur_rew = -10;
+    }
     float rew_factor = 1.5;
     if (hitwall == 0) {
         // cur_rew = reward_function[nxt_sta];
