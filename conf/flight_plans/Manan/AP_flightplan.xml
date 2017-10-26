@@ -122,39 +122,34 @@
         <call fun="rl_check_terminal()"/>
       </while>
     </block>
+    <block name="WriteEpiLog">
+      <call fun="rl_write_episode_log()"/>
+    </block>
     <block name="EndEp">
-      <call fun="rl_write_episode_log()"/>
-      <exception cond="episodes_simulated > rl_curmaxeps" deroute="IncEps"/>
+	  <exception cond="epinum > rl_curmaxeps" deroute="LogQdicts"/>
+      <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
+      <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
       <deroute block="SetupEpisode"/>
+      <!-- <deroute block="RandomizeStart"/> -->
     </block>
-    <block name="IncEps">
+    <block name="LogQdicts">
+      <call fun="print_qdict()"/>
+      <call fun="copy_qdict()"/>
+    </block>
+    <block name="IncreaseCurMaxEps">
+	  <exception cond="epinum > rl_maxeps" deroute="EndRun"/>
       <call fun="rl_inc_maxepochs()"/>
       <call fun="rl_inc_eps()"/>
-      <call fun="rl_write_episode_log()"/>
-      <call fun="print_qdict()"/>
-      <call fun="write_qdict()"/>
-      <call fun="copy_qdict()"/>
-      <exception cond="episodes_simulated > rl_maxeps" deroute="EndRl"/>
-      <deroute block="SetupEpisode"/>
+	  <deroute block="SetupEpisode"/>
     </block>
-    <block name="EndRl">
-      <call fun="rl_write_episode_log()"/>
-      <call fun="print_qdict()"/>
-      <call fun="write_qdict()"/>
-      <call fun="copy_qdict()"/>
-      <call fun="copy_logs()"/>
-      <stay wp="GOAL"/>
+    <block name="EndRun">
+	  <exception cond="runnum > rl_maxruns" deroute="EndSession"/>
+      <call fun="rl_addruncounter()"/>
+      <call fun="setup_run_fold()"/>
+	  <deroute block="SetupEpisode"/>
     </block>
-    <block name="IncMaxEpochs">
-      <call fun="rl_inc_maxepochs()"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="IncEpsilon">
-      <call fun="rl_inc_eps()"/>
-      <stay wp="GOAL"/>
-    </block>
-    <block name="DecEpsilon">
-      <call fun="rl_dec_eps()"/>
+    <block name="EndSession">
+      <call fun="simsoft_cleanup()"/>
       <stay wp="GOAL"/>
     </block>
     <block name="CopyTest">
@@ -164,16 +159,6 @@
     <block name="PrintQDict">
       <call fun="print_qdict()"/>
       <stay wp="GOAL"/>
-    </block>
-    <block name="WriteQDict">
-      <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
-      <call fun="write_qdict()"/>
-      <stay wp="STDBY"/>
-    </block>
-    <block name="ReadQDict">
-      <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
-      <call fun="load_qdict()"/>
-      <stay wp="STDBY"/>
     </block>
     <block name="ReadQDict_TXT">
       <call_once fun="NavSetWaypointHere(WP_STDBY)"/>

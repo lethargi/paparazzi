@@ -91,7 +91,7 @@ extern uint8_t rl_inc_maxepochs(void);
 // Declaration of some variables for global tracking
 
 extern uint16_t steps_taken;
-extern uint16_t episodes_simulated;
+extern uint16_t epinum;
 extern float episode_rewards;
 extern float sum_dQ;
 extern uint32_t total_state_visits;

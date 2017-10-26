@@ -81,7 +81,7 @@ uint8_t goals_visited = 0;
 float countfracs[2] = {0,0};
 // counter for steps and episodes
 uint16_t steps_taken = 0;
-uint16_t episodes_simulated = 0;
+uint16_t epinum = 1;
 float episode_rewards = 0;
 float sum_dQ = 0;
 uint32_t total_state_visits = 0;
@@ -108,6 +108,13 @@ void visrl_init(void)
 #ifdef VISRL_AP
     vis_ap_init();
 #endif
+}
+
+void rl_resetrun(void)
+{
+    md_free_list(ll_qdict);
+    ll_qdict = md_init_linkedlist();
+    epinum=1;
 }
 
 uint8_t rl_dec_eps(void)
@@ -242,8 +249,7 @@ void get_state_ext(char *curstate)
             goals_visited,hitwall);      // without headingindex
 
 
-    // printf("Ep:%d Step:%d State:%s ",episodes_simulated+1,steps_taken,curstate);
-    printf("%3d %4d",episodes_simulated+1,steps_taken);
+    printf("%3d %4d",epinum,steps_taken);
 }
 
 float get_myheading(void)
@@ -345,7 +351,7 @@ uint8_t rl_init(void)
 {
     rl_isterminal = 0;
     steps_taken = 0;
-     sum_dQ = 0;
+    sum_dQ = 0;
     episode_rewards = 0;
     cur_rew = 0;
     goals_visited = 0;
@@ -548,7 +554,7 @@ uint8_t rl_check_terminal(void)
     else {
         printf("TERMINAL :: Sum of rewards: %f\n",episode_rewards);
         rl_isterminal = 1;
-        episodes_simulated++;
+        epinum++;
     }
     return 0;
 }
