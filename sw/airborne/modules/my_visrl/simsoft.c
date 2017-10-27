@@ -65,7 +65,8 @@ FILE *log_file;
 FILE *epi_log_file;
 FILE *runinfo_file;
 
-
+struct tm runstart_tm;
+struct tm runend_tm;
 // need to control over runs; Need to control over episodes;
 // Need to control run factor leves;
 // Need to make folders of appropriate labels
@@ -255,6 +256,9 @@ uint8_t setup_run_fold(void)
     char *learntype = malloc(sizeof(char)*20);
     char *tasktype = malloc(sizeof(char)*20);
 
+    time_t t = time(NULL);
+    runstart_tm = *localtime(&t);
+
     endrun = 0;
 
 #ifdef VISRL_SARSA
@@ -298,11 +302,43 @@ uint8_t setup_run_fold(void)
 
 uint8_t save_run_metadata(void)
 {
+    time_t t = time(NULL);
+    runend_tm = *localtime(&t);
+
     printerror = sprintf(runinfo_addrs,"%s%s",runfold,"qdict.txt");
     if (snprint_fail(printerror)){ return 0; }
 
     runinfo_file = fopen(runinfo_addrs,"w"); //create or reset logfile
-// save the run data in here
+    fprintf(runinfo_file,"StartTime:%d%d%d_%d%d%d\n",runstart_tm.tm_year + 1900,
+            runstart_tm.tm_mon + 1, runstart_tm.tm_mday, runstart_tm.tm_hour,
+            runstart_tm.tm_min, runstart_tm.tm_sec);
+    fprintf(runinfo_file,"EndTime:%d%d%d_%d%d%d\n",runend_tm.tm_year + 1900,
+            runend_tm.tm_mon + 1, runend_tm.tm_mday, runend_tm.tm_hour,
+            runend_tm.tm_min, runend_tm.tm_sec);
+    fprintf(runinfo_file,"EndTime:%d%d%d_%d%d%d\n",runend_tm.tm_year + 1900,
+            runend_tm.tm_mon + 1, runend_tm.tm_mday, runend_tm.tm_hour,
+            runend_tm.tm_min, runend_tm.tm_sec);
+
+
+
+#ifdef VISRL_SARSA
+    fprintf(runinfo_file,"LearnType:SARSA\n");
+#else
+    fprintf(runinfo_file,"LearnType:Qlearn\n");
+#endif
+
+#ifdef VISRL_2GOALS
+    fprintf(runinfo_file,"TaskType:2Goals\n");
+#else
+    fprintf(runinfo_file,"TaskType:TurnToGoal\n");
+#endif
+    fprintf(runinfo_file,"Episodes:%d\n",epinum);
+    fprintf(runinfo_file,"PixelCountThresh:: Red:%f Blue:%f\n",red_thresh,blue_thresh);
+    fprintf(runinfo_file,"GoalReachThresh:: Red:%d, Blue:%d",min_pix_thresh);
+    fprintf(runinfo_file,"MinimumPixelThresh:%d",min_pix_thresh);
+
+
+//
     fclose(runinfo_file);
     return 0;
 }

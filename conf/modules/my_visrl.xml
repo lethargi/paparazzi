@@ -9,6 +9,7 @@
     <define name="VISRL_USEOPTIONS" description="Macro to trigger the use of option to turn till color is seen"/>
     <define name="VISRL_TWOGOALS" description="Macro to trigger the selection of two goal task"/>
     <define name="VISRL_SARSA" description="triggers the use of SARSA learning"/>
+    <define name="VISRL_RANDOMSTARTS" description="sets intialization to random location; defaults to fixed initialization at cyber zoo center"/>
   </doc>
 
   <settings>
