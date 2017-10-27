@@ -1,4 +1,5 @@
 #include "modules/my_visrl/simsoft.h"
+#include "modules/my_visrl/visrl.h"
 
 #ifdef VISRL_NPS
 #include "modules/my_visrl/vis_nps.h"
@@ -36,11 +37,12 @@ char save_location[] = "/home/default/SavedQtabs/";
 // char runname[40], sessname[40], sessfold[200], runfold[200];
 // char copy_location[200];
 uint8_t runnum;
+uint8_t endrun;
 uint8_t rl_maxruns = 10;
 int8_t printerror;
 char *runname, *sessname, *sessfold, *runfold, *copy_location;
 // char copy_location[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/__LastSaves/";
-char *qd_addrs, *sv_addrs, *log_addrs, *eplog_addrs;
+char *qd_addrs, *sv_addrs, *log_addrs, *eplog_addrs, *runinfo_addrs;
 // char qdict_txt_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict.txt";
 // char statevisits_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/statevisits.txt";
 // char log_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/log.txt";
@@ -61,6 +63,7 @@ FILE *qdict_txt_file;
 FILE *statevisits_txt_file;
 FILE *log_file;
 FILE *epi_log_file;
+FILE *runinfo_file;
 
 
 // need to control over runs; Need to control over episodes;
@@ -77,7 +80,6 @@ void simsoft_init(void)
     sessfold = malloc( sizeof(char)*100);
     runfold = malloc( sizeof(char)*100);
     copy_location = malloc( sizeof(char)*100);
-
 
     qd_addrs = malloc(sizeof(char)*120);
     sv_addrs  = malloc(sizeof(char)*120);
@@ -239,10 +241,21 @@ uint8_t setup_sess_fold(void)
     return 0;
 }
 
+uint8_t rl_resetrun(void)
+{
+    rl_curmaxeps = rl_initmaxeps;
+    md_free_list(ll_qdict);
+    ll_qdict = md_init_linkedlist();
+    epinum=0;
+    return 0;
+}
+
 uint8_t setup_run_fold(void)
 {
     char *learntype = malloc(sizeof(char)*20);
     char *tasktype = malloc(sizeof(char)*20);
+
+    endrun = 0;
 
 #ifdef VISRL_SARSA
     strcpy(learntype,"SARSA");
@@ -273,6 +286,7 @@ uint8_t setup_run_fold(void)
     printerror = sprintf(eplog_addrs,"%s%s",runfold,"epi_log.txt");
     if (snprint_fail(printerror)){ return 0; }
 
+    printf("\nRun:%d :: SavedAt:%s\n",runnum,runfold);
     mkdir(runfold,0777);
     mkdir(copy_location,0777);
 
@@ -284,7 +298,12 @@ uint8_t setup_run_fold(void)
 
 uint8_t save_run_metadata(void)
 {
+    printerror = sprintf(runinfo_addrs,"%s%s",runfold,"qdict.txt");
+    if (snprint_fail(printerror)){ return 0; }
+
+    runinfo_file = fopen(runinfo_addrs,"w"); //create or reset logfile
 // save the run data in here
+    fclose(runinfo_file);
     return 0;
 }
 

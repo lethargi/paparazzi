@@ -41,9 +41,11 @@ extern uint8_t blue_goal_reach_thresh;
 
 // extern GHashTable *myqdict;
 extern uint16_t rl_curmaxeps;
+extern uint16_t rl_initmaxeps;
 extern uint16_t rl_maxepsinc;
 extern uint16_t rl_maxeps;
 extern uint8_t rl_eps_increase;
+extern uint16_t rl_maxsteps;
 
 
 extern void visrl_init(void);

@@ -15,12 +15,14 @@ extern uint8_t copy_logs(void);
 extern uint8_t rl_write_episode_log(void);
 extern uint8_t rl_write_step_log(void);
 
+uint8_t rl_resetrun(void);
 
 extern uint8_t setup_run_fold(void);
 uint8_t setup_sess_fold(void);
 extern uint8_t simsoft_cleanup(void);
 
 extern uint8_t runnum;
+extern uint8_t endrun;
 extern uint8_t rl_maxruns;
 extern uint8_t rl_addruncounter(void);
 

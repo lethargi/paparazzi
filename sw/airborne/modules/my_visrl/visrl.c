@@ -59,9 +59,11 @@ float cur_rew = 0;
 
 
 uint16_t rl_curmaxeps = 50;
+uint16_t rl_initmaxeps;
 uint16_t rl_maxepsinc = 50;
 uint16_t rl_maxeps = 450;
 uint8_t rl_eps_increase = 5;
+uint16_t rl_maxsteps = 5000;
 
 float rl_gamma = 0.9;
 float rl_alp = 0.3;
@@ -81,7 +83,7 @@ uint8_t goals_visited = 0;
 float countfracs[2] = {0,0};
 // counter for steps and episodes
 uint16_t steps_taken = 0;
-uint16_t epinum = 1;
+uint16_t epinum = 0;
 float episode_rewards = 0;
 float sum_dQ = 0;
 uint32_t total_state_visits = 0;
@@ -104,18 +106,13 @@ void visrl_init(void)
     // initalize other required stuffs
     simsoft_init();
 
+    rl_initmaxeps = rl_curmaxeps;
     ll_qdict = md_init_linkedlist();
 #ifdef VISRL_AP
     vis_ap_init();
 #endif
 }
 
-void rl_resetrun(void)
-{
-    md_free_list(ll_qdict);
-    ll_qdict = md_init_linkedlist();
-    epinum=1;
-}
 
 uint8_t rl_dec_eps(void)
 {
@@ -356,6 +353,8 @@ uint8_t rl_init(void)
     cur_rew = 0;
     goals_visited = 0;
     rl_set_nxt();
+    rl_isterminal = 0;
+    epinum++;
     // headind = 0;
     update_headind();
     printf("\n RL initialized ");
@@ -545,16 +544,24 @@ uint8_t rl_check_terminal(void)
 {
     // this can be stated better
 #ifdef VISRL_TWOGOALS
-    if (goals_visited != 3) {
+    if (goals_visited == 3) {
 #else
-    if (goals_visited != 1) {
+    if (goals_visited == 1) {
 #endif
-        rl_isterminal = 0;
-    }
-    else {
         printf("TERMINAL :: Sum of rewards: %f\n",episode_rewards);
         rl_isterminal = 1;
-        epinum++;
     }
+    else if (steps_taken > rl_maxsteps-1) {
+        printf("=============");
+        printf("FORCED TERMINATION");
+        rl_isterminal = 1;
+        endrun = 1;
+    }
+
+
+    if (runnum > rl_maxruns-1) {
+        endrun = 1;
+    }
+
     return 0;
 }

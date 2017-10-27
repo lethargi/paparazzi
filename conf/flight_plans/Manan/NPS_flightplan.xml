@@ -95,6 +95,10 @@
       <call_once fun="nav_set_heading_deg(toset_head)"/>
       <stay wp="TESTWP"/>
     </block>
+    <block name="PAUSE_SIM">
+      <call_once fun="NavSetWaypointHere(WP_GOAL)"/>
+      <stay wp="GOAL"/>
+    </block>
     <block name="RandomizeStart">
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
       <call fun="rl_randomize_start(WP_GOAL,WP_HOME)"/>
@@ -133,7 +137,7 @@
       <call fun="rl_write_episode_log()"/>
     </block>
     <block name="EndEp">
-	  <exception cond="epinum > rl_curmaxeps" deroute="LogQdicts"/>
+	  <exception cond="epinum > rl_curmaxeps-1" deroute="LogQdicts"/>
       <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
       <deroute block="SetupEpisode"/>
@@ -144,15 +148,16 @@
       <call fun="copy_qdict()"/>
     </block>
     <block name="IncreaseCurMaxEps">
-	  <exception cond="epinum > rl_maxeps" deroute="EndRun"/>
+	  <exception cond="epinum > rl_maxeps-1" deroute="EndRun"/>
       <call fun="rl_inc_maxepochs()"/>
       <call fun="rl_inc_eps()"/>
 	  <deroute block="SetupEpisode"/>
     </block>
     <block name="EndRun">
-	  <exception cond="runnum > rl_maxruns" deroute="EndSession"/>
+	  <exception cond="endrun" deroute="EndSession"/>
       <call fun="rl_addruncounter()"/>
       <call fun="setup_run_fold()"/>
+      <call fun="rl_resetrun()"/>
 	  <deroute block="SetupEpisode"/>
     </block>
     <block name="EndSession">
