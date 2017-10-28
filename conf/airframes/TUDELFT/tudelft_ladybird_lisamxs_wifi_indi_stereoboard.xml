@@ -1,9 +1,6 @@
 <!DOCTYPE airframe SYSTEM "../airframe.dtd">
 
 
-<!-- this is a LadyBird quadrotor frame equiped with Lisa/MXS 1.0 -->
-<!-- The LadyBird frame comes with four brushed motors in an X configuration. -->
-
 <!--
      The motor and rotor configuration is the following:
 
@@ -25,6 +22,9 @@
 -->
 
 <airframe name="quadrotor_lisa_mxs">
+  <description>LadyBird quadrotor frame equiped with Lisa/MXS 1.0 with four brushed motors in an X configuration.
++ stereoboard + wifi + indi
+  </description>
 
   <servos driver="Pwm">
     <servo name="NE" no="0" min="0" neutral="50" max="1000"/>
@@ -231,17 +231,7 @@
      <define name= "STEREO_BODY_TO_STEREO_PSI" value="-90" unit="deg"/>
      <configure name="STEREO_UART" value="UART2"/>
      <configure name="STEREO_BAUD" value="B115200"/>
-     <define name="SEND_STEREO" value="FALSE"/>
    </module>
-   <module name="stereocam_state2camera">
-     <configure name="STEREO_UART" value="UART2"/>
-     <configure name="STEREO_BAUD" value="B115200"/>
-     <define name="STATE2CAMERA_SEND_DATA_TYPE" value="1"/>
-   </module>
-   <module name="stereocam_stereocam2state">
-     <define name="STEREOCAM2STATE_RECEIVED_DATA_TYPE" value="0"/>
-     <define name="STEREOCAM2STATE_EDGEFLOW_PIXELWISE" value="TRUE"/>
-	 </module>
  </modules>
 
   <firmware name="rotorcraft">

@@ -1,5 +1,3 @@
-<!-- this is a LadyBird quadrotor frame equiped with Lisa/S 1.0 -->
-<!-- The LadyBird frame comes with four brushed motors in an X configuration. -->
 
 <!--
      The motor and rotor configuration is the following:
@@ -32,6 +30,8 @@
 -->
 
 <airframe name="quadrotor_lisa_s">
+  <description>LadyBird quadrotor frame equiped with Lisa/S 1.0 with four brushed motors in an X configuration.
+  </description>
 
   <servos driver="Pwm">
     <servo name="NE" no="0" min="0" neutral="50" max="1000"/>
@@ -202,13 +202,8 @@
    <module name="stereocam">
      <configure name="STEREO_UART" value="UART1"/>
      <configure name="STEREO_BAUD" value="B115200"/>
-     <define name="SEND_STEREO" value="TRUE"/>
+     <define name="FORWARD_IMAGE_DATA" value="TRUE"/>
    </module>
-   <module name="stereocam_state2camera">
-     <configure name="STEREO_UART" value="UART1"/>
-     <configure name="STEREO_BAUD" value="B115200"/>
-   </module>
-   <module name="stereocam_stereocam2state"/>
  </modules>
 
   <firmware name="rotorcraft">
