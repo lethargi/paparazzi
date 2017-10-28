@@ -20,6 +20,7 @@
 </header>
   <waypoints>
     <waypoint name="HOME" x="0.0" y="0.0"/>
+    <waypoint name="StartPos" lat="42.3489323" lon="-71.0083311"/>
     <waypoint name="CLIMB" x="0.0" y="2.5"/>
     <waypoint x="3" y="3" name="TEMP"/>
     <waypoint x="3" y="3.5" name="CURPOS"/>
@@ -72,10 +73,6 @@
       <call fun="cv_3grids()"/>
       <stay wp="GOAL"/>
     </block>
-    <block name="RL_Reset_Heading">
-      <call fun="rl_reset_heading()"/>
-      <stay wp="GOAL"/>
-    </block>
     <block name="RL_FOR">
       <call_once fun="rl_action_forward()"/>
       <stay wp="GOAL"/>
@@ -99,6 +96,7 @@
       <call_once fun="NavSetWaypointHere(WP_GOAL)"/>
       <stay wp="GOAL"/>
     </block>
+    <!--
     <block name="RandomizeStart">
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
       <call fun="rl_randomize_start(WP_GOAL,WP_HOME)"/>
@@ -118,8 +116,16 @@
       <call fun="setAltToWp(WP_GOAL,WP_HOME)"/>
       <stay wp="GOAL" until="stage_time>1"/>
     </block>
+    -->
+    <block name="SetupEpisode">
+      <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
+      <call fun="rl_init_uav()"/> <!-- Not Made -->
+      <call fun="rl_smooth_turn(init_headind)"/>
+      <go from="CURPOS" wp="GOAL" hmode="route" approaching_time="0"/>
+      <stay wp="GOAL" until="stage_time>2"/>
+    </block>
     <block name="InitRL">
-      <call fun="rl_init()"/>
+      <call fun="rl_init_ep()"/>
       <stay until="stage_time>1" wp="GOAL"/>
     </block>
     <block name="DoOneStep">
@@ -141,20 +147,20 @@
       <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
       <deroute block="SetupEpisode"/>
-      <!-- <deroute block="RandomizeStart"/> -->
     </block>
     <block name="LogQdicts">
       <call fun="print_qdict()"/>
       <call fun="copy_qdict()"/>
     </block>
     <block name="IncreaseCurMaxEps">
-	  <exception cond="epinum > rl_maxeps-1" deroute="EndRun"/>
+	  <exception cond="endrun" deroute="EndRun"/>
+      <call fun="save_run_metadata()"/>
       <call fun="rl_inc_maxepochs()"/>
       <call fun="rl_inc_eps()"/>
 	  <deroute block="SetupEpisode"/>
     </block>
     <block name="EndRun">
-	  <exception cond="endrun" deroute="EndSession"/>
+	  <exception cond="endsess" deroute="EndSession"/>
       <call fun="rl_addruncounter()"/>
       <call fun="setup_run_fold()"/>
       <call fun="rl_resetrun()"/>

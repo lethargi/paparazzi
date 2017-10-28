@@ -14,6 +14,8 @@
 
 // think this contains state information from that file
 #include "firmwares/rotorcraft/navigation.h"
+#include "subsystems/navigation/waypoints.h"
+
 #include "state.h"
 #include "autopilot.h"
 
@@ -32,6 +34,7 @@ float headings_rad[16] = {0, M_PI/8., M_PI/4., 3*M_PI/8., M_PI/2., 5*M_PI/8.,
 uint8_t len_headings = 16;
 int8_t headind = 0;
 uint8_t headatcompass = 1;
+uint8_t init_headind;
 
 // States, actions and reward
 char *state_buffer;
@@ -86,9 +89,8 @@ uint16_t steps_taken = 0;
 uint16_t epinum = 0;
 float episode_rewards = 0;
 float sum_dQ = 0;
-uint32_t total_state_visits = 0;
 
-int8_t head_roll;
+uint32_t total_state_visits;
 
 md_linkedlist *ll_qdict;
 
@@ -108,11 +110,57 @@ void visrl_init(void)
 
     rl_initmaxeps = rl_curmaxeps;
     ll_qdict = md_init_linkedlist();
+
+    total_state_visits = 0;
+    endsess = 0;
 #ifdef VISRL_AP
     vis_ap_init();
 #endif
+    printf("\nmy_visrl intialized \n");
 }
 
+void rl_get_random_cords(float *cords)
+{
+    // float cords[2];
+    cords[0] = (float) (rand() % 70 - 35)/10;
+    cords[1] = (float) (rand() % 70 - 35)/10;
+    while (!InsideMyWorld(cords[0],cords[1])) {
+        cords[0] = (float) (rand() % 70 - 35)/10;
+        cords[1] = (float) (rand() % 70 - 35)/10;
+    }
+}
+
+uint8_t rl_init_uav(void)
+{
+    struct EnuCoor_i new_coor;
+    float init_cords[2];
+    float refalt;
+
+#ifdef VISRL_RANDOMSTARTS
+    rl_get_random_cords(init_cords);
+    init_headind = rand() % 16;
+    // rl_randomize_start(WP_GOAL);
+#else
+    init_cords[0] = waypoints[WP_StartPos].enu_f.x;
+    init_cords[1] = waypoints[WP_StartPos].enu_f.y;
+
+#ifdef VISRL_NPS
+    init_headind = 0; //dont understan why these are these values
+#else
+    init_headind = 10; // will need to check for real implement
+#endif
+
+#endif
+
+    refalt = waypoints[WP_StartPos].enu_i.z;
+    new_coor.x = POS_BFP_OF_REAL(init_cords[0]);
+    new_coor.y = POS_BFP_OF_REAL(init_cords[1]);
+    new_coor.z = refalt; // Keep the height the same
+
+    waypoint_move_enu_i(WP_GOAL,&new_coor);
+    // rl_smooth_turn(init_headind);
+    return 0;
+}
 
 uint8_t rl_dec_eps(void)
 {
@@ -120,12 +168,14 @@ uint8_t rl_dec_eps(void)
     printf("\nEps:%d\n",rl_eps);
     return 0;
 }
+
 uint8_t rl_inc_eps(void)
 {
     rl_eps += rl_eps_increase;
     printf("\nEps:%d\n",rl_eps);
     return 0;
 }
+
 uint8_t rl_inc_maxepochs(void)
 {
     rl_curmaxeps += rl_maxepsinc;
@@ -219,9 +269,7 @@ void get_state_ext(char *curstate)
         if (countfracs[1] > blue_goal_reach_thresh) {
             goals_visited = 2;
         }
-#endif
     }
-#ifdef VISRL_TWOGOALS
     else if (goals_visited == 1) {
         if (countfracs[1] > blue_goal_reach_thresh) {
             goals_visited = 3;
@@ -232,10 +280,10 @@ void get_state_ext(char *curstate)
             goals_visited = 3;
         }
     }
+#else
+    }
 #endif
 
-    // char curstate[30];
-    // char *curstate = malloc( sizeof(char)*20 );
     // uint8_t sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
     sprintf(curstate,"%d,%d,%d;%d;%d",
     // sprintf(curstate,"%d,%d,%d;%d;%d;%d",
@@ -294,57 +342,42 @@ uint8_t rl_smooth_turn(uint8_t targhead_ind)
     return TRUE;
 }
 
-uint8_t rl_reset_heading(void)
-{
-    uint8_t targhead;
-#ifdef VISRL_NPS
-    targhead = 0; //dont understan why these are these values
-#else
-    targhead = 10; // will need to check for real implement
-#endif
-    return rl_smooth_turn(targhead);;
-}
+// uint8_t rl_reset_heading(void)
+// {
+//     // DEPRECATED
+//     uint8_t targhead;
+// #ifdef VISRL_NPS
+//     targhead = 0; //dont understan why these are these values
+// #else
+//     targhead = 10; // will need to check for real implement
+// #endif
+//     return rl_smooth_turn(targhead);;
+// }
 
-uint8_t rl_randomize_start(uint8_t waypoint, uint8_t altref_wp)
-{
-    struct EnuCoor_i new_coor;
 
-    float x_roll = (float) (rand() % 70 - 35)/10;
-    float y_roll = (float) (rand() % 70 - 35)/10;
-    while (!InsideMyWorld(x_roll,y_roll)) {
-        x_roll = (float) (rand() % 70 - 35)/10;
-        y_roll = (float) (rand() % 70 - 35)/10;
-    }
-    float refalt = waypoint_get_alt(altref_wp);
-    head_roll = rand() % 16;
-    printf("\n %f %f %f %d %f \n", x_roll,y_roll,refalt,head_roll,headings_rad[head_roll]);
-
-    // Now determine where to place the waypoint you want to go to
-    new_coor.x = POS_BFP_OF_REAL(x_roll);
-    new_coor.y = POS_BFP_OF_REAL(y_roll);
-    new_coor.z = refalt; // Keep the height the same
-    waypoint_move_enu_i(waypoint,&new_coor);
-
-//     uint8_t notdone = TRUE;
-//     while(notdone) {
-//         notdone = rl_smooth_turn(head_roll);
-//     };
-
-//     int8_t turndir = head_roll - headind;
-//     int8_t turndir = (head_roll > headind)? +1 : -1;
-//     int8_t curtargdir = heading + turndir;
-//     curtargdir = (curtargdir>7)? 0 : curtargdir;
-//     curtargdir = (curtargdir<0)? 7 : curtargdir;
-//     while (headind != head_roll) {
+// uint8_t rl_randomize_start(uint8_t waypoint)
+// {
+//     struct EnuCoor_i new_coor;
 // 
-//         set_nav_heading(headings_rad[curtargdir])
-//     }
-//     set_nav_heading(headings_rad[head_roll]);
-    // autopilot_guided_goto_ned(x_roll, y_roll, refalt, headings_rad[head_roll]);
-    return FALSE;
-}
+//     float cords_roll = rl_get_random_cords();
+// //     float y_roll = (float) (rand() % 70 - 35)/10;
+// //     while (!InsideMyWorld(x_roll,y_roll)) {
+// //         x_roll = (float) (rand() % 70 - 35)/10;
+// //         y_roll = (float) (rand() % 70 - 35)/10;
+// //     }
+//     init_headind = rand() % 16;
+//     printf("\n %f %f %f %d %f \n", x_roll,y_roll,refalt,init_headind,headings_rad[init_headind]);
+// 
+//     // Now determine where to place the waypoint you want to go to
+//     new_coor.x = POS_BFP_OF_REAL(x_roll);
+//     new_coor.y = POS_BFP_OF_REAL(y_roll);
+//     new_coor.z = refalt; // Keep the height the same
+//     waypoint_move_enu_i(waypoint,&new_coor);
+// 
+//     return FALSE;
+// }
 
-uint8_t rl_init(void)
+uint8_t rl_init_ep(void)
 {
     rl_isterminal = 0;
     steps_taken = 0;
@@ -357,7 +390,7 @@ uint8_t rl_init(void)
     epinum++;
     // headind = 0;
     update_headind();
-    printf("\n RL initialized ");
+    printf("\n Episode initialized \n");
     printf(" TotVis:%u \n", total_state_visits);
     printf("Ep Steps Options Rew :: cur_sta cur_act nxt_sta nxt_act : Qcur Qnxt Qcur1 ::\n");
     return 0;
@@ -542,7 +575,13 @@ uint8_t rl_update_qdict(void)
 
 uint8_t rl_check_terminal(void)
 {
-    // this can be stated better
+    /* This bit to or development; Makes episodes end fast
+    if (steps_taken > 5) {
+        rl_isterminal = 1;
+        return 0;
+    }
+    */
+
 #ifdef VISRL_TWOGOALS
     if (goals_visited == 3) {
 #else
@@ -552,16 +591,15 @@ uint8_t rl_check_terminal(void)
         rl_isterminal = 1;
     }
     else if (steps_taken > rl_maxsteps-1) {
-        printf("=============");
-        printf("FORCED TERMINATION");
+        printf("");
+        printf("\n====FORCED TERMINATION====\n");
         rl_isterminal = 1;
         endrun = 1;
     }
 
-
-    if (runnum > rl_maxruns-1) {
-        endrun = 1;
-    }
+    // check for end of run and session
+    if ( epinum > rl_maxeps-1) { endrun = 1; }
+    if (runnum > rl_maxruns-1) { endsess = 1; }
 
     return 0;
 }

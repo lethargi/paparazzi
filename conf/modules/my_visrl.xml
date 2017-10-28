@@ -3,13 +3,15 @@
 <module name="my_visrl">
   <doc>
       <description>Module that implements the experimental vision-based RL
-          navigation for the thesis of Manan Siddiquee</description>
+          navigation for the thesis of Manan Siddiquee.
+      The Flight plan should have a waypoint labelled goal</description>
     <define name="VISRL_CAMERA" value="front_camera|bottom_camera" description="Video device to use"/>
     <define name="VISRL_FPS" value="0" description="The (maximum) frequency to run the calculations at. If zero, it will max out at the camera frame rate"/>
     <define name="VISRL_USEOPTIONS" description="Macro to trigger the use of option to turn till color is seen"/>
     <define name="VISRL_TWOGOALS" description="Macro to trigger the selection of two goal task"/>
     <define name="VISRL_SARSA" description="triggers the use of SARSA learning"/>
     <define name="VISRL_RANDOMSTARTS" description="sets intialization to random location; defaults to fixed initialization at cyber zoo center"/>
+    <define name="VISRL_LOGGINGLOCATION" description="Used to define location in FS where the RL logs and qdicts will be stored"/>
   </doc>
 
   <settings>

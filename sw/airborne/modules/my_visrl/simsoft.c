@@ -37,7 +37,9 @@ char save_location[] = "/home/default/SavedQtabs/";
 // char runname[40], sessname[40], sessfold[200], runfold[200];
 // char copy_location[200];
 uint8_t runnum;
-uint8_t endrun;
+uint8_t endrun; // variable set in visrl.c to control the end of run; in rl_checkterminal
+uint8_t endsess; // variable set in visrl.c to control the end of run; in rl_checkterminal
+
 uint8_t rl_maxruns = 10;
 int8_t printerror;
 char *runname, *sessname, *sessfold, *runfold, *copy_location;
@@ -110,15 +112,26 @@ uint8_t rl_addruncounter(void)
 uint8_t rl_write_episode_log(void)
 {
     // need to include error checks
-    printf("===============\n");
-    printf("\nWriting to file;");
+    int8_t run_success;
     log_file = fopen(log_addrs,"a");
-    fprintf(log_file,"%u %u %.1f %.1f %u %d\n",epinum,steps_taken,
+    fprintf(log_file,"%u %u %.1f %.1f %u %d ",epinum,steps_taken,
             sum_dQ,episode_rewards,ll_qdict->length,rl_eps);
-    // fwrite(qtab,sizeof(float),sizeof(qtab)/sizeof(float),qtab_file);
+
+#ifdef VISRL_TWOGOALS
+    if (goals_visited == 3) {
+#else
+    if (goals_visited == 1) {
+#endif
+        run_success = 1;
+    }
+    else {
+        run_success = 0;
+    }
+
+    fprintf(log_file,"%u %u %.1f %.1f %u %d %d\n",epinum,steps_taken,
+            sum_dQ,episode_rewards,ll_qdict->length,rl_eps,run_success);
     fclose(log_file);
-    printf("Done\n");
-    printf("===============\n");
+    printf("\n== EpisodeLogWritten ==\n");
     return 0;
 }
 
@@ -256,6 +269,8 @@ uint8_t setup_run_fold(void)
     char *learntype = malloc(sizeof(char)*20);
     char *tasktype = malloc(sizeof(char)*20);
 
+    total_state_visits = 0;
+
     time_t t = time(NULL);
     runstart_tm = *localtime(&t);
 
@@ -319,8 +334,6 @@ uint8_t save_run_metadata(void)
             runend_tm.tm_mon + 1, runend_tm.tm_mday, runend_tm.tm_hour,
             runend_tm.tm_min, runend_tm.tm_sec);
 
-
-
 #ifdef VISRL_SARSA
     fprintf(runinfo_file,"LearnType:SARSA\n");
 #else
@@ -334,11 +347,14 @@ uint8_t save_run_metadata(void)
 #endif
     fprintf(runinfo_file,"Episodes:%d\n",epinum);
     fprintf(runinfo_file,"PixelCountThresh:: Red:%f Blue:%f\n",red_thresh,blue_thresh);
-    fprintf(runinfo_file,"GoalReachThresh:: Red:%d, Blue:%d",min_pix_thresh);
-    fprintf(runinfo_file,"MinimumPixelThresh:%d",min_pix_thresh);
+    fprintf(runinfo_file,"GoalReachThresh:: Red:%d, Blue:%d\n",red_goal_reach_thresh,blue_goal_reach_thresh);
+    fprintf(runinfo_file,"MinimumPixelThresh:%d\n",min_pix_thresh);
+    fprintf(runinfo_file,"TotalSteps:%d\n",total_state_visits);
 
+    fprintf(runinfo_file,"Gam:%1.2f Alp:%1.2f Eps:%d\n",rl_gam, rl_alp, rl_eps);
+    fprintf(runinfo_file,"MaxEpisodes:%d EpsisodeIncrease:%1.2f EpsilonIncrease:%d\n",rl_maxeps,rl_maxepsinc,rl_eps_increase);
+    fprintf(runinfo_file,"MaxSteps:%d\n",rl_maxsteps);
 
-//
     fclose(runinfo_file);
     return 0;
 }

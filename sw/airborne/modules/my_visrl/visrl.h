@@ -34,6 +34,8 @@ extern uint32_t count_arr[2][3];
 extern uint32_t sumcount_arr[2];
 extern uint8_t domcol_arr[3];
 
+extern uint8_t goals_visited;
+
 extern float red_thresh, blue_thresh;
 extern uint16_t min_pix_thresh;
 extern uint8_t red_goal_reach_thresh;
@@ -55,7 +57,8 @@ extern uint8_t rl_randomize_start(uint8_t waypoint, uint8_t altref_wp);
 extern uint8_t rl_smooth_turn(uint8_t targhead_ind);
 // extern uint8_t rl_turntoheadroll(void);
 
-extern uint8_t rl_init(void);
+extern uint8_t rl_init_uav(void);
+extern uint8_t rl_init_ep(void);
 extern uint8_t rl_set_cur(void);
 extern uint8_t rl_set_nxt(void);
 
@@ -89,7 +92,6 @@ extern uint8_t rl_dec_eps(void);
 extern uint8_t rl_inc_eps(void);
 extern uint8_t rl_inc_maxepochs(void);
 
-
 // Declaration of some variables for global tracking
 
 extern uint16_t steps_taken;
@@ -97,12 +99,13 @@ extern uint16_t epinum;
 extern float episode_rewards;
 extern float sum_dQ;
 extern uint32_t total_state_visits;
+
 extern char *act_type;
 extern uint8_t cur_act;
 extern uint8_t nxt_act;
 extern char cur_sta[VISRL_STATESIZE], nxt_sta[VISRL_STATESIZE];
 
-extern int8_t head_roll;
+extern uint8_t init_headind;
 
 #ifdef VISRL_USEOPTIONS
 extern uint8_t start_option; //boolean to check if performing option
@@ -117,4 +120,3 @@ extern uint8_t hitwall;
 extern uint8_t rl_isterminal;
 extern float cur_rew;
 #endif
-

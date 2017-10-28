@@ -88,27 +88,15 @@
       <call_once fun="rl_action_right()"/>
       <stay wp="GOAL"/>
     </block>
-    <block name="RandomizeStart">
-      <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
-      <call fun="rl_randomize_start(WP_GOAL,WP_StartPos)"/>
-      <call fun="setAltToWp(WP_GOAL,WP_HOME)"/>
-      <call fun="rl_smooth_turn(head_roll)"/>
-      <stay until="stage_time>8" wp="CURPOS"/>
-      <go approaching_time="0" from="CURPOS" hmode="route" wp="GOAL"/>
-      <stay until="stage_time>5" wp="GOAL"/>
-      <deroute block="InitRL"/>
-    </block>
     <block name="SetupEpisode">
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
-      <go approaching_time="0" from="CURPOS" hmode="route" wp="StartPos"/>
-      <call fun="rl_reset_heading()"/>
-      <stay until="stage_time>5" wp="StartPos"/>
-      <call_once fun="NavSetWaypointHere(WP_GOAL)"/>
-      <call fun="setAltToWp(WP_GOAL,WP_HOME)"/>
-      <stay until="stage_time>1" wp="GOAL"/>
+      <call fun="rl_init_uav()"/> <!-- Not Made -->
+      <call fun="rl_smooth_turn(init_headind)"/>
+      <go from="CURPOS" wp="GOAL" hmode="route" approaching_time="0"/>
+      <stay wp="GOAL" until="stage_time>2"/>
     </block>
     <block name="InitRL">
-      <call fun="rl_init()"/>
+      <call fun="rl_init_ep()"/>
       <stay until="stage_time>1" wp="GOAL"/>
     </block>
     <block name="DoOneStep">
@@ -137,13 +125,14 @@
       <call fun="copy_qdict()"/>
     </block>
     <block name="IncreaseCurMaxEps">
-	  <exception cond="epinum > rl_maxeps" deroute="EndRun"/>
+	  <exception cond="endrun" deroute="EndRun"/>
       <call fun="rl_inc_maxepochs()"/>
       <call fun="rl_inc_eps()"/>
 	  <deroute block="SetupEpisode"/>
     </block>
     <block name="EndRun">
-	  <exception cond="endrun" deroute="EndSession"/>
+	  <exception cond="endsess" deroute="EndSession"/>
+      <call fun="save_run_metadata()"/>
       <call fun="rl_addruncounter()"/>
       <call fun="setup_run_fold()"/>
 	  <deroute block="SetupEpisode"/>
