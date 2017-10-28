@@ -56,11 +56,10 @@ uint8_t rl_isterminal = 0;
 float cur_rew = 0;
 
 uint16_t rl_curmaxeps, rl_initmaxeps;
-uint16_t rl_maxepsinc = 50;
-uint16_t rl_maxeps = 450;
-// uint16_t rl_curmaxeps, rl_initmaxeps;
-// uint16_t rl_maxepsinc = 1;
-// uint16_t rl_maxeps = 1;
+// uint16_t rl_maxepsinc = 50;
+// uint16_t rl_maxeps = 450;
+uint16_t rl_maxepsinc = 1;
+uint16_t rl_maxeps = 1;
 
 uint8_t rl_eps_increase = 5;
 uint16_t rl_maxsteps = 5000;

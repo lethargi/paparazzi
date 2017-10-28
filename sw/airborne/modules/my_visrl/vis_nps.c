@@ -30,21 +30,6 @@
 
 #include "visrl.h" //Contains the defined variables that stores CV output
 
-struct MemoryStruct
-{
-  char *memory;
-  size_t size;
-};
-
-struct BmpStruct
-{
-    unsigned char *buffer;
-    unsigned long size;
-    uint16_t width;
-    uint16_t height;
-    uint8_t pixel_size;
-    uint16_t row_stride;
-};
 
 // uint16_t heading_ind = 0;
 // uint32_t redsatheading[36];
