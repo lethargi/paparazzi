@@ -25,6 +25,7 @@ struct md_linkedlist {
 typedef struct md_linkedlist md_linkedlist;
 typedef struct md_node md_node;
 
+uint8_t fscanf_check(uint8_t count);
 
 md_linkedlist *md_init_linkedlist(void);
 void md_node_best_action(md_node *cursor);

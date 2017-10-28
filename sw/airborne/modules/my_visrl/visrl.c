@@ -55,16 +55,13 @@ uint8_t hitwall = 0;
 uint8_t rl_isterminal = 0;
 float cur_rew = 0;
 
-// uint16_t rl_max_eps_epochs = 100;
-// uint16_t rl_max_eps_epochs_increase = 100;
-// uint16_t rl_max_train_epochs = 900;
-// uint8_t rl_eps_increase = 5;
-
-
-uint16_t rl_curmaxeps = 50;
-uint16_t rl_initmaxeps;
+uint16_t rl_curmaxeps, rl_initmaxeps;
 uint16_t rl_maxepsinc = 50;
 uint16_t rl_maxeps = 450;
+// uint16_t rl_curmaxeps, rl_initmaxeps;
+// uint16_t rl_maxepsinc = 1;
+// uint16_t rl_maxeps = 1;
+
 uint8_t rl_eps_increase = 5;
 uint16_t rl_maxsteps = 5000;
 
@@ -89,6 +86,7 @@ uint16_t steps_taken = 0;
 uint16_t epinum = 0;
 float episode_rewards = 0;
 float sum_dQ = 0;
+uint8_t run_success;
 
 uint32_t total_state_visits;
 
@@ -112,6 +110,7 @@ void visrl_init(void)
     ll_qdict = md_init_linkedlist();
 
     total_state_visits = 0;
+    rl_curmaxeps = rl_maxepsinc;
     endsess = 0;
 #ifdef VISRL_AP
     vis_ap_init();
@@ -387,6 +386,7 @@ uint8_t rl_init_ep(void)
     goals_visited = 0;
     rl_set_nxt();
     rl_isterminal = 0;
+    run_success = 0;
     epinum++;
     // headind = 0;
     update_headind();
@@ -576,11 +576,18 @@ uint8_t rl_update_qdict(void)
 uint8_t rl_check_terminal(void)
 {
     /* This bit to or development; Makes episodes end fast
+     */
     if (steps_taken > 5) {
         rl_isterminal = 1;
         return 0;
     }
+    /*
     */
+
+    // check for end of run and session
+    // printf("\n Epinum:%d :: rl_maxeps-1:%d :: endrun:%d \n",epinum,rl_maxeps-1,endrun);
+    if (epinum > rl_maxeps-1) { endrun = 1; }
+    if (runnum > rl_maxruns-1) { endsess = 1; }
 
 #ifdef VISRL_TWOGOALS
     if (goals_visited == 3) {
@@ -589,17 +596,15 @@ uint8_t rl_check_terminal(void)
 #endif
         printf("TERMINAL :: Sum of rewards: %f\n",episode_rewards);
         rl_isterminal = 1;
+        run_success = 1;
     }
     else if (steps_taken > rl_maxsteps-1) {
-        printf("");
         printf("\n====FORCED TERMINATION====\n");
         rl_isterminal = 1;
         endrun = 1;
+        run_success = 0; //no need todo this as this is init value
     }
 
-    // check for end of run and session
-    if ( epinum > rl_maxeps-1) { endrun = 1; }
-    if (runnum > rl_maxruns-1) { endsess = 1; }
 
     return 0;
 }

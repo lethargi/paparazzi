@@ -108,20 +108,29 @@ uint8_t md_free_list(md_linkedlist* alist)
     return 0;
 }
 
+uint8_t fscanf_check(uint8_t count)
+{
+    if (count == 0) {
+        printf("Error reading file");
+        return 1;
+    }
+    return 0;
+}
+
 uint8_t md_import_from_text(md_linkedlist *mylist, char* qdict_filename,
         char* statev_filename)
 {
     printf("\n Importing from txt \n");
 
-    size_t dummy;
+    int count;
     md_node *cursor;
 
     FILE *qdict_txt_file = fopen(qdict_filename,"r");
     FILE *statevisits_txt_file = fopen(statev_filename,"r");
 
     //remove first line
-    dummy = fscanf(qdict_txt_file, "%*[^\n]");
-    dummy = fscanf(statevisits_txt_file, "%*[^\n]");
+    count = fscanf(qdict_txt_file, "%*[^\n]");
+    count = fscanf(statevisits_txt_file, "%*[^\n]");
 
     char akey[VISRL_STATESIZE];
     float val[VISRL_ACTIONS];//, T;
@@ -130,11 +139,15 @@ uint8_t md_import_from_text(md_linkedlist *mylist, char* qdict_filename,
 
         // read values from file and store in cache variable
 #ifdef VISRL_USEOPTIONS
-        dummy = fscanf(qdict_txt_file, "%s\t%f\t%f\t%f\t%f", akey, &val[0], &val[1], &val[2], &val[3]);
-        dummy = fscanf(statevisits_txt_file, "%s\t%d\t%d\t%d\t%d", akey, &vis[0], &vis[1], &vis[2], &vis[2]);
+        count = fscanf(qdict_txt_file, "%s\t%f\t%f\t%f\t%f", akey, &val[0], &val[1], &val[2], &val[3]);
+        if (fscanf_check(count)) {return 0;}
+        count = fscanf(statevisits_txt_file, "%s\t%d\t%d\t%d\t%d", akey, &vis[0], &vis[1], &vis[2], &vis[2]);
+        if (fscanf_check(count)) {return 0;}
 #else
-        dummy = fscanf(qdict_txt_file, "%s\t%f\t%f\t%f", akey, &val[0], &val[1], &val[2]);
-        dummy = fscanf(statevisits_txt_file, "%s\t%d\t%d\t%d", akey, &vis[0], &vis[1], &vis[2]);
+        count = fscanf(qdict_txt_file, "%s\t%f\t%f\t%f", akey, &val[0], &val[1], &val[2]);
+        if (fscanf_check(count)) {return 0;}
+        count = fscanf(statevisits_txt_file, "%s\t%d\t%d\t%d", akey, &vis[0], &vis[1], &vis[2]);
+        if (fscanf_check(count)) {return 0;}
 #endif
 
         // create new list element with key
@@ -153,12 +166,13 @@ uint8_t md_import_from_text(md_linkedlist *mylist, char* qdict_filename,
     return 0;
 }
 
+
 uint8_t md_import_from_dat(md_linkedlist *mylist, char* keys_filename,
         char* values_filename, char* visits_filename)
 {
     printf("\n Importing from dat \n");
 
-    size_t dummy;
+    int count;
     md_node *cursor;
 
     //safety feature about testing if "myqdict" already exists is unimplemented
@@ -166,19 +180,23 @@ uint8_t md_import_from_dat(md_linkedlist *mylist, char* keys_filename,
     FILE *keys_file = fopen(keys_filename,"rb");
     FILE *values_file = fopen(values_filename,"rb");
     FILE *visits_file = fopen(visits_filename,"rb");
-//     fwrite(valvisitsarr,sizeof(uint16_t),sizeof(valvisitsarr)/sizeof(uint16_t),statevisitsvalues_file);
 
     char akey[VISRL_STATESIZE];
 
     if ((keys_file != NULL) && (values_file != NULL) && (visits_file != NULL)) {
         while (!feof(keys_file)) {
             // Read from the dat file
-            dummy = fread(&akey,sizeof(char[VISRL_STATESIZE]),1,keys_file);
+            count = fread(&akey,sizeof(char[VISRL_STATESIZE]),1,keys_file);
+            if (fscanf_check(count)) {return 0;}
 
             cursor = md_prepend_list(mylist,strdup(akey));
 
-            dummy = fread(cursor->values,sizeof(float),VISRL_ACTIONS,values_file);
-            dummy = fread(cursor->visits,sizeof(int),VISRL_ACTIONS,visits_file);
+            count = fread(cursor->values,sizeof(float),VISRL_ACTIONS,values_file);
+            if (fscanf_check(count)) {return 0;}
+            fscanf_check(count);
+            count = fread(cursor->visits,sizeof(int),VISRL_ACTIONS,visits_file);
+            if (fscanf_check(count)) {return 0;}
+            fscanf_check(count);
         }
     }
     else {

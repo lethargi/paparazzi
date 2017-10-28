@@ -72,10 +72,6 @@
     <block name="WaitOnGoal">
       <stay wp="GOAL"/>
     </block>
-    <block name="RL_Reset_Heading">
-      <call fun="rl_reset_heading()"/>
-      <stay wp="GOAL"/>
-    </block>
     <block name="RL_FOR">
       <call_once fun="rl_action_forward()"/>
       <stay wp="GOAL"/>
@@ -125,16 +121,20 @@
       <call fun="copy_qdict()"/>
     </block>
     <block name="IncreaseCurMaxEps">
-	  <exception cond="endrun" deroute="EndRun"/>
+        <!-- <exception cond="endrun" deroute="EndRun"/> -->
+	  <exception cond="endrun" deroute="WriteRunMetadata"/>
       <call fun="rl_inc_maxepochs()"/>
       <call fun="rl_inc_eps()"/>
 	  <deroute block="SetupEpisode"/>
     </block>
+    <block name="WriteRunMetadata">
+      <call fun="save_run_metadata()"/>
+    </block>
     <block name="EndRun">
 	  <exception cond="endsess" deroute="EndSession"/>
-      <call fun="save_run_metadata()"/>
       <call fun="rl_addruncounter()"/>
       <call fun="setup_run_fold()"/>
+      <call fun="rl_resetrun()"/>
 	  <deroute block="SetupEpisode"/>
     </block>
     <block name="EndSession">

@@ -53,7 +53,7 @@ extern uint16_t rl_maxsteps;
 extern void visrl_init(void);
 
 // extern uint8_t rl_randomize_start(uint8_t waypoint);
-extern uint8_t rl_randomize_start(uint8_t waypoint, uint8_t altref_wp);
+// extern uint8_t rl_randomize_start(uint8_t waypoint, uint8_t altref_wp);
 extern uint8_t rl_smooth_turn(uint8_t targhead_ind);
 // extern uint8_t rl_turntoheadroll(void);
 
@@ -80,7 +80,8 @@ extern float rl_alp;
 void get_state_ext(char *curstate);
 float get_myheading(void);
 void update_headind(void);
-uint8_t rl_reset_heading(void);
+void rl_get_random_cords(float *cords);
+// uint8_t rl_reset_heading(void);
 
 uint8_t pick_action(char *state);
 uint8_t rl_get_reward(void);
@@ -99,6 +100,8 @@ extern uint16_t epinum;
 extern float episode_rewards;
 extern float sum_dQ;
 extern uint32_t total_state_visits;
+
+extern uint8_t run_success;
 
 extern char *act_type;
 extern uint8_t cur_act;

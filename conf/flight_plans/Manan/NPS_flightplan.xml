@@ -153,11 +153,14 @@
       <call fun="copy_qdict()"/>
     </block>
     <block name="IncreaseCurMaxEps">
-	  <exception cond="endrun" deroute="EndRun"/>
-      <call fun="save_run_metadata()"/>
+        <!-- <exception cond="endrun" deroute="EndRun"/> -->
+	  <exception cond="endrun" deroute="WriteRunMetadata"/>
       <call fun="rl_inc_maxepochs()"/>
       <call fun="rl_inc_eps()"/>
 	  <deroute block="SetupEpisode"/>
+    </block>
+    <block name="WriteRunMetadata">
+      <call fun="save_run_metadata()"/>
     </block>
     <block name="EndRun">
 	  <exception cond="endsess" deroute="EndSession"/>

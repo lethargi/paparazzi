@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 // #include <limits.h>
 #include <float.h>
@@ -39,6 +41,7 @@ char save_location[] = "/home/default/SavedQtabs/";
 uint8_t runnum;
 uint8_t endrun; // variable set in visrl.c to control the end of run; in rl_checkterminal
 uint8_t endsess; // variable set in visrl.c to control the end of run; in rl_checkterminal
+
 
 uint8_t rl_maxruns = 10;
 int8_t printerror;
@@ -88,6 +91,7 @@ void simsoft_init(void)
     sv_addrs  = malloc(sizeof(char)*120);
     log_addrs = malloc(sizeof(char)*120);
     eplog_addrs = malloc(sizeof(char)*120);
+    runinfo_addrs = malloc(sizeof(char)*120);
 
     runnum = 1;
 
@@ -112,21 +116,9 @@ uint8_t rl_addruncounter(void)
 uint8_t rl_write_episode_log(void)
 {
     // need to include error checks
-    int8_t run_success;
     log_file = fopen(log_addrs,"a");
     fprintf(log_file,"%u %u %.1f %.1f %u %d ",epinum,steps_taken,
             sum_dQ,episode_rewards,ll_qdict->length,rl_eps);
-
-#ifdef VISRL_TWOGOALS
-    if (goals_visited == 3) {
-#else
-    if (goals_visited == 1) {
-#endif
-        run_success = 1;
-    }
-    else {
-        run_success = 0;
-    }
 
     fprintf(log_file,"%u %u %.1f %.1f %u %d %d\n",epinum,steps_taken,
             sum_dQ,episode_rewards,ll_qdict->length,rl_eps,run_success);
@@ -245,7 +237,7 @@ uint8_t setup_sess_fold(void)
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
 
-    printerror = sprintf(sessname,"%d%d%d_%d%d",tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min);
+    printerror = sprintf(sessname,"%d%d%d_%02d%02d",tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min);
     if (snprint_fail(printerror)){ return 0; }
     printerror = sprintf(sessfold,"%s%s/",save_location,sessname);
     if (snprint_fail(printerror)){ return 0; }
@@ -320,17 +312,14 @@ uint8_t save_run_metadata(void)
     time_t t = time(NULL);
     runend_tm = *localtime(&t);
 
-    printerror = sprintf(runinfo_addrs,"%s%s",runfold,"qdict.txt");
+    printerror = sprintf(runinfo_addrs,"%s%s",runfold,"runinfo.txt");
     if (snprint_fail(printerror)){ return 0; }
 
     runinfo_file = fopen(runinfo_addrs,"w"); //create or reset logfile
-    fprintf(runinfo_file,"StartTime:%d%d%d_%d%d%d\n",runstart_tm.tm_year + 1900,
+    fprintf(runinfo_file,"StartTime:%d%d%d_%02d%02d%02d\n",runstart_tm.tm_year + 1900,
             runstart_tm.tm_mon + 1, runstart_tm.tm_mday, runstart_tm.tm_hour,
             runstart_tm.tm_min, runstart_tm.tm_sec);
-    fprintf(runinfo_file,"EndTime:%d%d%d_%d%d%d\n",runend_tm.tm_year + 1900,
-            runend_tm.tm_mon + 1, runend_tm.tm_mday, runend_tm.tm_hour,
-            runend_tm.tm_min, runend_tm.tm_sec);
-    fprintf(runinfo_file,"EndTime:%d%d%d_%d%d%d\n",runend_tm.tm_year + 1900,
+    fprintf(runinfo_file,"EndTime:%d%d%d_%02d%02d%02d\n",runend_tm.tm_year + 1900,
             runend_tm.tm_mon + 1, runend_tm.tm_mday, runend_tm.tm_hour,
             runend_tm.tm_min, runend_tm.tm_sec);
 
@@ -345,17 +334,26 @@ uint8_t save_run_metadata(void)
 #else
     fprintf(runinfo_file,"TaskType:TurnToGoal\n");
 #endif
+
+#ifdef VISRL_RANDOMSTARTS
+    fprintf(runinfo_file,"StartType:Random\n");
+#else
+    fprintf(runinfo_file,"StartType:AtOrigin\n");
+#endif
+
     fprintf(runinfo_file,"Episodes:%d\n",epinum);
     fprintf(runinfo_file,"PixelCountThresh:: Red:%f Blue:%f\n",red_thresh,blue_thresh);
     fprintf(runinfo_file,"GoalReachThresh:: Red:%d, Blue:%d\n",red_goal_reach_thresh,blue_goal_reach_thresh);
     fprintf(runinfo_file,"MinimumPixelThresh:%d\n",min_pix_thresh);
     fprintf(runinfo_file,"TotalSteps:%d\n",total_state_visits);
 
-    fprintf(runinfo_file,"Gam:%1.2f Alp:%1.2f Eps:%d\n",rl_gam, rl_alp, rl_eps);
-    fprintf(runinfo_file,"MaxEpisodes:%d EpsisodeIncrease:%1.2f EpsilonIncrease:%d\n",rl_maxeps,rl_maxepsinc,rl_eps_increase);
+    fprintf(runinfo_file,"Gam:%1.2f Alp:%1.2f Eps:%d\n",rl_gamma, rl_alp, rl_eps);
+    fprintf(runinfo_file,"MaxEpisodes:%d EpsisodeIncrease:%d EpsilonIncrease:%d\n",rl_maxeps,rl_maxepsinc,rl_eps_increase);
     fprintf(runinfo_file,"MaxSteps:%d\n",rl_maxsteps);
 
     fclose(runinfo_file);
+
+    printf("\n==Run log written==\n");
     return 0;
 }
 
