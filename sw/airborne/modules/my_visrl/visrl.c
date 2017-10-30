@@ -56,10 +56,10 @@ uint8_t rl_isterminal = 0;
 float cur_rew = 0;
 
 uint16_t rl_curmaxeps, rl_initmaxeps;
-// uint16_t rl_maxepsinc = 50;
-// uint16_t rl_maxeps = 450;
-uint16_t rl_maxepsinc = 1;
-uint16_t rl_maxeps = 1;
+uint16_t rl_maxepsinc = 20;
+uint16_t rl_maxeps = 180;
+// uint16_t rl_maxepsinc = 1;
+// uint16_t rl_maxeps = 1;
 
 uint8_t rl_eps_increase = 5;
 uint16_t rl_maxsteps = 5000;
@@ -575,12 +575,10 @@ uint8_t rl_update_qdict(void)
 uint8_t rl_check_terminal(void)
 {
     /* This bit to or development; Makes episodes end fast
-     */
     if (steps_taken > 5) {
         rl_isterminal = 1;
         return 0;
     }
-    /*
     */
 
     // check for end of run and session
