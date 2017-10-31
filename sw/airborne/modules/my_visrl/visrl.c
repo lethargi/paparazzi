@@ -548,7 +548,6 @@ uint8_t rl_update_qdict(void)
 uint8_t rl_check_terminal(void)
 {
     /* This bit to or development; Makes episodes end fast
-     */
     if (steps_taken > 5) {
         rl_isterminal = 1;
         // goals_visited = 1;
@@ -559,7 +558,6 @@ uint8_t rl_check_terminal(void)
             return 0;
         }
     }
-    /*
     */
 
     // check for end of run and session
