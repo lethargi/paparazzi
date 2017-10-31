@@ -256,11 +256,11 @@ void get_state_ext(char *curstate)
     }
 #endif
 
-    // uint8_t sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
-    sprintf(curstate,"%d,%d,%d;%d;%d",
-    // sprintf(curstate,"%d,%d,%d;%d;%d;%d",
+    uint8_t sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
+    // sprintf(curstate,"%d,%d,%d;%d;%d",
+    sprintf(curstate,"%d,%d,%d;%d;%d;%d",
             domcol_arr[0],domcol_arr[1],domcol_arr[2],
-            // sta_cfrac,
+            sta_cfrac,
             // countfracs[0],countfracs[1],//countfracs[2],
             // goals_visited,hitwall,headind); // with headindex
             goals_visited,hitwall);      // without headingindex
@@ -548,7 +548,6 @@ uint8_t rl_update_qdict(void)
 uint8_t rl_check_terminal(void)
 {
     /* This bit to or development; Makes episodes end fast
-     */
     if (steps_taken > 5) {
         rl_isterminal = 1;
         // goals_visited = 1;
@@ -559,7 +558,6 @@ uint8_t rl_check_terminal(void)
             return 0;
         }
     }
-    /*
     */
 
     // check for end of run and session
