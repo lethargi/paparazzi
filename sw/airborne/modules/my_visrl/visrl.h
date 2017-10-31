@@ -41,15 +41,6 @@ extern uint16_t min_pix_thresh;
 extern uint8_t red_goal_reach_thresh;
 extern uint8_t blue_goal_reach_thresh;
 
-// extern GHashTable *myqdict;
-extern uint16_t rl_curmaxeps;
-extern uint16_t rl_initmaxeps;
-extern uint16_t rl_maxepsinc;
-extern uint16_t rl_maxeps;
-extern uint8_t rl_eps_increase;
-extern uint16_t rl_maxsteps;
-
-
 extern void visrl_init(void);
 
 // extern uint8_t rl_randomize_start(uint8_t waypoint);
@@ -73,7 +64,7 @@ extern uint8_t rl_check_terminal(void);
 extern uint8_t rl_print_qtab(void);
 
 
-extern uint8_t rl_eps;
+extern int8_t rl_eps;
 extern float rl_gamma;
 extern float rl_alp;
 
@@ -89,9 +80,6 @@ uint8_t copy_file(char *old_filename, char  *new_filename);
 
 extern md_linkedlist *ll_qdict;
 
-extern uint8_t rl_dec_eps(void);
-extern uint8_t rl_inc_eps(void);
-extern uint8_t rl_inc_maxepochs(void);
 
 // Declaration of some variables for global tracking
 
@@ -100,8 +88,6 @@ extern uint16_t epinum;
 extern float episode_rewards;
 extern float sum_dQ;
 extern uint32_t total_state_visits;
-
-extern uint8_t run_success;
 
 extern char *act_type;
 extern uint8_t cur_act;

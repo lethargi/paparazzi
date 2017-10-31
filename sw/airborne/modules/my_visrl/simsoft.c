@@ -36,42 +36,31 @@ char save_location[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/";
 #else
 char save_location[] = "/home/default/SavedQtabs/";
 #endif
-// char runname[40], sessname[40], sessfold[200], runfold[200];
-// char copy_location[200];
-uint8_t runnum;
-uint8_t endrun; // variable set in visrl.c to control the end of run; in rl_checkterminal
-uint8_t endsess; // variable set in visrl.c to control the end of run; in rl_checkterminal
 
+uint8_t runnum;
+uint8_t endrun, endsess; // variable set in visrl.c to control the end of run; in rl_checkterminal
+
+uint8_t ep_success, run_success;
 
 uint8_t rl_maxruns = 10;
 int8_t printerror;
+
 char *runname, *sessname, *sessfold, *runfold, *copy_location;
-// char copy_location[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/__LastSaves/";
 char *qd_addrs, *sv_addrs, *log_addrs, *eplog_addrs, *runinfo_addrs;
-// char qdict_txt_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/qdict.txt";
-// char statevisits_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/statevisits.txt";
-// char log_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/log.txt";
-// char epi_log_file_addrs[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/epi_log.txt";
-// FILE LOCATION WHEN RUNNING IN THE UAV
-// char save_location[] = "/home/default/";
-// char copy_location[] = "/home/default/__LastSaves"; // Have to create this folder in UAV
-// char qdict_txt_file_addrs[] = "/home/default/qdict.txt";
-// char statevisits_file_addrs[] = "/home/default/statevisits.txt";
-// char log_file_addrs[] = "/home/default/log.txt";
-// char epi_log_file_addrs[] = "/home/default/epi_log.txt";
-// savelocation commented out for UAV implementation; may need fixing
-// char savelocation[] = "/home/default/_Study/AE9999_Thesis/playground/SavedQtabs/";
 
+FILE *qdict_txt_file, *statevisits_txt_file, *log_file, *epi_log_file,
+     *runinfo_file;
 
+struct tm runstart_tm, runend_tm;
 
-FILE *qdict_txt_file;
-FILE *statevisits_txt_file;
-FILE *log_file;
-FILE *epi_log_file;
-FILE *runinfo_file;
+uint16_t failed_episodes_count;
+uint8_t sequential_failed_episodes;
 
-struct tm runstart_tm;
-struct tm runend_tm;
+uint16_t rl_cur_episodes_limit;
+uint16_t rl_max_episodes_limit = 180;
+int16_t rl_cur_episodes_limit_change = 20;
+int8_t rl_cur_epsilon_change = 5;
+
 // need to control over runs; Need to control over episodes;
 // Need to control run factor leves;
 // Need to make folders of appropriate labels
@@ -94,6 +83,10 @@ void simsoft_init(void)
     runinfo_addrs = malloc(sizeof(char)*120);
 
     runnum = 1;
+    run_success = 1;
+    failed_episodes_count = 0;
+    sequential_failed_episodes = 0;
+    rl_cur_episodes_limit = rl_cur_episodes_limit_change;
 
     setup_sess_fold();
     setup_run_fold();
@@ -102,9 +95,25 @@ void simsoft_init(void)
     epi_log_file = fopen(eplog_addrs,"w"); //create or reset epi logfile
     fclose(log_file);
     fclose(epi_log_file);
+}
 
-//     char runname[40], sessname[40], sessfold[200], runfold[200];
-//     char copy_location[200];
+uint8_t rl_change_epsilon(int8_t change_by)
+{
+    if (rl_eps + change_by > 0) {
+        rl_eps += change_by;
+        printf("\nEpsilon:%d\n",rl_eps);
+    }
+    else {
+        printf("\nEpsilon changes to negative value. Not changed\n");
+    }
+    return 0;
+}
+
+uint8_t rl_change_cur_episodes_limit(int16_t increase_by)
+{
+    rl_cur_episodes_limit += increase_by;
+    printf("\nMaxEpochs:%d\n",rl_cur_episodes_limit);
+    return 0;
 }
 
 uint8_t rl_addruncounter(void)
@@ -117,11 +126,8 @@ uint8_t rl_write_episode_log(void)
 {
     // need to include error checks
     log_file = fopen(log_addrs,"a");
-    fprintf(log_file,"%u %u %.1f %.1f %u %d ",epinum,steps_taken,
-            sum_dQ,episode_rewards,ll_qdict->length,rl_eps);
-
     fprintf(log_file,"%u %u %.1f %.1f %u %d %d\n",epinum,steps_taken,
-            sum_dQ,episode_rewards,ll_qdict->length,rl_eps,run_success);
+            sum_dQ,episode_rewards,ll_qdict->length,rl_eps,ep_success);
     fclose(log_file);
     printf("\n== EpisodeLogWritten ==\n");
     return 0;
@@ -137,7 +143,7 @@ uint8_t rl_write_step_log(void)
     // Save absolute state data
     fprintf(epi_log_file," % 05.2f % 04.3f % 04.3f", DegOfRad(GetCurHeading()), GetPosX(),
             GetPosY());
-    // save comamand data
+    // save command data
     fprintf(epi_log_file," % 05.2f % 04.3f % 04.3f",
             DegOfRad(ANGLE_FLOAT_OF_BFP(nav_heading)), WaypointX(WP_GOAL),
             WaypointY(WP_GOAL));
@@ -249,9 +255,15 @@ uint8_t setup_sess_fold(void)
 
 uint8_t rl_resetrun(void)
 {
-    rl_curmaxeps = rl_initmaxeps;
+    // rl_curmaxeps = rl_initmaxeps;
+    rl_cur_episodes_limit = rl_cur_episodes_limit_change;
     md_free_list(ll_qdict);
     ll_qdict = md_init_linkedlist();
+
+    failed_episodes_count = 0;
+    sequential_failed_episodes = 0;
+    run_success = 1;
+
     epinum=0;
     return 0;
 }
@@ -348,8 +360,9 @@ uint8_t save_run_metadata(void)
     fprintf(runinfo_file,"TotalSteps:%d\n",total_state_visits);
 
     fprintf(runinfo_file,"Gam:%1.2f Alp:%1.2f Eps:%d\n",rl_gamma, rl_alp, rl_eps);
-    fprintf(runinfo_file,"MaxEpisodes:%d EpsisodeIncrease:%d EpsilonIncrease:%d\n",rl_maxeps,rl_maxepsinc,rl_eps_increase);
+    fprintf(runinfo_file,"MaxEpisodes:%d EpsisodeIncrease:%d EpsilonIncrease:%d\n",rl_max_episodes_limit,rl_cur_episodes_limit_change,rl_cur_epsilon_change);
     fprintf(runinfo_file,"MaxSteps:%d\n",rl_maxsteps);
+    fprintf(runinfo_file,"FailedEpisodes:%d SequentialFails:%d\n",failed_episodes_count, sequential_failed_episodes);
 
     fclose(runinfo_file);
 
@@ -372,3 +385,4 @@ uint8_t simsoft_cleanup(void)
 
     return 0;
 }
+

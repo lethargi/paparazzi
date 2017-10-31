@@ -55,18 +55,14 @@ uint8_t hitwall = 0;
 uint8_t rl_isterminal = 0;
 float cur_rew = 0;
 
-uint16_t rl_curmaxeps, rl_initmaxeps;
-uint16_t rl_maxepsinc = 20;
-uint16_t rl_maxeps = 180;
 // uint16_t rl_maxepsinc = 1;
 // uint16_t rl_maxeps = 1;
 
-uint8_t rl_eps_increase = 5;
 uint16_t rl_maxsteps = 5000;
 
 float rl_gamma = 0.9;
 float rl_alp = 0.3;
-uint8_t rl_eps = 60;
+int8_t rl_eps = 60;
 
 #ifdef VISRL_NPS
 uint8_t red_goal_reach_thresh = 5;
@@ -85,7 +81,6 @@ uint16_t steps_taken = 0;
 uint16_t epinum = 0;
 float episode_rewards = 0;
 float sum_dQ = 0;
-uint8_t run_success;
 
 uint32_t total_state_visits;
 
@@ -105,11 +100,11 @@ void visrl_init(void)
     // initalize other required stuffs
     simsoft_init();
 
-    rl_initmaxeps = rl_curmaxeps;
+    // rl_initmaxeps = rl_curmaxeps;
     ll_qdict = md_init_linkedlist();
 
     total_state_visits = 0;
-    rl_curmaxeps = rl_maxepsinc;
+    // rl_curmaxeps = rl_maxepsinc;
     endsess = 0;
 #ifdef VISRL_AP
     vis_ap_init();
@@ -157,27 +152,6 @@ uint8_t rl_init_uav(void)
 
     waypoint_move_enu_i(WP_GOAL,&new_coor);
     // rl_smooth_turn(init_headind);
-    return 0;
-}
-
-uint8_t rl_dec_eps(void)
-{
-    rl_eps -= 5;
-    printf("\nEps:%d\n",rl_eps);
-    return 0;
-}
-
-uint8_t rl_inc_eps(void)
-{
-    rl_eps += rl_eps_increase;
-    printf("\nEps:%d\n",rl_eps);
-    return 0;
-}
-
-uint8_t rl_inc_maxepochs(void)
-{
-    rl_curmaxeps += rl_maxepsinc;
-    printf("\nMaxEpochs:%d\n",rl_curmaxeps);
     return 0;
 }
 
@@ -383,9 +357,8 @@ uint8_t rl_init_ep(void)
     episode_rewards = 0;
     cur_rew = 0;
     goals_visited = 0;
+    ep_success = 1;
     rl_set_nxt();
-    rl_isterminal = 0;
-    run_success = 0;
     epinum++;
     // headind = 0;
     update_headind();
@@ -575,15 +548,23 @@ uint8_t rl_update_qdict(void)
 uint8_t rl_check_terminal(void)
 {
     /* This bit to or development; Makes episodes end fast
+     */
     if (steps_taken > 5) {
         rl_isterminal = 1;
-        return 0;
+        // goals_visited = 1;
+        if (steps_taken < rl_maxsteps) {
+            steps_taken += rl_maxsteps;
+        }
+        else {
+            return 0;
+        }
     }
+    /*
     */
 
     // check for end of run and session
     // printf("\n Epinum:%d :: rl_maxeps-1:%d :: endrun:%d \n",epinum,rl_maxeps-1,endrun);
-    if (epinum > rl_maxeps-1) { endrun = 1; }
+    if (epinum > rl_cur_episodes_limit-1) { endrun = 1; }
     if (runnum > rl_maxruns-1) { endsess = 1; }
 
 #ifdef VISRL_TWOGOALS
@@ -593,15 +574,18 @@ uint8_t rl_check_terminal(void)
 #endif
         printf("TERMINAL :: Sum of rewards: %f\n",episode_rewards);
         rl_isterminal = 1;
-        run_success = 1;
+        sequential_failed_episodes = 0;
     }
     else if (steps_taken > rl_maxsteps-1) {
-        printf("\n====FORCED TERMINATION====\n");
+        ep_success = 0;
+        printf("\n====MaxSteps reached :: FORCED TERMINATION====\n");
         rl_isterminal = 1;
-        endrun = 1;
-        run_success = 0; //no need todo this as this is init value
+        ++sequential_failed_episodes;
+        ++failed_episodes_count;
+        if (sequential_failed_episodes > 3) {
+            endrun = 1;
+            run_success = 0;
+        }
     }
-
-
     return 0;
 }
