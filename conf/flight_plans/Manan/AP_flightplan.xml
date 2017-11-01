@@ -6,12 +6,14 @@
     #include "subsystems/ahrs.h"
     #include "subsystems/electrical.h"
     #include "subsystems/datalink/datalink.h"
+
     #ifdef VISRL_NPS
     #include "modules/my_visrl/vis_nps.h"
     #endif
     #ifdef VISRL_AP
 	#include "modules/my_visrl/vis_ap.h"
     #endif
+
 	#include "modules/my_visrl/visrl.h"
 	#include "modules/my_visrl/mynavfuncs.h"
 	#include "modules/my_visrl/simsoft.h"
@@ -110,11 +112,11 @@
       <call fun="rl_write_episode_log()"/>
     </block>
     <block name="EndEp">
-	  <exception cond="epinum > rl_curmaxeps" deroute="LogQdicts"/>
+	  <exception cond="epinum > rl_cur_episodes_limit-1" deroute="LogQdicts"/>
+	  <exception cond="endrun" deroute="LogQdicts"/>
       <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
       <deroute block="SetupEpisode"/>
-      <!-- <deroute block="RandomizeStart"/> -->
     </block>
     <block name="LogQdicts">
       <call fun="print_qdict()"/>
@@ -123,8 +125,8 @@
     <block name="IncreaseCurMaxEps">
         <!-- <exception cond="endrun" deroute="EndRun"/> -->
 	  <exception cond="endrun" deroute="WriteRunMetadata"/>
-      <call fun="rl_inc_maxepochs()"/>
-      <call fun="rl_inc_eps()"/>
+      <call fun="rl_change_cur_episodes_limit(rl_cur_episodes_limit_change)"/>
+      <call fun="rl_change_epsilon(rl_cur_epsilon_change)"/>
 	  <deroute block="SetupEpisode"/>
     </block>
     <block name="WriteRunMetadata">
