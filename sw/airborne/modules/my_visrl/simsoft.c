@@ -243,7 +243,7 @@ uint8_t setup_sess_fold(void)
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
 
-    printerror = sprintf(sessname,"%d%d%d_%02d%02d",tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min);
+    printerror = sprintf(sessname,"%4d%02d%02d_%02d%02d",tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min);
     if (snprint_fail(printerror)){ return 0; }
     printerror = sprintf(sessfold,"%s%s/",save_location,sessname);
     if (snprint_fail(printerror)){ return 0; }
@@ -328,10 +328,10 @@ uint8_t save_run_metadata(void)
     if (snprint_fail(printerror)){ return 0; }
 
     runinfo_file = fopen(runinfo_addrs,"w"); //create or reset logfile
-    fprintf(runinfo_file,"StartTime:%d%d%d_%02d%02d%02d\n",runstart_tm.tm_year + 1900,
+    fprintf(runinfo_file,"StartTime:%4d%02d%02d_%02d%02d%02d\n",runstart_tm.tm_year + 1900,
             runstart_tm.tm_mon + 1, runstart_tm.tm_mday, runstart_tm.tm_hour,
             runstart_tm.tm_min, runstart_tm.tm_sec);
-    fprintf(runinfo_file,"EndTime:%d%d%d_%02d%02d%02d\n",runend_tm.tm_year + 1900,
+    fprintf(runinfo_file,"EndTime:%4d%02d%02d_%02d%02d%02d\n",runend_tm.tm_year + 1900,
             runend_tm.tm_mon + 1, runend_tm.tm_mday, runend_tm.tm_hour,
             runend_tm.tm_min, runend_tm.tm_sec);
 
@@ -385,4 +385,3 @@ uint8_t simsoft_cleanup(void)
 
     return 0;
 }
-

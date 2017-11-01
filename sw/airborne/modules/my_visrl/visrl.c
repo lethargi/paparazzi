@@ -562,7 +562,7 @@ uint8_t rl_check_terminal(void)
 
     // check for end of run and session
     // printf("\n Epinum:%d :: rl_maxeps-1:%d :: endrun:%d \n",epinum,rl_maxeps-1,endrun);
-    if (epinum > rl_cur_episodes_limit-1) { endrun = 1; }
+    if (epinum > rl_max_episodes_limit-1) { endrun = 1; }
     if (runnum > rl_maxruns-1) { endsess = 1; }
 
 #ifdef VISRL_TWOGOALS
