@@ -264,6 +264,10 @@ uint8_t rl_resetrun(void)
     sequential_failed_episodes = 0;
     run_success = 1;
 
+    rl_gamma = 0.9;
+    rl_alp = 0.3;
+    rl_eps = 60;
+
     epinum=0;
     return 0;
 }
