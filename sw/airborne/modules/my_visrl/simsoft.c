@@ -57,8 +57,8 @@ uint16_t failed_episodes_count;
 uint8_t sequential_failed_episodes;
 
 uint16_t rl_cur_episodes_limit;
-uint16_t rl_max_episodes_limit = 180;
-int16_t rl_cur_episodes_limit_change = 20;
+uint16_t rl_max_episodes_limit = 270;
+int16_t rl_cur_episodes_limit_change = 30;
 int8_t rl_cur_epsilon_change = 5;
 
 // need to control over runs; Need to control over episodes;
