@@ -314,41 +314,6 @@ uint8_t rl_smooth_turn(uint8_t targhead_ind)
     return TRUE;
 }
 
-// uint8_t rl_reset_heading(void)
-// {
-//     // DEPRECATED
-//     uint8_t targhead;
-// #ifdef VISRL_NPS
-//     targhead = 0; //dont understan why these are these values
-// #else
-//     targhead = 10; // will need to check for real implement
-// #endif
-//     return rl_smooth_turn(targhead);;
-// }
-
-
-// uint8_t rl_randomize_start(uint8_t waypoint)
-// {
-//     struct EnuCoor_i new_coor;
-// 
-//     float cords_roll = rl_get_random_cords();
-// //     float y_roll = (float) (rand() % 70 - 35)/10;
-// //     while (!InsideMyWorld(x_roll,y_roll)) {
-// //         x_roll = (float) (rand() % 70 - 35)/10;
-// //         y_roll = (float) (rand() % 70 - 35)/10;
-// //     }
-//     init_headind = rand() % 16;
-//     printf("\n %f %f %f %d %f \n", x_roll,y_roll,refalt,init_headind,headings_rad[init_headind]);
-// 
-//     // Now determine where to place the waypoint you want to go to
-//     new_coor.x = POS_BFP_OF_REAL(x_roll);
-//     new_coor.y = POS_BFP_OF_REAL(y_roll);
-//     new_coor.z = refalt; // Keep the height the same
-//     waypoint_move_enu_i(waypoint,&new_coor);
-// 
-//     return FALSE;
-// }
-
 uint8_t rl_init_ep(void)
 {
     rl_isterminal = 0;
@@ -384,7 +349,12 @@ uint8_t rl_set_cur(void)
 uint8_t rl_get_reward(void)
 {
     if (cur_act == 0){
-        cur_rew = -20;
+        if ((domcol_arr[0]+domcol_arr[1]+domcol_arr[2]) > 0 ) {
+            cur_rew = -5;
+        }
+        else {
+            cur_rew = -20;
+        }
     }
     else {
         cur_rew = -10;
