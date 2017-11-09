@@ -51,7 +51,7 @@ uint8_t domcol_arr[3] = {0,0,0};
 
 // dont understand why i have to define again here when they are included in
 // visrl.h
-float red_thresh = 0.45;
+float red_thresh = 0.46;
 float blue_thresh = 0.70;
 uint16_t min_pix_thresh = 1000;
 
