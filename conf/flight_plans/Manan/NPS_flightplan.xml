@@ -171,6 +171,9 @@
 	  <deroute block="SetupEpisode"/>
     </block>
     <block name="EndSession">
+      <stay wp="GOAL"/>
+    </block>
+    <block name="CleanUpSimsoft">
       <call fun="simsoft_cleanup()"/>
       <stay wp="GOAL"/>
     </block>
