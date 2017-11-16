@@ -225,6 +225,7 @@ uint8_t pick_action(char *mystate)
 
 void get_state_ext(char *curstate)
 {
+    uint8_t sta_cfrac;
 #ifdef VISRL_NPS
     cv_3grids();        // function only used to get cv data during simulation
 #endif
@@ -252,11 +253,13 @@ void get_state_ext(char *curstate)
             goals_visited = 3;
         }
     }
+    sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
 #else
     }
+    sta_cfrac = ((int) floor(countfracs[0]+countfracs[1]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
 #endif
 
-    uint8_t sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
+    // uint8_t sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
     // sprintf(curstate,"%d,%d,%d;%d;%d",
     sprintf(curstate,"%d,%d,%d;%d;%d;%d",
             domcol_arr[0],domcol_arr[1],domcol_arr[2],
