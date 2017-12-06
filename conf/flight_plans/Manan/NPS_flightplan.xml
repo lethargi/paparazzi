@@ -143,7 +143,7 @@
       <call fun="rl_write_episode_log()"/>
     </block>
     <block name="EndEp">
-	  <exception cond="epinum > rl_cur_episodes_limit-1" deroute="LogQdicts"/>
+	  <exception cond="epinum%10 == 0" deroute="LogQdicts"/>
 	  <exception cond="endrun" deroute="LogQdicts"/>
       <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
@@ -152,6 +152,11 @@
     <block name="LogQdicts">
       <call fun="print_qdict()"/>
       <call fun="copy_qdict()"/>
+    </block>
+    <block name="IncEpsCheck">
+	  <exception cond="epinum > rl_cur_episodes_limit-1" deroute="IncreaseCurMaxEps"/>
+	  <exception cond="endrun" deroute="IncreaseCurMaxEps"/>
+      <deroute block="SetupEpisode"/>
     </block>
     <block name="IncreaseCurMaxEps">
         <!-- <exception cond="endrun" deroute="EndRun"/> -->

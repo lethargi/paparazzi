@@ -65,7 +65,7 @@ float rl_alp = 0.3;
 int8_t rl_eps = 60;
 
 #ifdef VISRL_NPS
-uint8_t red_goal_reach_thresh = 5;
+uint8_t red_goal_reach_thresh = 4;
 uint8_t blue_goal_reach_thresh = 3;
 #else
 uint8_t red_goal_reach_thresh = 4;
@@ -531,15 +531,15 @@ uint8_t rl_update_qdict(void)
 uint8_t rl_check_terminal(void)
 {
     /* This bit to or development; Makes episodes end fast
-    if (steps_taken > 5) {
+    if (steps_taken > 3) {
         rl_isterminal = 1;
         // goals_visited = 1;
-        if (steps_taken < rl_maxsteps) {
-            steps_taken += rl_maxsteps;
-        }
-        else {
-            return 0;
-        }
+//         if (steps_taken < rl_maxsteps) {
+//             steps_taken += rl_maxsteps;
+//         }
+//         else {
+//             return 0;
+//         }
     }
     */
 

@@ -57,7 +57,7 @@ uint16_t failed_episodes_count;
 uint8_t sequential_failed_episodes;
 
 uint16_t rl_cur_episodes_limit;
-uint16_t rl_max_episodes_limit = 270;
+uint16_t rl_max_episodes_limit = 300;
 int16_t rl_cur_episodes_limit_change = 30;
 int8_t rl_cur_epsilon_change = 5;
 
