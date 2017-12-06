@@ -103,7 +103,7 @@ extern char option_start_sta[VISRL_STATESIZE];
 #endif
 
 extern int8_t headind;
-extern uint8_t headatcompass;
+// extern uint8_t headatcompass;
 
 extern uint8_t hitwall;
 extern uint8_t rl_isterminal;

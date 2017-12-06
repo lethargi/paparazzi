@@ -33,7 +33,7 @@ float headings_rad[16] = {0, M_PI/8., M_PI/4., 3*M_PI/8., M_PI/2., 5*M_PI/8.,
         13*M_PI/8, 7*M_PI/4., 15*M_PI/8};
 uint8_t len_headings = 16;
 int8_t headind = 0;
-uint8_t headatcompass = 1;
+// uint8_t headatcompass = 1;
 uint8_t init_headind;
 
 // States, actions and reward
@@ -157,6 +157,8 @@ uint8_t rl_init_uav(void)
 
 uint8_t pick_action(char *mystate)
 {
+    uint8_t possible_actions = VISRL_ACTIONS;
+    // uint8_t possible_actions;
 #ifdef VISRL_USEOPTIONS
     // if performing option of turning till color, return option action
     if (cur_act == 3) {
@@ -177,8 +179,15 @@ uint8_t pick_action(char *mystate)
             end_option = 1;
         }
     }
+
+    // if seeing any color, do not use options
+    if ((*(mystate) != '0') || (*(mystate+2) != '0') || (*(mystate+4) != '0')) {
+        possible_actions = 3;
+        printf("NoOpt: SeeingColor ");
+    }
 #endif
 
+//     printf("\nChars %c %c %c %c %c\n", *(mystate),*(mystate+1),*(mystate+2),*(mystate+3),*(mystate+4));
     uint8_t picked_action = 0;
     total_state_visits++;
 
@@ -188,7 +197,7 @@ uint8_t pick_action(char *mystate)
     if (curnode == NULL) {
         printf(" NewState ");
         curnode = md_prepend_list(ll_qdict,mystate);
-        picked_action = rand() % VISRL_ACTIONS;
+        picked_action = rand() % possible_actions;
         act_type = "R";
     }
     else {
@@ -202,7 +211,7 @@ uint8_t pick_action(char *mystate)
         else {
             // do random
             act_type = "R";
-            picked_action = rand() % VISRL_ACTIONS;
+            picked_action = rand() % possible_actions;
         }
         curnode->visits[picked_action]++;
     }
@@ -420,12 +429,13 @@ void rl_action_forward(void)
         hitwall = 1;
     }
     else {
-        if (headatcompass == 1) {
-            moveWaypointForwards(WP_GOAL,0.5);
-        }
-        else {
-            moveWaypointForwards(WP_GOAL,0.70710678118);
-        }
+        moveWaypointForwards(WP_GOAL,0.5);
+//         if (headatcompass == 1) {
+//             moveWaypointForwards(WP_GOAL,0.5);
+//         }
+//         else {
+//             moveWaypointForwards(WP_GOAL,0.70710678118);
+//         }
     }
 }
 
@@ -453,7 +463,7 @@ uint8_t rl_take_cur_action(void)
         rl_action_forward();
     }
     else {
-        headatcompass = (headatcompass == 1) ? 0 : 1;
+        // headatcompass = (headatcompass == 1) ? 0 : 1;
         // select index of heading from headings_rad array
         if (cur_act == 1) {
             rl_action_left();

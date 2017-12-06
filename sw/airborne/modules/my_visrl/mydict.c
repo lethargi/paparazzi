@@ -33,10 +33,18 @@ md_linkedlist *md_init_linkedlist(void)
 
 void md_node_best_action(md_node *cursor)
 {
+    uint8_t possible_actions = VISRL_ACTIONS;
     float cur_best_val = -FLT_MAX;
-    // uint8_t cur_best_act;
-    // printf(":: BA ");
-    for (int i = 0; i < VISRL_ACTIONS; i++){
+
+    // prevent option as a consideration of best action when seeing color
+#ifdef VISRL_USEOPTIONS
+    if ((cursor->key[0] != '0') || (cursor->key[2] != '0') || (cursor->key[4] != '0')) {
+        possible_actions = 3;
+        // printf("\nCannot Use Options");
+    }
+#endif
+
+    for (int i = 0; i < possible_actions; i++){
         // printf(" %d %.1e %.1e :",i,cursor->values[i],cur_best_val);
         if (cursor->values[i] > cur_best_val) {
             cur_best_val = cursor->values[i];
