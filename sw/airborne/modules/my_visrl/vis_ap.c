@@ -52,7 +52,7 @@ uint8_t domcol_arr[3] = {0,0,0};
 // dont understand why i have to define again here when they are included in
 // visrl.h
 float red_thresh = 0.46;
-float blue_thresh = 0.70;
+float blue_thresh = 0.46;
 uint16_t min_pix_thresh = 1000;
 
 
@@ -184,8 +184,11 @@ void my_image_yuv422_colorcounter(struct image_t *input)
     sumcount_arr[0] = redsum;
     // printf("white:%d \n",whitecount);
     colmax(count_arr,domcol_arr);
-    printf("\n %d %d %d", domcol_arr[0], domcol_arr[1], domcol_arr[2]);
-    printf(" | %d %d %d", count_arr[0][0], count_arr[0][1], count_arr[0][2]);
+    printf("\n%d,%d,%d ", domcol_arr[0], domcol_arr[1], domcol_arr[2]);
+    printf("|R%d,%d,%d ", count_arr[0][0], count_arr[0][1], count_arr[0][2]);
+#ifdef VISRL_TWOGOALS
+    printf("B%d,%d,%d", count_arr[1][0], count_arr[1][1], count_arr[1][2]);
+#endif
 }
 
 // Function

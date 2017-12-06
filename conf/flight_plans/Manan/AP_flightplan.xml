@@ -1,40 +1,41 @@
 <!DOCTYPE flight_plan SYSTEM "../flight_plan.dtd">
 
-<flight_plan alt="1.2" ground_alt="0" lat0="51.990634" lon0="4.376789" max_dist_from_home="20" name="Rotorcraft Optitrack (Delft)" security_height="0.3">
+<flight_plan alt="1.2" ground_alt="0" lat0="51.990634" lon0="4.376789" max_dist_from_home="20" name="Vision Based RL" security_height="0.3">
   <header>
 	#include "autopilot.h"
     #include "subsystems/ahrs.h"
     #include "subsystems/electrical.h"
     #include "subsystems/datalink/datalink.h"
-
     #ifdef VISRL_NPS
     #include "modules/my_visrl/vis_nps.h"
     #endif
     #ifdef VISRL_AP
 	#include "modules/my_visrl/vis_ap.h"
     #endif
-
 	#include "modules/my_visrl/visrl.h"
 	#include "modules/my_visrl/mynavfuncs.h"
 	#include "modules/my_visrl/simsoft.h"
 </header>
   <waypoints>
     <waypoint name="HOME" x="0.0" y="0.0"/>
-    <waypoint name="StartPos" lat="51.990634" lon="4.376789"/>
+    <waypoint lat="51.990634" lon="4.376789" name="StartPos"/>
     <waypoint name="CLIMB" x="0.0" y="2.5"/>
     <waypoint name="CURPOS" x="3" y="3.5"/>
     <waypoint name="STDBY" x="0" y="0"/>
     <waypoint name="GOAL" x="0" y="0"/>
     <waypoint name="HeightRef" x="3" y="7"/>
+    <!--
     <waypoint lat="51.990622" lon="4.376852" name="SZ1"/>
     <waypoint lat="51.990594" lon="4.376778" name="SZ2"/>
     <waypoint lat="51.990639" lon="4.376732" name="SZ3"/>
     <waypoint lat="51.990667" lon="4.376803" name="SZ4"/>
+-->
+    <waypoint lat="51.990674" lon="4.376801" name="SZ1"/>
+    <waypoint lat="51.990626" lon="4.376854" name="SZ2"/>
+    <waypoint lat="51.990597" lon="4.376777" name="SZ3"/>
+    <waypoint lat="51.990642" lon="4.376727" name="SZ4"/>
+
     <waypoint name="BoundaryChecker" x="0.25" y="0.25"/>
-    <!--
-    <waypoint height="12." name="CAM" x="-20" y="-50"/>
-    <waypoint name="XYFINDER" x="30" y="-30"/>
-    -->
     <waypoint name="TD" x="5" y="-5"/>
   </waypoints>
   <sectors>
@@ -88,10 +89,10 @@
     </block>
     <block name="SetupEpisode">
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
-      <call fun="rl_init_uav()"/> <!-- Not Made -->
+      <call fun="rl_init_uav()"/>
       <call fun="rl_smooth_turn(init_headind)"/>
-      <go from="CURPOS" wp="GOAL" hmode="route" approaching_time="0"/>
-      <stay wp="GOAL" until="stage_time>2"/>
+      <go approaching_time="0" from="CURPOS" hmode="route" wp="GOAL"/>
+      <stay until="stage_time>2" wp="GOAL"/>
     </block>
     <block name="InitRL">
       <call fun="rl_init_ep()"/>
@@ -112,10 +113,8 @@
       <call fun="rl_write_episode_log()"/>
     </block>
     <block name="EndEp">
-	  <exception cond="epinum > rl_cur_episodes_limit-1" deroute="LogQdicts"/>
-	  <exception cond="endrun" deroute="LogQdicts"/>
-      <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
-      <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
+      <exception cond="epinum > rl_cur_episodes_limit-1" deroute="LogQdicts"/>
+      <exception cond="endrun" deroute="LogQdicts"/>
       <deroute block="SetupEpisode"/>
     </block>
     <block name="LogQdicts">
@@ -123,21 +122,20 @@
       <call fun="copy_qdict()"/>
     </block>
     <block name="IncreaseCurMaxEps">
-        <!-- <exception cond="endrun" deroute="EndRun"/> -->
-	  <exception cond="endrun" deroute="WriteRunMetadata"/>
+      <exception cond="endrun" deroute="WriteRunMetadata"/>
       <call fun="rl_change_cur_episodes_limit(rl_cur_episodes_limit_change)"/>
       <call fun="rl_change_epsilon(rl_cur_epsilon_change)"/>
-	  <deroute block="SetupEpisode"/>
+      <deroute block="SetupEpisode"/>
     </block>
     <block name="WriteRunMetadata">
       <call fun="save_run_metadata()"/>
     </block>
     <block name="EndRun">
-	  <exception cond="endsess" deroute="EndSession"/>
+      <exception cond="endsess" deroute="EndSession"/>
       <call fun="rl_addruncounter()"/>
       <call fun="setup_run_fold()"/>
       <call fun="rl_resetrun()"/>
-	  <deroute block="SetupEpisode"/>
+      <deroute block="SetupEpisode"/>
     </block>
     <block name="EndSession">
       <call fun="simsoft_cleanup()"/>

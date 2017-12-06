@@ -253,10 +253,10 @@ void get_state_ext(char *curstate)
             goals_visited = 3;
         }
     }
-    sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
+    sta_cfrac = ((int) floor(countfracs[0]+countfracs[1]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0]+countfracs[1] ;
 #else
     }
-    sta_cfrac = ((int) floor(countfracs[0]+countfracs[1]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
+    sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
 #endif
 
     // uint8_t sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
