@@ -45,7 +45,7 @@
         <define name="VISRL_FPS" value="1"/>
         <define name="VISRL_USEOPTIONS"/>
         <!--define name="VISRL_RANDOMSTARTS" value="1"/-->
-        <!-- <define name="VISRL_TWOGOALS"/> -->
+        <define name="VISRL_TWOGOALS"/>
         <!--define name="VISRL_SARSA"/-->
     </module>
 
