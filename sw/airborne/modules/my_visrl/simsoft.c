@@ -357,6 +357,12 @@ uint8_t save_run_metadata(void)
     fprintf(runinfo_file,"StartType:AtOrigin\n");
 #endif
 
+#ifdef VISRL_USEOPTIONS
+    fprintf(runinfo_file,"Options:True\n");
+#else
+    fprintf(runinfo_file,"Options:False\n");
+#endif
+
     fprintf(runinfo_file,"Episodes:%d\n",epinum);
     fprintf(runinfo_file,"PixelCountThresh:: Red:%f Blue:%f\n",red_thresh,blue_thresh);
     fprintf(runinfo_file,"GoalReachThresh:: Red:%d, Blue:%d\n",red_goal_reach_thresh,blue_goal_reach_thresh);
