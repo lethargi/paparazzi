@@ -183,7 +183,7 @@ uint8_t pick_action(char *mystate)
     // if seeing any color, do not use options
     if ((*(mystate) != '0') || (*(mystate+2) != '0') || (*(mystate+4) != '0')) {
         possible_actions = 3;
-        printf("NoOpt: SeeingColor ");
+        // printf("NoOpt: SeeingColor ");
     }
 #endif
 
