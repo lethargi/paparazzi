@@ -380,11 +380,11 @@ uint8_t rl_get_reward(void)
         }
         else if (goals_visited == 1) {
             cur_rew += (countfracs[1])*rew_factor; //get reward for green
-            cur_rew -= (countfracs[0])*rew_factor; //deduct for seeing red
+            cur_rew -= (countfracs[0])*rew_factor*2; //deduct for seeing red
         }
         else if (goals_visited == 2) {
             cur_rew += (countfracs[0])*rew_factor; //reward for red
-            cur_rew -= (countfracs[1])*rew_factor; //deduct for green
+            cur_rew -= (countfracs[1])*rew_factor*2; //deduct for green
         }
 
         // if we are selecting an option include extra penalty

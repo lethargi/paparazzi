@@ -31,10 +31,14 @@
 
 
 // FILE LOCATIONS DURING NPS RUNS
+#ifndef VISRL_LOGGINGLOCATION
 #ifdef VISRL_NPS
 char save_location[] = "/home/alaj/_Study/AE9999_Thesis/playground/SavedQtabs/";
 #else
 char save_location[] = "/home/default/SavedQtabs/";
+#endif
+#else
+char save_location[] = STRINGIFY(VISRL_LOGGINGLOCATION);
 #endif
 
 uint8_t runnum;
