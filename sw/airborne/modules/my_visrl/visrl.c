@@ -360,7 +360,10 @@ uint8_t rl_set_cur(void)
 
 uint8_t rl_get_reward(void)
 {
+    // Increased penalty if going forward while not seeing color
+    // float rew_base; turing always has a lower penalty
     if (cur_act == 0){
+        // small base penalty if seeing color
         if ((domcol_arr[0]+domcol_arr[1]+domcol_arr[2]) > 0 ) {
             cur_rew = -5;
         }
@@ -371,32 +374,33 @@ uint8_t rl_get_reward(void)
     else {
         cur_rew = -10;
     }
-    float rew_factor = 1.5;
-    if (hitwall == 0) {
-        // cur_rew = reward_function[nxt_sta];
-        if (goals_visited == 0) {
-            cur_rew += (countfracs[0]+countfracs[1])*rew_factor;
-            //cur_rew += (countfracs[0]+countfracs[1])*3;
-        }
-        else if (goals_visited == 1) {
-            cur_rew += (countfracs[1])*rew_factor; //get reward for green
-            cur_rew -= (countfracs[0])*rew_factor*2; //deduct for seeing red
-        }
-        else if (goals_visited == 2) {
-            cur_rew += (countfracs[0])*rew_factor; //reward for red
-            cur_rew -= (countfracs[1])*rew_factor*2; //deduct for green
-        }
 
-        // if we are selecting an option include extra penalty
-        if (cur_act == 3) {
-            cur_rew -= 10;
-        }
-    }
-    else {
+    // flat big penalty if hit a wall in last state
+    if (hitwall) {
         hitwall = 0;
-        cur_rew = -20;
+        cur_rew = -100;
     }
-    // printf("Rew:%02.1f ",cur_rew);
+
+    // reward for seeing unvisited goal and penalty for seeing visited goal
+    float rew_factor = 1.5;
+    float same_goal_pen_factor = 4;
+    if (goals_visited == 0) {
+        cur_rew += (countfracs[0]+countfracs[1])*rew_factor;
+    }
+    else if (goals_visited == 1) {
+        cur_rew += (countfracs[1])*rew_factor; //get reward for green
+        cur_rew -= (countfracs[0])*same_goal_pen_factor; //deduct for seeing red
+    }
+    else if (goals_visited == 2) {
+        cur_rew += (countfracs[0])*rew_factor; //reward for red
+        cur_rew -= (countfracs[1])*same_goal_pen_factor; //deduct for green
+    }
+
+    // if we are selecting an option include extra penalty
+    if (cur_act == 3) {
+        cur_rew -= 10;
+    }
+
     printf(" %03.1f ",cur_rew);
 #ifdef VISRL_USEOPTIONS
     if (end_option == 1) {
