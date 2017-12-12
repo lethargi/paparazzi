@@ -363,8 +363,10 @@ uint8_t rl_get_reward(void)
     // Increased penalty if going forward while not seeing color
     // float rew_base; turing always has a lower penalty
     if (cur_act == 0){
-        // small base penalty if seeing color
-        if ((domcol_arr[0]+domcol_arr[1]+domcol_arr[2]) > 0 ) {
+        // small base penalty if going univisted goal in sight
+        if (((goals_visited == 0) && ((domcol_arr[0]+domcol_arr[1]+domcol_arr[2]) > 0 )) ||
+            ((goals_visited == 1) && ((domcol_arr[0] == 2) || (domcol_arr[1] == 2) || (domcol_arr[2] == 2))) ||
+            ((goals_visited == 2) && ((domcol_arr[0] == 1) || (domcol_arr[1] == 1) || (domcol_arr[2] == 1)))) {
             cur_rew = -5;
         }
         else {
@@ -382,33 +384,38 @@ uint8_t rl_get_reward(void)
     }
 
     // reward for seeing unvisited goal and penalty for seeing visited goal
-    float rew_factor = 1.5;
-    float same_goal_pen_factor = 4;
+    float rew_factor = 2;
+    float same_goal_pen_factor = 6;
     if (goals_visited == 0) {
         cur_rew += (countfracs[0]+countfracs[1])*rew_factor;
     }
     else if (goals_visited == 1) {
-        cur_rew += (countfracs[1])*rew_factor; //get reward for green
-        cur_rew -= (countfracs[0])*same_goal_pen_factor; //deduct for seeing red
+        cur_rew += (countfracs[1])*rew_factor; //get reward for blue
+        if ((domcol_arr[0] == 1) || (domcol_arr[1] == 1) || (domcol_arr[2] == 1)) {
+            cur_rew -= (countfracs[0])*same_goal_pen_factor + 30; //deduct for seeing red
+        }
     }
     else if (goals_visited == 2) {
         cur_rew += (countfracs[0])*rew_factor; //reward for red
-        cur_rew -= (countfracs[1])*same_goal_pen_factor; //deduct for green
+        if ((domcol_arr[0] == 2) || (domcol_arr[1] == 2) || (domcol_arr[2] == 2)) {
+            cur_rew -= (countfracs[1])*same_goal_pen_factor + 30; //deduct for blue
+        }
     }
 
     // if we are selecting an option include extra penalty
+
+#ifdef VISRL_USEOPTIONS
     if (cur_act == 3) {
-        cur_rew -= 10;
+        cur_rew -= 20;
     }
 
-    printf(" %03.1f ",cur_rew);
-#ifdef VISRL_USEOPTIONS
     if (end_option == 1) {
         episode_rewards += cur_rew;
     }
 #else
     episode_rewards += cur_rew;
 #endif
+    printf(" %03.1f ",cur_rew);
     return 0;
 }
 
