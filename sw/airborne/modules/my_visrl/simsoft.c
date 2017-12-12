@@ -61,9 +61,15 @@ uint16_t failed_episodes_count;
 uint8_t sequential_failed_episodes;
 
 uint16_t rl_cur_episodes_limit;
+#ifdef VISRL_2GOALS
+uint16_t rl_max_episodes_limit = 500;
+int16_t rl_cur_episodes_limit_change = 50;
+int8_t rl_cur_epsilon_change = 5;
+#else
 uint16_t rl_max_episodes_limit = 300;
 int16_t rl_cur_episodes_limit_change = 30;
 int8_t rl_cur_epsilon_change = 5;
+#endif
 
 // need to control over runs; Need to control over episodes;
 // Need to control run factor leves;
