@@ -367,14 +367,14 @@ uint8_t rl_get_reward(void)
         if (((goals_visited == 0) && ((domcol_arr[0]+domcol_arr[1]+domcol_arr[2]) > 0 )) ||
             ((goals_visited == 1) && ((domcol_arr[0] == 2) || (domcol_arr[1] == 2) || (domcol_arr[2] == 2))) ||
             ((goals_visited == 2) && ((domcol_arr[0] == 1) || (domcol_arr[1] == 1) || (domcol_arr[2] == 1)))) {
-            cur_rew = -5;
+            cur_rew = -10;
         }
         else {
             cur_rew = -20;
         }
     }
     else {
-        cur_rew = -10;
+        cur_rew = -15;
     }
 
     // flat big penalty if hit a wall in last state
@@ -385,23 +385,28 @@ uint8_t rl_get_reward(void)
 
     // reward for seeing unvisited goal and penalty for seeing visited goal
     float rew_factor = 2;
-    float same_goal_pen_factor = 6;
+    float same_goal_pen_factor = 2;
     if (goals_visited == 0) {
         cur_rew += (countfracs[0]+countfracs[1])*rew_factor;
     }
     else if (goals_visited == 1) {
         cur_rew += (countfracs[1])*rew_factor; //get reward for blue
         if ((domcol_arr[0] == 1) || (domcol_arr[1] == 1) || (domcol_arr[2] == 1)) {
-            cur_rew -= (countfracs[0])*same_goal_pen_factor + 30; //deduct for seeing red
+            cur_rew -= (countfracs[0])*same_goal_pen_factor + 10; //deduct for seeing red
         }
     }
     else if (goals_visited == 2) {
         cur_rew += (countfracs[0])*rew_factor; //reward for red
         if ((domcol_arr[0] == 2) || (domcol_arr[1] == 2) || (domcol_arr[2] == 2)) {
-            cur_rew -= (countfracs[1])*same_goal_pen_factor + 30; //deduct for blue
+            cur_rew -= (countfracs[1])*same_goal_pen_factor + 10; //deduct for blue
         }
     }
 
+    // Big reward if just visited a new goal
+    if (*(cur_sta+8) != *(nxt_sta+8)) {
+        cur_rew += 100;
+    }
+    // if (() || (*(mystate+2) != '0') || (*(mystate+4) != '0')) {
     // if we are selecting an option include extra penalty
 
 #ifdef VISRL_USEOPTIONS
