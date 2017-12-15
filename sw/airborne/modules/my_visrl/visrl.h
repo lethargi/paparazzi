@@ -41,6 +41,10 @@ extern uint16_t min_pix_thresh;
 extern uint8_t red_goal_reach_thresh;
 extern uint8_t blue_goal_reach_thresh;
 
+extern int16_t entanglement_count;
+extern int8_t stop_after_episode;
+extern uint8_t rl_unentangle_tether(void);
+
 extern void visrl_init(void);
 
 // extern uint8_t rl_randomize_start(uint8_t waypoint);
@@ -93,6 +97,7 @@ extern char *act_type;
 extern uint8_t cur_act;
 extern uint8_t nxt_act;
 extern char cur_sta[VISRL_STATESIZE], nxt_sta[VISRL_STATESIZE];
+extern float step_wait_time;
 
 extern uint8_t init_headind;
 

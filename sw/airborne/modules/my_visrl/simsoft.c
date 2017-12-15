@@ -61,6 +61,9 @@ uint16_t failed_episodes_count;
 uint8_t sequential_failed_episodes;
 
 uint16_t rl_cur_episodes_limit;
+
+// Setup the run settings depending on the run type
+#ifndef VISRL_AP
 #ifdef VISRL_2GOALS
 uint16_t rl_max_episodes_limit = 500;
 int16_t rl_cur_episodes_limit_change = 50;
@@ -68,6 +71,11 @@ int8_t rl_cur_epsilon_change = 5;
 #else
 uint16_t rl_max_episodes_limit = 300;
 int16_t rl_cur_episodes_limit_change = 30;
+int8_t rl_cur_epsilon_change = 5;
+#endif
+#else
+uint16_t rl_max_episodes_limit = 100;
+int16_t rl_cur_episodes_limit_change = 10;
 int8_t rl_cur_epsilon_change = 5;
 #endif
 
@@ -149,7 +157,7 @@ uint8_t rl_write_step_log(void)
     epi_log_file = fopen(eplog_addrs,"a");
     // Save the RL data for the step
     fprintf(epi_log_file,"%3u %4u %s %d %s % 3.0f", epinum, steps_taken,
-            cur_sta, cur_act, act_type, cur_rew);
+            nxt_sta, nxt_act, act_type, cur_rew);
     // Save absolute state data
     fprintf(epi_log_file," % 05.2f % 04.3f % 04.3f", DegOfRad(GetCurHeading()), GetPosX(),
             GetPosY());

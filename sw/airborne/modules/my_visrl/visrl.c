@@ -42,6 +42,7 @@ char *act_type = "R";
 uint8_t cur_act = 0;
 uint8_t nxt_act = 0;
 char cur_sta[VISRL_STATESIZE], nxt_sta[VISRL_STATESIZE];
+float step_wait_time = 1.0;
 
 #ifdef VISRL_USEOPTIONS
 uint8_t start_option = 0; //boolean to check if performing option
@@ -71,6 +72,9 @@ uint8_t blue_goal_reach_thresh = 3;
 uint8_t red_goal_reach_thresh = 4;
 uint8_t blue_goal_reach_thresh = 3;
 #endif
+
+int16_t entanglement_count = 0;
+int8_t stop_after_episode = 0;
 
 // Some vars for state
 // goals_visited 0 for none; 1 for red; 2 for green; 3 for both
@@ -215,13 +219,21 @@ uint8_t pick_action(char *mystate)
         }
         curnode->visits[picked_action]++;
     }
-    // printf(" Visits:%u ", currow_statevisits[picked_action]);
+
+    // set time to wait; if forward 1sec; if turn 0.15 sec
+    if (picked_action == 0) {
+        step_wait_time = 1.0;
+    }
+    else {
+        step_wait_time = 0.15;
+    }
 
 #ifdef VISRL_USEOPTIONS
     // if picking option, set boolean to true;
     if ((picked_action == 3) && (cur_act == 3)) {
         start_option = 1;
         end_option = 1;
+        printf("-------INSIDE REDUNDANT LOOP------");
     }
     else if (picked_action == 3) {
         start_option = 1;
@@ -378,6 +390,8 @@ uint8_t rl_get_reward(void)
     }
 
     // flat big penalty if hit a wall in last state
+    // May consider this putting this at the end so that hitting walls is
+    // always strongly penalized;regardless of seeing goals or not.
     if (hitwall) {
         hitwall = 0;
         cur_rew = -100;
@@ -431,6 +445,7 @@ uint8_t rl_set_nxt(void)
     get_state_ext(nxt_sta);
     nxt_act = pick_action(nxt_sta);
     rl_get_reward();
+    rl_write_step_log();
     // free(state_buffer);
 
     return 0;
@@ -462,6 +477,7 @@ void rl_action_left(void)
         headind = len_headings - 1;
     }
     nav_set_heading_rad(headings_rad[headind]);
+    entanglement_count++;
 }
 
 void rl_action_right(void)
@@ -471,6 +487,20 @@ void rl_action_right(void)
         headind = 0;
     }
     nav_set_heading_rad(headings_rad[headind]);
+    entanglement_count--;
+}
+
+uint8_t rl_unentangle_tether(void)
+{
+    // while (entanglement_count != 0) {
+    if (entanglement_count > 0) {
+        rl_action_right();
+    }
+    else if (entanglement_count < 0) {
+        rl_action_left();
+    }
+    return FALSE;
+    // }
 }
 
 uint8_t rl_take_cur_action(void)

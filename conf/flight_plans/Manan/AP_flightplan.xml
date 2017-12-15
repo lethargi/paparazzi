@@ -75,6 +75,11 @@
     <block name="WaitOnGoal">
       <stay wp="GOAL"/>
     </block>
+    <block name="StopAfterEpi">
+      <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
+      <stay wp="STDBY"/>
+      <call_once fun="stop_after_episode=0"/>
+    </block>
     <block name="RL_FOR">
       <call_once fun="rl_action_forward()"/>
       <stay wp="GOAL"/>
@@ -89,6 +94,13 @@
     </block>
     <block name="SetupEpisode">
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
+    </block>
+    <block name="SetupEpisode2_Unentangle">
+      <call fun="rl_unentangle_tether()"/>
+      <stay until="stage_time>0.05" wp="CURPOS"/>
+    </block>
+    <block name="SetupEpisode3_Initialize">
+      <exception cond="entanglement_count" deroute="SetupEpisode"/>
       <call fun="rl_init_uav()"/>
       <call fun="rl_smooth_turn(init_headind)"/>
       <go approaching_time="0" from="CURPOS" hmode="route" wp="GOAL"/>
@@ -101,9 +113,9 @@
     <block name="DoOneStep">
       <while cond="!rl_isterminal">
         <call fun="rl_set_cur()"/>
-        <call fun="rl_write_step_log()"/>
+        <!-- <call fun="rl_write_step_log()"/> -->
         <call fun="rl_take_cur_action()"/>
-        <stay until="stage_time>1" wp="GOAL"/>
+        <stay until="stage_time>step_wait_time" wp="GOAL"/>
         <call fun="rl_set_nxt()"/>
         <call fun="rl_update_qdict()"/>
         <call fun="rl_check_terminal()"/>
@@ -113,13 +125,21 @@
       <call fun="rl_write_episode_log()"/>
     </block>
     <block name="EndEp">
-      <exception cond="epinum > rl_cur_episodes_limit-1" deroute="LogQdicts"/>
-      <exception cond="endrun" deroute="LogQdicts"/>
+	  <exception cond="epinum%5 == 0" deroute="LogQdicts"/>
+	  <exception cond="endrun" deroute="LogQdicts"/>
+	  <exception cond="stop_after_episode" deroute="StopAfterEpi"/>
+      <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
+      <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
       <deroute block="SetupEpisode"/>
     </block>
     <block name="LogQdicts">
       <call fun="print_qdict()"/>
       <call fun="copy_qdict()"/>
+    </block>
+    <block name="IncEpsCheck">
+	  <exception cond="epinum > rl_cur_episodes_limit-1" deroute="IncreaseCurMaxEps"/>
+	  <exception cond="endrun" deroute="IncreaseCurMaxEps"/>
+      <deroute block="SetupEpisode"/>
     </block>
     <block name="IncreaseCurMaxEps">
       <exception cond="endrun" deroute="WriteRunMetadata"/>
