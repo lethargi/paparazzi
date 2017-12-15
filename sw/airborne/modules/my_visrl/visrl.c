@@ -217,8 +217,8 @@ uint8_t pick_action(char *mystate)
             act_type = "R";
             picked_action = rand() % possible_actions;
         }
-        curnode->visits[picked_action]++;
     }
+    curnode->visits[picked_action]++;
 
     // set time to wait; if forward 1sec; if turn 0.15 sec
     if (picked_action == 0) {

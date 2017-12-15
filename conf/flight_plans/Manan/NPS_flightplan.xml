@@ -133,7 +133,7 @@
         <call fun="rl_set_cur()"/>
         <!-- <call fun="rl_write_step_log()"/> -->
         <call fun="rl_take_cur_action()"/>
-        <stay until="stage_time>1" wp="GOAL"/>
+        <stay until="stage_time>step_wait_time" wp="GOAL"/>
         <call fun="rl_set_nxt()"/>
         <call fun="rl_update_qdict()"/>
         <call fun="rl_check_terminal()"/>
