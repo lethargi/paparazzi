@@ -347,9 +347,9 @@ uint8_t rl_init_ep(void)
     cur_rew = 0;
     goals_visited = 0;
     ep_success = 1;
-    rl_set_nxt();
     epinum++;
     // headind = 0;
+    rl_set_nxt();
     update_headind();
     printf("\n Episode initialized \n");
     printf(" TotVis:%u \n", total_state_visits);
