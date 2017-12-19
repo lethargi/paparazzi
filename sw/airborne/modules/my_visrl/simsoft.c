@@ -278,6 +278,11 @@ uint8_t rl_resetrun(void)
     md_free_list(ll_qdict);
     ll_qdict = md_init_linkedlist();
 
+    log_file = fopen(log_addrs,"w"); //create or reset logfile
+    epi_log_file = fopen(eplog_addrs,"w"); //create or reset epi logfile
+    fclose(log_file);
+    fclose(epi_log_file);
+
     failed_episodes_count = 0;
     sequential_failed_episodes = 0;
     run_success = 1;
