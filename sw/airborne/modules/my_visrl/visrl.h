@@ -28,6 +28,7 @@
 // #define VISRL_USEOPTIONS
 #include "modules/my_visrl/mydict.h"
 
+extern void visrl_init(void);
 
 // Variables for the CV functions
 extern uint32_t count_arr[2][3];
@@ -41,11 +42,12 @@ extern uint16_t min_pix_thresh;
 extern uint8_t red_goal_reach_thresh;
 extern uint8_t blue_goal_reach_thresh;
 
-extern int16_t entanglement_count;
-extern int8_t stop_after_episode;
-extern uint8_t rl_unentangle_tether(void);
+extern int8_t rl_eps;
+extern float rl_gamma;
+extern float rl_alp;
 
-extern void visrl_init(void);
+extern int8_t stop_after_episode;
+
 
 // extern uint8_t rl_randomize_start(uint8_t waypoint);
 // extern uint8_t rl_randomize_start(uint8_t waypoint, uint8_t altref_wp);
@@ -59,18 +61,23 @@ extern uint8_t rl_set_nxt(void);
 
 extern uint8_t rl_take_cur_action(void);
 extern void rl_action_forward(void);
-extern void rl_action_left(void);
+extern uint8_t rl_action_left(void);
 extern void rl_action_right(void);
 
+extern void rl_right2(void);
+extern void rl_left2(void);
+extern uint8_t rl_turn_to_targheadind(void);
+extern uint8_t rl_headind_normalize(int8_t inheadind);
+
+// Functions for unentangling the tether
+extern int16_t entanglement_count;
+extern uint8_t rl_unentangle_tether(void);
 
 extern uint8_t rl_update_qdict(void);
 extern uint8_t rl_check_terminal(void);
 extern uint8_t rl_print_qtab(void);
 
-
-extern int8_t rl_eps;
-extern float rl_gamma;
-extern float rl_alp;
+extern md_linkedlist *ll_qdict;
 
 void get_state_ext(char *curstate);
 float get_myheading(void);
@@ -82,7 +89,6 @@ uint8_t pick_action(char *state);
 uint8_t rl_get_reward(void);
 uint8_t copy_file(char *old_filename, char  *new_filename);
 
-extern md_linkedlist *ll_qdict;
 
 
 // Declaration of some variables for global tracking

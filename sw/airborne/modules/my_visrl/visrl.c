@@ -33,6 +33,7 @@ float headings_rad[16] = {0, M_PI/8., M_PI/4., 3*M_PI/8., M_PI/2., 5*M_PI/8.,
         13*M_PI/8, 7*M_PI/4., 15*M_PI/8};
 uint8_t len_headings = 16;
 int8_t headind = 0;
+int8_t cur_targ_headind = 0;
 // uint8_t headatcompass = 1;
 uint8_t init_headind;
 
@@ -451,6 +452,33 @@ uint8_t rl_set_nxt(void)
     return 0;
 }
 
+uint8_t rl_headind_normalize(int8_t inheadind)
+{
+    uint8_t outheadind;
+    if (inheadind == -1) {
+        outheadind = len_headings - 1;
+    }
+    else if (headind == len_headings) {
+        outheadind = 0;
+    }
+    else {
+        outheadind = inheadind;
+    }
+    return outheadind;
+}
+
+uint8_t rl_turn_to_targheadind(void)
+{
+    update_headind();
+    if (headind == cur_targ_headind) {
+        return FALSE;
+    }
+
+    float targ_heading = headings_rad[cur_targ_headind];
+    nav_set_heading_rad(targ_heading);
+    return TRUE;
+}
+
 void rl_action_forward(void)
 {
     NavSetWaypointHere(WP_BoundaryChecker);
@@ -470,14 +498,30 @@ void rl_action_forward(void)
     }
 }
 
-void rl_action_left(void)
+void rl_left2(void)
 {
-    headind--;
-    if (headind == -1) {
-        headind = len_headings - 1;
-    }
-    nav_set_heading_rad(headings_rad[headind]);
+    cur_targ_headind = headind - 1;
+    cur_targ_headind = rl_headind_normalize(cur_targ_headind);
     entanglement_count++;
+}
+
+void rl_right2(void)
+{
+    cur_targ_headind = headind + 1;
+    cur_targ_headind = rl_headind_normalize(cur_targ_headind);
+    entanglement_count--;
+}
+
+uint8_t rl_action_left(void)
+{
+    rl_left2();
+    return rl_turn_to_targheadind();
+//     headind--;
+//     if (headind == -1) {
+//         headind = len_headings - 1;
+//     }
+//     nav_set_heading_rad(headings_rad[headind]);
+//     entanglement_count++;
 }
 
 void rl_action_right(void)
@@ -492,19 +536,25 @@ void rl_action_right(void)
 
 uint8_t rl_unentangle_tether(void)
 {
-    // while (entanglement_count != 0) {
-    if (entanglement_count > 0) {
-        rl_action_right();
+    if (entanglement_count) {
+        if (headind == cur_targ_headind) {
+            if (entanglement_count > 0) {
+                rl_right2();
+            }
+            else {
+                rl_left2();
+            }
+        }
+        rl_turn_to_targheadind();
+        return TRUE;
     }
-    else if (entanglement_count < 0) {
-        rl_action_left();
-    }
-    return FALSE;
+    else { return FALSE; }
     // }
 }
 
 uint8_t rl_take_cur_action(void)
 {
+    steps_taken++;
     if (cur_act == 0) {
         rl_action_forward();
     }
@@ -512,13 +562,15 @@ uint8_t rl_take_cur_action(void)
         // headatcompass = (headatcompass == 1) ? 0 : 1;
         // select index of heading from headings_rad array
         if (cur_act == 1) {
-            rl_action_left();
+            rl_left2();
+            // return rl_action_left();
         }
         else if ((cur_act == 2) || (cur_act == 3)) {
-            rl_action_right();
+            rl_right2();
+            // rl_action_right();
         }
+        rl_turn_to_targheadind();
     }
-    steps_taken++;
     return FALSE;
 }
 
