@@ -177,6 +177,7 @@ uint8_t pick_action(char *mystate)
             // printf(" %d ",seeing_color);
         }
         if (!seeing_color) {
+            // step_wait_time = 1.0;
             printf(" %d %d ",start_option, end_option);
             return 3;
         }
@@ -222,11 +223,11 @@ uint8_t pick_action(char *mystate)
     curnode->visits[picked_action]++;
 
     // set time to wait; if forward 1sec; if turn 0.15 sec
-    if (picked_action == 0) {
+    if (picked_action == 0) || (picked_action == 3) {
         step_wait_time = 1.0;
     }
     else {
-        step_wait_time = 0.15;
+        step_wait_time = 0.25;
     }
 
 #ifdef VISRL_USEOPTIONS
@@ -458,7 +459,7 @@ uint8_t rl_headind_normalize(int8_t inheadind)
     if (inheadind == -1) {
         outheadind = len_headings - 1;
     }
-    else if (headind == len_headings) {
+    else if (inheadind == len_headings) {
         outheadind = 0;
     }
     else {
@@ -469,13 +470,14 @@ uint8_t rl_headind_normalize(int8_t inheadind)
 
 uint8_t rl_turn_to_targheadind(void)
 {
-    update_headind();
+    // printf("\n INSIDE TURN_TO_TARGHEADIND \n");
     if (headind == cur_targ_headind) {
         return FALSE;
     }
 
     float targ_heading = headings_rad[cur_targ_headind];
     nav_set_heading_rad(targ_heading);
+    update_headind();
     return TRUE;
 }
 
@@ -503,6 +505,7 @@ void rl_left2(void)
     cur_targ_headind = headind - 1;
     cur_targ_headind = rl_headind_normalize(cur_targ_headind);
     entanglement_count++;
+    // printf("\n RL_LEFT2:: ENTANG:%d :: headind:%d :: targHeadind: %d\n", entanglement_count,headind,cur_targ_headind);
 }
 
 void rl_right2(void)
@@ -510,6 +513,7 @@ void rl_right2(void)
     cur_targ_headind = headind + 1;
     cur_targ_headind = rl_headind_normalize(cur_targ_headind);
     entanglement_count--;
+    // printf("\n RL_RIGHT2:: ENTANG:%d :: headind:%d :: targHeadind: %d\n", entanglement_count,headind,cur_targ_headind);
 }
 
 uint8_t rl_action_left(void)
@@ -536,19 +540,24 @@ void rl_action_right(void)
 
 uint8_t rl_unentangle_tether(void)
 {
+    // printf("ENTANG:%d :: headind:%d :: targHeadind: %d\n", entanglement_count,headind,cur_targ_headind);
     if (entanglement_count) {
         if (headind == cur_targ_headind) {
             if (entanglement_count > 0) {
                 rl_right2();
             }
-            else {
+            else if (entanglement_count < 0) {
                 rl_left2();
             }
         }
-        rl_turn_to_targheadind();
-        return TRUE;
     }
-    else { return FALSE; }
+    else {
+        // update_headind();
+        headind = cur_targ_headind;
+        return FALSE;
+    }
+    rl_turn_to_targheadind();
+    return TRUE;
     // }
 }
 
@@ -570,6 +579,7 @@ uint8_t rl_take_cur_action(void)
             // rl_action_right();
         }
         rl_turn_to_targheadind();
+        headind = cur_targ_headind;
     }
     return FALSE;
 }
