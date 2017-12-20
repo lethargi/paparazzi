@@ -223,7 +223,7 @@ uint8_t pick_action(char *mystate)
     curnode->visits[picked_action]++;
 
     // set time to wait; if forward 1sec; if turn 0.15 sec
-    if (picked_action == 0) || (picked_action == 3) {
+    if ((picked_action == 0) || (picked_action == 3)) {
         step_wait_time = 1.0;
     }
     else {
