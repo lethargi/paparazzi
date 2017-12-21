@@ -78,7 +78,6 @@
     <block name="StopAfterEpi">
       <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
       <stay wp="STDBY"/>
-      <call_once fun="stop_after_episode=0"/>
     </block>
     <block name="RL_FOR">
       <call_once fun="rl_action_forward()"/>
