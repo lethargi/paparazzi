@@ -55,6 +55,8 @@ float red_thresh = 0.46;
 float blue_thresh = 0.46;
 uint16_t min_pix_thresh = 1000;
 
+uint8_t do_visrl_cv = 0;
+
 
 uint8_t colmax(uint32_t colarr[2][3],uint8_t maxcolarr[3])
 {
@@ -192,10 +194,13 @@ void my_image_yuv422_colorcounter(struct image_t *input)
 }
 
 // Function
-struct image_t *colorfilter_func(struct image_t *img)
+struct image_t *visrl_cv_func(struct image_t *img)
 {
   // Filter
-  my_image_yuv422_colorcounter(img);
+    if (do_visrl_cv) {
+        my_image_yuv422_colorcounter(img);
+        do_visrl_cv = 0;
+    }
 
     //Print the statez
     /* Prints the color state information
@@ -239,12 +244,16 @@ struct image_t *colorfilter_func(struct image_t *img)
     */
     // image_free(&img2);
 
-  return img;
+    return img;
 }
 
 void vis_ap_init(void)
 {
-  listener = cv_add_to_device(&VISRL_CAMERA, colorfilter_func, VISRL_FPS);
+    listener = cv_add_to_device(&VISRL_CAMERA, visrl_cv_func, VISRL_FPS);
 }
 
-uint8_t cv_3grids(void) { return 0; }
+uint8_t cv_3grids(void) {
+    do_visrl_cv = 1;
+    return 0;
+    // return 0;
+}

@@ -6,7 +6,7 @@
           navigation for the thesis of Manan Siddiquee.
       The Flight plan should have a waypoint labelled goal</description>
     <define name="VISRL_CAMERA" value="front_camera|bottom_camera" description="Video device to use"/>
-    <define name="VISRL_FPS" value="0" description="The (maximum) frequency to run the calculations at. If zero, it will max out at the camera frame rate"/>
+    <define name="VISRL_FPS" value="5" description="The (maximum) frequency to run the calculations at. If zero, it will max out at the camera frame rate"/>
     <define name="VISRL_USEOPTIONS" description="Macro to trigger the use of option to turn till color is seen"/>
     <define name="VISRL_TWOGOALS" description="Macro to trigger the selection of two goal task"/>
     <define name="VISRL_SARSA" description="triggers the use of SARSA learning"/>
@@ -53,8 +53,6 @@
   <!--<periodic fun="a" freq="0.5" autorun="TRUE"/>-->
   <makefile target="ap">
     <define name="VISRL_AP"/>
-        <define name="VIS_CAMERA" value="front_camera"/>
-        <define name="VIS_FPS" value="1"/>
     <file name="vis_ap.c" dir="modules/my_visrl/"/>
     <file name="mynavfuncs.c" dir="modules/my_visrl/"/>
     <file name="simsoft.c" dir="modules/my_visrl/"/>

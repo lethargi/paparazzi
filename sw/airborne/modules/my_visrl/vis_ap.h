@@ -29,10 +29,12 @@
 #include <stdint.h>
 #include "modules/computer_vision/cv.h"
 
+uint8_t do_visrl_cv;
+
 // Module functions
 uint8_t colmax(uint32_t colarr[3][3],uint8_t maxcolarr[3]);
 void my_image_yuv422_colorcounter(struct image_t *input);
-extern struct image_t *colorfilter_func(struct image_t *img);
+extern struct image_t *visrl_cv_func(struct image_t *img);
 
 extern struct video_listener *listener;
 
