@@ -30,6 +30,7 @@
 #include "modules/computer_vision/cv.h"
 
 uint8_t do_visrl_cv;
+// struct image_t *cur_image;
 
 // Module functions
 uint8_t colmax(uint32_t colarr[3][3],uint8_t maxcolarr[3]);

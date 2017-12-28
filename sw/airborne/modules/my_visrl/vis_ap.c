@@ -35,6 +35,8 @@ PRINT_CONFIG_VAR(VISRL_FPS)
 
 struct video_listener *listener = NULL;
 
+struct image_t *cur_image;
+
 // Filter Settings
 
 uint32_t count_arr[2][3] = {{0}};
@@ -201,6 +203,11 @@ struct image_t *visrl_cv_func(struct image_t *img)
         my_image_yuv422_colorcounter(img);
         do_visrl_cv = 0;
     }
+    // cur_image = img;
+//     printf("DidThis");
+//     image_create(cur_image, img->w, img->h, img->type);
+//     printf("ThisTOO");
+//     image_copy(img, cur_image);
 
     //Print the statez
     /* Prints the color state information
@@ -253,6 +260,7 @@ void vis_ap_init(void)
 }
 
 uint8_t cv_3grids(void) {
+    // my_image_yuv422_colorcounter(cur_image);
     do_visrl_cv = 1;
     return 0;
     // return 0;

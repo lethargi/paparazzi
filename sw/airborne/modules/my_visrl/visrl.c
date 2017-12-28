@@ -223,11 +223,11 @@ uint8_t pick_action(char *mystate)
     curnode->visits[picked_action]++;
 
     // set time to wait; if forward 1sec; if turn 0.15 sec
-    if ((picked_action == 0) || (picked_action == 3)) {
+    if ((picked_action == 0)) { // || (picked_action == 3)) {
         step_wait_time = 1.0;
     }
     else {
-        step_wait_time = 0.25;
+        step_wait_time = 0.5;
     }
 
 #ifdef VISRL_USEOPTIONS
@@ -249,9 +249,9 @@ uint8_t pick_action(char *mystate)
 void get_state_ext(char *curstate)
 {
     uint8_t sta_cfrac;
-#ifdef VISRL_NPS
+// #ifdef VISRL_NPS
     cv_3grids();        // function only used to get cv data during simulation
-#endif
+// #endif
     for (int i = 0; i < 2; i++) {
         countfracs[i] = (float)sumcount_arr[i]/(float)5000;
     }
@@ -342,6 +342,7 @@ uint8_t rl_smooth_turn(uint8_t targhead_ind)
 
 uint8_t rl_init_ep(void)
 {
+    cv_3grids();        // function only used to get cv data during simulation
     rl_isterminal = 0;
     steps_taken = 0;
     sum_dQ = 0;
