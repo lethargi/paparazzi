@@ -55,9 +55,10 @@ uint8_t domcol_arr[3] = {0,0,0};
 // visrl.h
 float red_thresh = 0.46;
 float blue_thresh = 0.46;
-uint16_t min_pix_thresh = 1000;
+uint16_t min_pix_thresh = 1500;
 
 uint8_t do_visrl_cv = 0;
+uint8_t visrl_cv_done = 0;
 
 
 uint8_t colmax(uint32_t colarr[2][3],uint8_t maxcolarr[3])
@@ -199,10 +200,14 @@ void my_image_yuv422_colorcounter(struct image_t *input)
 struct image_t *visrl_cv_func(struct image_t *img)
 {
   // Filter
-    if (do_visrl_cv) {
-        my_image_yuv422_colorcounter(img);
-        do_visrl_cv = 0;
-    }
+    // if (do_visrl_cv) {
+    my_image_yuv422_colorcounter(img);
+//         do_visrl_cv = 0;
+//         visrl_cv_done = 1;
+//     }
+//     else {
+//         visrl_cv_done = 0;
+//     }
     // cur_image = img;
 //     printf("DidThis");
 //     image_create(cur_image, img->w, img->h, img->type);
@@ -261,7 +266,13 @@ void vis_ap_init(void)
 
 uint8_t cv_3grids(void) {
     // my_image_yuv422_colorcounter(cur_image);
-    do_visrl_cv = 1;
+//     do_visrl_cv = 1;
+//     if (visrl_cv_done) {
+//         visrl_cv_done = 0;
+//         return 0;
+//     }
+//     else {
+//         return TRUE;
+//     }
     return 0;
-    // return 0;
 }

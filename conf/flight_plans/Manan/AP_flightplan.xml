@@ -36,7 +36,7 @@
     <waypoint lat="51.990642" lon="4.376727" name="SZ4"/>
 
     <waypoint name="BoundaryChecker" x="0.25" y="0.25"/>
-    <waypoint name="TD" x="5" y="-5"/>
+    <waypoint name="TD" x="2" y="-2"/>
   </waypoints>
   <sectors>
     <sector color="green" name="MyWorld">
