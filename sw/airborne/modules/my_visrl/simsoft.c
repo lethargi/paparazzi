@@ -368,7 +368,7 @@ uint8_t save_run_metadata(void)
     fprintf(runinfo_file,"LearnType:Qlearn\n");
 #endif
 
-#ifdef VISRL_2GOALS
+#ifdef VISRL_TWOGOALS
     fprintf(runinfo_file,"TaskType:2Goals\n");
 #else
     fprintf(runinfo_file,"TaskType:TurnToGoal\n");
