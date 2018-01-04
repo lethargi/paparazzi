@@ -46,7 +46,7 @@ uint8_t endrun, endsess; // variable set in visrl.c to control the end of run; i
 
 uint8_t ep_success, run_success;
 
-uint8_t rl_maxruns = 10;
+uint8_t rl_maxruns = 50;
 int8_t printerror;
 
 char *runname, *sessname, *sessfold, *runfold, *copy_location;
