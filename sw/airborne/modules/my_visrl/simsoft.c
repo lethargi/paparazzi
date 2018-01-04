@@ -64,7 +64,7 @@ uint16_t rl_cur_episodes_limit;
 
 // Setup the run settings depending on the run type
 #ifndef VISRL_AP
-#ifdef VISRL_2GOALS
+#ifdef VISRL_TWOGOALS
 uint16_t rl_max_episodes_limit = 500;
 int16_t rl_cur_episodes_limit_change = 50;
 int8_t rl_cur_epsilon_change = 5;
