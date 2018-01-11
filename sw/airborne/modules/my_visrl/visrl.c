@@ -411,6 +411,7 @@ uint8_t rl_get_reward(void)
     }
 
     // reward for seeing unvisited goal and penalty for seeing visited goal
+    // (CAN MAYBE MAKE THESE GLOBAL)
     float rew_factor = 2;
     float same_goal_pen_factor = 2;
     if (goals_visited == 0) {
