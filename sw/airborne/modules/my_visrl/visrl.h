@@ -59,6 +59,13 @@ extern uint8_t rl_init_ep(void);
 extern uint8_t rl_set_cur(void);
 extern uint8_t rl_set_nxt(void);
 
+///// TESTING FOR FEEDBACK FROM ACTIONS
+uint8_t rl_check_goal_arrival(void);
+uint8_t rl_setup_cur_action(void);
+uint8_t rl_take_cur_action2(void);
+uint8_t rl_turn_to_targheadind2(void);
+///// DONE WITH EXTRA ADDITIONS
+
 extern uint8_t rl_take_cur_action(void);
 extern void rl_action_forward(void);
 extern uint8_t rl_action_left(void);

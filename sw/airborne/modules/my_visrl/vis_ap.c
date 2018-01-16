@@ -199,6 +199,7 @@ void my_image_yuv422_colorcounter(struct image_t *input)
 // Function
 struct image_t *visrl_cv_func(struct image_t *img)
 {
+    // printf("Inside_VISRLCVFUNC\n");
   // Filter
     if (do_visrl_cv) {
         my_image_yuv422_colorcounter(img);
@@ -262,7 +263,10 @@ struct image_t *visrl_cv_func(struct image_t *img)
 
 void vis_ap_init(void)
 {
-    listener = cv_add_to_device(&VISRL_CAMERA, visrl_cv_func, VISRL_FPS);
+    // listener = cv_add_to_device(&VISRL_CAMERA, visrl_cv_func, VISRL_FPS);
+    cv_add_to_device_async(&VISRL_CAMERA, visrl_cv_func, 5, VISRL_FPS);
+    fprintf(stderr, "[viewvideo] Added asynchronous video streamer listener for CAMERA at %u FPS for vision based reinforcement learning \n", VISRL_FPS);
+
 }
 
 uint8_t cv_3grids(void) {

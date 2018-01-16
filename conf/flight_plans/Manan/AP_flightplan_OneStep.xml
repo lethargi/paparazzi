@@ -101,31 +101,37 @@
       <call fun="rl_unentangle_tether()"/>
       <stay wp="GOAL"/>
     </block>
+    <block name="CV_3GRIDS">
+      <call fun="cv_3grids()"/>
+      <stay wp="GOAL"/>
+    </block>
     <block name="SetupEpisode">
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
       <call fun="rl_unentangle_tether()"/>
       <call fun="rl_init_uav()"/>
       <call fun="rl_smooth_turn(init_headind)"/>
       <go approaching_time="0" from="CURPOS" hmode="route" wp="GOAL"/>
-      <stay until="stage_time>2" wp="GOAL"/>
+      <stay wp="GOAL"/>
     </block>
     <block name="InitRL">
       <call fun="cv_3grids()"/>
       <stay until="stage_time>1" wp="GOAL"/>
       <call fun="rl_init_ep()"/>
+      <stay wp="GOAL"/>
     </block>
     <block name="DoOneStep">
-      <while cond="!rl_isterminal">
           <!-- <call fun="cv_3grids()"/> -->
         <call fun="rl_set_cur()"/>
         <!-- <call fun="rl_write_step_log()"/> -->
-        <call fun="rl_take_cur_action()"/>
-        <stay until="stage_time>step_wait_time" wp="GOAL"/>
+        <call fun="rl_setup_cur_action()"/>
+        <call fun="rl_take_cur_action2()"/>
+        <!-- <call fun="rl_take_cur_action()"/> -->
+        <!-- <stay until="stage_time>step_wait_time" wp="GOAL"/> -->
         <call fun="cv_3grids()"/>
         <call fun="rl_set_nxt()"/>
         <call fun="rl_update_qdict()"/>
         <call fun="rl_check_terminal()"/>
-      </while>
+        <stay wp="GOAL"/>
     </block>
     <block name="WriteEpiLog">
       <call fun="rl_write_episode_log()"/>
