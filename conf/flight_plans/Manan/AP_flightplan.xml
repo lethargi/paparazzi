@@ -121,6 +121,7 @@
         <!-- <call fun="rl_write_step_log()"/> -->
         <call fun="rl_take_cur_action()"/>
         <stay until="stage_time>step_wait_time" wp="GOAL"/>
+        <call fun="cv_3grids()"/>
         <call fun="rl_set_nxt()"/>
         <call fun="rl_update_qdict()"/>
         <call fun="rl_check_terminal()"/>

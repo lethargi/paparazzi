@@ -200,10 +200,11 @@ void my_image_yuv422_colorcounter(struct image_t *input)
 struct image_t *visrl_cv_func(struct image_t *img)
 {
   // Filter
-    // if (do_visrl_cv) {
-    my_image_yuv422_colorcounter(img);
-//         do_visrl_cv = 0;
-//         visrl_cv_done = 1;
+    if (do_visrl_cv) {
+        my_image_yuv422_colorcounter(img);
+        // do_visrl_cv = 0;
+        visrl_cv_done = TRUE;
+    }
 //     }
 //     else {
 //         visrl_cv_done = 0;
@@ -266,13 +267,14 @@ void vis_ap_init(void)
 
 uint8_t cv_3grids(void) {
     // my_image_yuv422_colorcounter(cur_image);
-//     do_visrl_cv = 1;
-//     if (visrl_cv_done) {
-//         visrl_cv_done = 0;
-//         return 0;
-//     }
-//     else {
-//         return TRUE;
-//     }
-    return 0;
+    do_visrl_cv = TRUE;
+    if (visrl_cv_done) {
+        visrl_cv_done = FALSE;
+        do_visrl_cv = FALSE;
+        return FALSE;
+    }
+    else {
+        return TRUE;
+    }
+    // return 0;
 }

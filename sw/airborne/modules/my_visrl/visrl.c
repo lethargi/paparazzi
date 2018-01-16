@@ -259,9 +259,9 @@ uint8_t pick_action(char *mystate)
 void get_state_ext(char *curstate)
 {
     uint8_t sta_cfrac;
-// #ifdef VISRL_NPS
+#ifdef VISRL_NPS
     cv_3grids();        // function only used to get cv data during simulation
-// #endif
+#endif
     for (int i = 0; i < 2; i++) {
         countfracs[i] = (float)sumcount_arr[i]/(float)5000;
     }
