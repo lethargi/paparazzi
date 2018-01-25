@@ -201,62 +201,24 @@ struct image_t *visrl_cv_func(struct image_t *img)
 {
     // printf("Inside_VISRLCVFUNC\n");
   // Filter
+    my_image_yuv422_colorcounter(img);
     if (do_visrl_cv) {
-        my_image_yuv422_colorcounter(img);
+        // my_image_yuv422_colorcounter(img);
         // do_visrl_cv = 0;
         visrl_cv_done = TRUE;
     }
-//     }
-//     else {
-//         visrl_cv_done = 0;
-//     }
-    // cur_image = img;
-//     printf("DidThis");
-//     image_create(cur_image, img->w, img->h, img->type);
-//     printf("ThisTOO");
-//     image_copy(img, cur_image);
 
-    //Print the statez
-    /* Prints the color state information
-  char colors[] = "RGB";
-    printf("\tcol1 \tcol2 \tcol3\n");
-    for (int ri = 0; ri < 3; ri++) {
-        printf("%c:",colors[ri]);
-        for (int ci = 0; ci <3; ci++) {
-            printf("\t%d",count_arr[ri][ci]);
-        }
-        printf("\n");
-    }
-    */
-
-
-  // Draw lines for the columns
-//     uint16_t w_first, w_second;
-// 
-//     w_first = img->w/3;
-//     w_second = 2*w_first;
-
-//     struct point_t myfrom = { w_first, 0 };
-//     struct point_t myto = { w_first, img->h };
-    // printf("w_first:%d img->h:%d\n",w_first,img->h);
+    /*
     static uint8_t linecol[4] = {200, 100, 200, 100};
     struct point_t myfrom = { 425, 0 };
     struct point_t myto = { 425, 720 };
     struct point_t myfrom2 = { 900, 0 };
     struct point_t myto2 = { 900, 720 };
 
-//     image_draw_line_color(img, &myfrom, &myto, linecol);
-//     image_draw_line_color(img, &myfrom2, &myto2, linecol);
-
     image_draw_line_color(img, &myfrom, &myto, linecol);
     image_draw_line_color(img, &myfrom2, &myto2, linecol);
-
-//     struct point_t myfrom3 = { 920, 0 };
-//     struct point_t myto3 = { 920, 720 };
-    // image_draw_line_color(img, &myfrom3, &myto3, linecol);
-    /*
     */
-    // image_free(&img2);
+
 
     return img;
 }

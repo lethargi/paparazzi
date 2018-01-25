@@ -110,8 +110,8 @@
       <stay until="stage_time>2" wp="GOAL"/>
     </block>
     <block name="InitRL">
-      <call fun="cv_3grids()"/>
       <stay until="stage_time>1" wp="GOAL"/>
+      <call fun="cv_3grids()"/>
       <call fun="rl_init_ep()"/>
     </block>
     <block name="DoOneStep">
