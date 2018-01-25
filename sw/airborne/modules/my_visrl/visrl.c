@@ -237,15 +237,15 @@ uint8_t pick_action(char *mystate)
     if (picked_action == 3) {
         // this never happens as its not possible to select options twice in
         // row
-        if (cur_act == 3) {
-            start_option = 1;
-            end_option = 1;
-            printf("-------INSIDE REDUNDANT LOOP------");
-        }
-        else {
-            start_option = 1;
-            end_option = 0;
-        }
+//         if (cur_act == 3) {
+//             start_option = 1;
+//             end_option = 1;
+//             printf("-------INSIDE REDUNDANT LOOP------");
+//         }
+//         else {
+        start_option = 1;
+        end_option = 0;
+        // }
         opts_rew = 0;
     }
 //     if ((picked_action == 3) && (cur_act == 3)) {
@@ -360,6 +360,12 @@ uint8_t rl_init_ep(void)
     episode_rewards = 0;
     cur_rew = 0;
     goals_visited = 0;
+
+    // Reset options counters
+    start_option = 0;
+    end_option = 1;
+    opts_rew = 0;
+
     ep_success = 1;
     epinum++;
     // headind = 0;
@@ -526,11 +532,11 @@ void rl_left2(void)
 
 void rl_right2(void)
 {
-    printf("\nGOing RIghtd %d %d \n",cur_targ_headind, headind);
+    // printf("\nGOing RIghtd %d %d \n",cur_targ_headind, headind);
     cur_targ_headind = headind + 1;
     cur_targ_headind = rl_headind_normalize(cur_targ_headind);
     entanglement_count--;
-    printf("\nSet going right %d %d \n",cur_targ_headind, headind);
+    // printf("\nSet going right %d %d \n",cur_targ_headind, headind);
     // printf("\n RL_RIGHT2:: ENTANG:%d :: headind:%d :: targHeadind: %d\n", entanglement_count,headind,cur_targ_headind);
 }
 
@@ -587,9 +593,9 @@ uint8_t rl_turn_to_targheadind2(void)
     float normed_heading, targ_heading;
     normed_heading = get_myheading();
     targ_heading = headings_rad[cur_targ_headind];
-    printf("\n Normed_heading: %f, targ_heading:%f cur_targ_headind:%d \n", normed_heading, targ_heading, cur_targ_headind);
+    // printf("\n Normed_heading: %f, targ_heading:%f cur_targ_headind:%d \n", normed_heading, targ_heading, cur_targ_headind);
 
-    if (fabs(normed_heading - targ_heading) < 0.0075 )  {
+    if (fabs(normed_heading - targ_heading) < 0.015 )  {
         return FALSE;
     }
     nav_set_heading_rad(targ_heading);
@@ -601,7 +607,7 @@ uint8_t rl_check_goal_arrival(void)
 {
     float dist2_to_goal;
     dist2_to_goal = get_dist2_to_waypoint(WP_GOAL);
-    printf("\n InCheckGoalArrival %f", dist2_to_goal);
+    // printf("\n InCheckGoalArrival %f", dist2_to_goal);
 
     if (dist2_to_goal > 0.1) {
         return TRUE;
@@ -614,7 +620,7 @@ uint8_t rl_check_goal_arrival(void)
 uint8_t rl_setup_cur_action(void)
 {
     steps_taken++;
-    printf("\nCurAct:%d \n", cur_act);
+    // printf("\nCurAct:%d \n", cur_act);
     if (cur_act == 0) {
         rl_action_forward();
         NavSetWaypointHere(WP_CURPOS);
@@ -632,7 +638,7 @@ uint8_t rl_setup_cur_action(void)
         }
         headind = cur_targ_headind;
     }
-    printf("\nCurActSetup:%d \n", cur_act);
+    // printf("\nCurActSetup:%d \n", cur_act);
     return FALSE;
 }
 
