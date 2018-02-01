@@ -353,6 +353,10 @@ uint8_t rl_smooth_turn(uint8_t targhead_ind)
 uint8_t rl_init_ep(void)
 {
     cv_3grids();        // function only used to get cv data during simulation
+#ifdef VISRL_USEOPTIONS
+    start_option = 0;
+    end_option = 0;
+#endif
     rl_isterminal = 0;
     steps_taken = 0;
     sum_dQ = 0;

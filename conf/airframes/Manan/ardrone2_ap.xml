@@ -38,7 +38,7 @@
         <define name="VISRL_CAMERA" value="front_camera"/>
         <define name="VISRL_USEOPTIONS"/>
         <!-- <define name="VISRL_TWOGOALS"/> -->
-        <define name="VISRL_FPS" value="15"/>
+        <define name="VISRL_FPS" value="5"/>
     </module>
 
     <module name="video_rtp_stream">
