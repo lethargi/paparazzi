@@ -411,6 +411,8 @@ uint8_t rl_get_reward(void)
     // if (() || (*(mystate+2) != '0') || (*(mystate+4) != '0')) {
     // if we are selecting an option include extra penalty
 
+    /* Feb 5th 2018; getting rid of opts_rew logic and updating options every
+     * step
 #ifdef VISRL_USEOPTIONS
     if (cur_act == 3) {
         // opts_rew += cur_rew;
@@ -426,6 +428,8 @@ uint8_t rl_get_reward(void)
 #else
     episode_rewards += cur_rew;
 #endif
+    */
+    episode_rewards += cur_rew;
     printf(" %03.1f ",cur_rew);
     return 0;
 }
@@ -506,28 +510,6 @@ void rl_right2(void)
     // printf("\n RL_RIGHT2:: ENTANG:%d :: headind:%d :: targHeadind: %d\n", entanglement_count,headind,cur_targ_headind);
 }
 
-uint8_t rl_action_left(void)
-{
-    rl_left2();
-    return rl_turn_to_targheadind();
-//     headind--;
-//     if (headind == -1) {
-//         headind = len_headings - 1;
-//     }
-//     nav_set_heading_rad(headings_rad[headind]);
-//     entanglement_count++;
-}
-
-void rl_action_right(void)
-{
-    headind++;
-    if (headind == len_headings) {
-        headind = 0;
-    }
-    nav_set_heading_rad(headings_rad[headind]);
-    entanglement_count--;
-}
-
 uint8_t rl_unentangle_tether(void)
 {
     // printf("ENTANG:%d :: headind:%d :: targHeadind: %d\n", entanglement_count,headind,cur_targ_headind);
@@ -542,7 +524,6 @@ uint8_t rl_unentangle_tether(void)
         }
     }
     else {
-        // update_headind();
         headind = cur_targ_headind;
         return FALSE;
     }
@@ -558,15 +539,11 @@ uint8_t rl_take_cur_action(void)
         rl_action_forward();
     }
     else {
-        // headatcompass = (headatcompass == 1) ? 0 : 1;
-        // select index of heading from headings_rad array
         if (cur_act == 1) {
             rl_left2();
-            // return rl_action_left();
         }
         else if ((cur_act == 2) || (cur_act == 3)) {
             rl_right2();
-            // rl_action_right();
         }
         rl_turn_to_targheadind();
         headind = cur_targ_headind;
@@ -578,6 +555,9 @@ uint8_t rl_update_qdict(void)
 {
     printf(":: %s %u  %s %u :", cur_sta, cur_act, nxt_sta, nxt_act);
     uint8_t update_act;
+    // Feb 5th 2018: Getting rid of logic to not update intermediate option
+    // states
+    /*
 #ifdef VISRL_USEOPTIONS
     // if running options
     if (cur_act == 3) {
@@ -596,6 +576,7 @@ uint8_t rl_update_qdict(void)
         }
     }
 #endif
+    */
 
     float Qcur, Qnxt, Qcur1;
 
