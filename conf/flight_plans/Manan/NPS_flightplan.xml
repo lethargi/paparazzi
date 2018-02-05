@@ -73,6 +73,7 @@
       <call fun="cv_3grids()"/>
       <stay wp="GOAL"/>
     </block>
+    <!--
     <block name="RL_FOR">
       <call_once fun="rl_action_forward()"/>
       <stay wp="GOAL"/>
@@ -85,6 +86,7 @@
       <call_once fun="rl_action_right()"/>
       <stay wp="GOAL"/>
     </block>
+-->
     <block name="GOTOSET">
       <call_once fun="set_loc_and_att(WP_TESTWP)"/>
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
