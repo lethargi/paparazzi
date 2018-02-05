@@ -163,8 +163,9 @@
       <deroute block="SetupEpisode"/>
     </block>
     <block name="EndSession">
-      <call fun="simsoft_cleanup()"/>
       <stay wp="GOAL"/>
+      <!-- NO NEED TO CLEAN UP -->
+      <!-- <call fun="simsoft_cleanup()"/> -->
     </block>
     <block name="CopyTest">
       <call fun="copy_qdict()"/>

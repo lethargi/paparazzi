@@ -25,16 +25,12 @@
 #include "subsystems/datalink/telemetry.h"
 
 
-// float headings_rad[8] = {0, M_PI/4., M_PI/2., 3*M_PI/4.,
-//                         M_PI, 5*M_PI/4. , 3*M_PI/2. , 7*M_PI/4.};
-// uint8_t len_headings = 8;
 float headings_rad[16] = {0, M_PI/8., M_PI/4., 3*M_PI/8., M_PI/2., 5*M_PI/8.,
         3*M_PI/4., 7*M_PI/8., M_PI, 9*M_PI/8., 5*M_PI/4.,  11*M_PI/8, 3*M_PI/2. ,
         13*M_PI/8, 7*M_PI/4., 15*M_PI/8};
 uint8_t len_headings = 16;
 int8_t headind = 0;
 int8_t cur_targ_headind = 0;
-// uint8_t headatcompass = 1;
 uint8_t init_headind;
 
 // States, actions and reward
@@ -51,15 +47,10 @@ uint8_t end_option = 1; //boolean to check if performing option
 char option_start_sta[VISRL_STATESIZE];
 #endif
 
-// static char *cur_sta, *nxt_sta;
-// static char *option_start_sta;  //stores the starting state of options for Qtab updates
 uint8_t hitwall = 0;
 uint8_t rl_isterminal = 0;
 float cur_rew = 0;
 float opts_rew = 0;
-
-// uint16_t rl_maxepsinc = 1;
-// uint16_t rl_maxeps = 1;
 
 uint16_t rl_maxsteps = 5000;
 
@@ -106,11 +97,9 @@ void visrl_init(void)
     // initalize other required stuffs
     simsoft_init();
 
-    // rl_initmaxeps = rl_curmaxeps;
     ll_qdict = md_init_linkedlist();
 
     total_state_visits = 0;
-    // rl_curmaxeps = rl_maxepsinc;
     endsess = 0;
 #ifdef VISRL_AP
     vis_ap_init();
@@ -120,7 +109,6 @@ void visrl_init(void)
 
 void rl_get_random_cords(float *cords)
 {
-    // float cords[2];
     cords[0] = (float) (rand() % 70 - 35)/10;
     cords[1] = (float) (rand() % 70 - 35)/10;
     while (!InsideMyWorld(cords[0],cords[1])) {
@@ -164,7 +152,6 @@ uint8_t rl_init_uav(void)
 uint8_t pick_action(char *mystate)
 {
     uint8_t possible_actions = VISRL_ACTIONS;
-    // uint8_t possible_actions;
 #ifdef VISRL_USEOPTIONS
     // if performing option of turning till color, return option action
     if (cur_act == 3) {
@@ -188,11 +175,8 @@ uint8_t pick_action(char *mystate)
     // if seeing any color, do not use options
     if ((*(mystate) != '0') || (*(mystate+2) != '0') || (*(mystate+4) != '0')) {
         possible_actions = 3;
-        // printf("NoOpt: SeeingColor ");
     }
 #endif
-
-//     printf("\nChars %c %c %c %c %c\n", *(mystate),*(mystate+1),*(mystate+2),*(mystate+3),*(mystate+4));
     uint8_t picked_action = 0;
     total_state_visits++;
 
@@ -244,9 +228,7 @@ uint8_t pick_action(char *mystate)
 void get_state_ext(char *curstate)
 {
     uint8_t sta_cfrac;
-// #ifdef VISRL_NPS
     cv_3grids();        // function only used to get cv data during simulation
-// #endif
     for (int i = 0; i < 2; i++) {
         countfracs[i] = (float)sumcount_arr[i]/(float)5000;
     }
@@ -277,6 +259,7 @@ void get_state_ext(char *curstate)
     sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
 #endif
 
+    // Alternate versions of state commented out
     // uint8_t sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
     // sprintf(curstate,"%d,%d,%d;%d;%d",
     sprintf(curstate,"%d,%d,%d;%d;%d;%d",
@@ -613,12 +596,11 @@ uint8_t rl_update_qdict(void)
         }
     }
 #endif
-    // printf("SizeOfQdict:%d ;",g_hash_table_size(myqdict));
 
     float Qcur, Qnxt, Qcur1;
 
-    md_node *qtab_curnode = md_search(ll_qdict,cur_sta); //(float *)g_hash_table_lookup(myqdict,cur_sta);
-    md_node *qtab_nxtnode = md_search(ll_qdict,nxt_sta); // (float *)g_hash_table_lookup(myqdict,nxt_sta);
+    md_node *qtab_curnode = md_search(ll_qdict,cur_sta);
+    md_node *qtab_nxtnode = md_search(ll_qdict,nxt_sta);
 
     // QLEARNING
     // Maybe i shouldnt be using strcmp here
@@ -659,7 +641,6 @@ uint8_t rl_check_terminal(void)
     */
 
     // check for end of run and session
-    // printf("\n Epinum:%d :: rl_maxeps-1:%d :: endrun:%d \n",epinum,rl_maxeps-1,endrun);
     if (epinum > rl_max_episodes_limit-1) { endrun = 1; }
     if (runnum > rl_maxruns-1) { endsess = 1; }
 
