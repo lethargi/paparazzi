@@ -169,16 +169,14 @@ uint8_t pick_action(char *mystate)
     // if performing option of turning till color, return option action
     if (cur_act == 3) {
         start_option = 0; //already performing option
+        end_option = 0;
         uint8_t seeing_color = 0;
-        // printf(" Colors: ");
         for (int i = 0; i < 3; i++) {
             if (domcol_arr[i]) { // using the basic color array; maybe shud use the state info
                 seeing_color = 1;
             }
-            // printf(" %d ",seeing_color);
         }
         if (!seeing_color) {
-            // step_wait_time = 1.0;
             printf(" %d %d ",start_option, end_option);
             return 3;
         }
@@ -355,8 +353,10 @@ uint8_t rl_init_ep(void)
     cv_3grids();        // function only used to get cv data during simulation
 #ifdef VISRL_USEOPTIONS
     start_option = 0;
-    end_option = 0;
+    end_option = 1;
+    opts_rew = 0;
 #endif
+    cur_act = 5         // Reset the action to sth arbitrary
     rl_isterminal = 0;
     steps_taken = 0;
     sum_dQ = 0;
@@ -449,7 +449,7 @@ uint8_t rl_get_reward(void)
         // cur_rew -= 20;
     }
 
-    if (end_option == 1) {
+    if (nxt_act != 3) {
         episode_rewards += cur_rew;
     }
 #else

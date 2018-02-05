@@ -230,7 +230,7 @@ struct image_t *visrl_cv_func(struct image_t *img)
 
   // Draw lines for the columns
 //     uint16_t w_first, w_second;
-// 
+//
 //     w_first = img->w/3;
 //     w_second = 2*w_first;
 
@@ -261,7 +261,11 @@ struct image_t *visrl_cv_func(struct image_t *img)
 
 void vis_ap_init(void)
 {
-    listener = cv_add_to_device(&VISRL_CAMERA, visrl_cv_func, VISRL_FPS);
+    // listener = cv_add_to_device(&VISRL_CAMERA, visrl_cv_func, VISRL_FPS);
+    // listener = cv_add_to_device(&VISRL_CAMERA, visrl_cv_func, VISRL_FPS);
+    cv_add_to_device_async(&VISRL_CAMERA, visrl_cv_func, 5, VISRL_FPS);
+    fprintf(stderr, "[viewvideo] Added asynchronous video listener for CAMERA1
+            at %u FPS for VISRL \n", VISRL_FPS);
 }
 
 uint8_t cv_3grids(void) {
