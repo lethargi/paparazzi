@@ -91,9 +91,6 @@ uint8_t rl_get_reward(void);
 /* Functions defining the actions */
 extern uint8_t rl_take_cur_action(void);
 extern void rl_action_forward(void);
-extern uint8_t rl_action_left(void);
-extern void rl_action_right(void);
-
 extern void rl_right2(void);
 extern void rl_left2(void);
 extern uint8_t rl_turn_to_targheadind(void);
