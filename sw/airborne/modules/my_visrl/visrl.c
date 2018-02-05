@@ -4,7 +4,6 @@
 
 #include "modules/my_visrl/simsoft.h"
 
-#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -170,16 +169,14 @@ uint8_t pick_action(char *mystate)
     // if performing option of turning till color, return option action
     if (cur_act == 3) {
         start_option = 0; //already performing option
+        end_option = 0;
         uint8_t seeing_color = 0;
-        // printf(" Colors: ");
         for (int i = 0; i < 3; i++) {
             if (domcol_arr[i]) { // using the basic color array; maybe shud use the state info
                 seeing_color = 1;
             }
-            // printf(" %d ",seeing_color);
         }
         if (!seeing_color) {
-            // step_wait_time = 1.0;
             printf(" %d %d ",start_option, end_option);
             return 3;
         }
@@ -235,23 +232,10 @@ uint8_t pick_action(char *mystate)
 #ifdef VISRL_USEOPTIONS
     // if picking option, set boolean to true;
     if (picked_action == 3) {
-        // this never happens as its not possible to select options twice in
-        // row
-//         if (cur_act == 3) {
-//             start_option = 1;
-//             end_option = 1;
-//             printf("-------INSIDE REDUNDANT LOOP------");
-//         }
-//         else {
         start_option = 1;
         end_option = 0;
-        // }
         opts_rew = 0;
     }
-//     if ((picked_action == 3) && (cur_act == 3)) {
-//     }
-//     else if (picked_action == 3) {
-//     }
     printf(" %d %d ",start_option, end_option);
 #endif
     return picked_action;
@@ -260,9 +244,9 @@ uint8_t pick_action(char *mystate)
 void get_state_ext(char *curstate)
 {
     uint8_t sta_cfrac;
-#ifdef VISRL_NPS
+// #ifdef VISRL_NPS
     cv_3grids();        // function only used to get cv data during simulation
-#endif
+// #endif
     for (int i = 0; i < 2; i++) {
         countfracs[i] = (float)sumcount_arr[i]/(float)5000;
     }
@@ -353,19 +337,19 @@ uint8_t rl_smooth_turn(uint8_t targhead_ind)
 
 uint8_t rl_init_ep(void)
 {
-    // cv_3grids();        // function only used to get cv data during simulation
+    cv_3grids();        // function only used to get cv data during simulation
+#ifdef VISRL_USEOPTIONS
+    start_option = 0;
+    end_option = 1;
+    opts_rew = 0;
+#endif
+    cur_act = 5         // Reset the action to sth arbitrary
     rl_isterminal = 0;
     steps_taken = 0;
     sum_dQ = 0;
     episode_rewards = 0;
     cur_rew = 0;
     goals_visited = 0;
-
-    // Reset options counters
-    start_option = 0;
-    end_option = 1;
-    opts_rew = 0;
-
     ep_success = 1;
     epinum++;
     // headind = 0;
@@ -446,13 +430,14 @@ uint8_t rl_get_reward(void)
 
 #ifdef VISRL_USEOPTIONS
     if (cur_act == 3) {
-        opts_rew += cur_rew;
+        // opts_rew += cur_rew;
+        opts_rew = cur_rew + rl_gamma*opts_rew;
         printf(" OptsRew:%.1f ", opts_rew);
         cur_rew = opts_rew;
         // cur_rew -= 20;
     }
 
-    if (end_option == 1) {
+    if (nxt_act != 3) {
         episode_rewards += cur_rew;
     }
 #else
@@ -532,11 +517,9 @@ void rl_left2(void)
 
 void rl_right2(void)
 {
-    // printf("\nGOing RIghtd %d %d \n",cur_targ_headind, headind);
     cur_targ_headind = headind + 1;
     cur_targ_headind = rl_headind_normalize(cur_targ_headind);
     entanglement_count--;
-    // printf("\nSet going right %d %d \n",cur_targ_headind, headind);
     // printf("\n RL_RIGHT2:: ENTANG:%d :: headind:%d :: targHeadind: %d\n", entanglement_count,headind,cur_targ_headind);
 }
 
@@ -584,75 +567,6 @@ uint8_t rl_unentangle_tether(void)
     return TRUE;
     // }
 }
-
-//////// ADDITIONS TO HAVE FEEDBACK AFTER ACTIONS IS PERFORMED
-
-uint8_t rl_turn_to_targheadind2(void)
-{
-    // printf("\n INSIDE TURN_TO_TARGHEADIND \n");
-    float normed_heading, targ_heading;
-    normed_heading = get_myheading();
-    targ_heading = headings_rad[cur_targ_headind];
-    // printf("\n Normed_heading: %f, targ_heading:%f cur_targ_headind:%d \n", normed_heading, targ_heading, cur_targ_headind);
-
-    if (fabs(normed_heading - targ_heading) < 0.015 )  {
-        return FALSE;
-    }
-    nav_set_heading_rad(targ_heading);
-    // update_headind();
-    return TRUE;
-}
-
-uint8_t rl_check_goal_arrival(void)
-{
-    float dist2_to_goal;
-    dist2_to_goal = get_dist2_to_waypoint(WP_GOAL);
-    // printf("\n InCheckGoalArrival %f", dist2_to_goal);
-
-    if (dist2_to_goal > 0.1) {
-        return TRUE;
-    }
-    else {
-        return FALSE;
-    }
-}
-
-uint8_t rl_setup_cur_action(void)
-{
-    steps_taken++;
-    // printf("\nCurAct:%d \n", cur_act);
-    if (cur_act == 0) {
-        rl_action_forward();
-        NavSetWaypointHere(WP_CURPOS);
-        if (!hitwall) {
-            NavSegment(WP_CURPOS, WP_GOAL);
-        }
-        // NavGotoWaypoint(WP_GOAL);
-    }
-    else {
-        if (cur_act == 1) {
-            rl_left2();
-        }
-        else if ((cur_act == 2) || (cur_act == 3)) {
-            rl_right2();
-        }
-        headind = cur_targ_headind;
-    }
-    // printf("\nCurActSetup:%d \n", cur_act);
-    return FALSE;
-}
-
-uint8_t rl_take_cur_action2(void)
-{
-    if (cur_act == 0) {
-        return rl_check_goal_arrival();
-    }
-    else {
-        return rl_turn_to_targheadind2();
-    }
-    // return FALSE;
-}
-//////// ADDITIONS TO HAVE FEEDBACK AFTER ACTIONS IS PERFORMED
 
 uint8_t rl_take_cur_action(void)
 {
