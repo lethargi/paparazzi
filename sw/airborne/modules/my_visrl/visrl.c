@@ -232,23 +232,10 @@ uint8_t pick_action(char *mystate)
 #ifdef VISRL_USEOPTIONS
     // if picking option, set boolean to true;
     if (picked_action == 3) {
-        // this never happens as its not possible to select options twice in
-        // row
-        if (cur_act == 3) {
-            start_option = 1;
-            end_option = 1;
-            printf("-------INSIDE REDUNDANT LOOP------");
-        }
-        else {
-            start_option = 1;
-            end_option = 0;
-        }
+        start_option = 1;
+        end_option = 0;
         opts_rew = 0;
     }
-//     if ((picked_action == 3) && (cur_act == 3)) {
-//     }
-//     else if (picked_action == 3) {
-//     }
     printf(" %d %d ",start_option, end_option);
 #endif
     return picked_action;
@@ -443,7 +430,8 @@ uint8_t rl_get_reward(void)
 
 #ifdef VISRL_USEOPTIONS
     if (cur_act == 3) {
-        opts_rew += cur_rew;
+        // opts_rew += cur_rew;
+        opts_rew = cur_rew + rl_gamma*opts_rew;
         printf(" OptsRew:%.1f ", opts_rew);
         cur_rew = opts_rew;
         // cur_rew -= 20;
