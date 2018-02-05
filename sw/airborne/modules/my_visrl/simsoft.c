@@ -50,10 +50,10 @@ uint8_t rl_maxruns = 50;
 int8_t printerror;
 
 char *runname, *sessname, *sessfold, *runfold, *copy_location;
-char *qd_addrs, *sv_addrs, *log_addrs, *eplog_addrs, *runinfo_addrs;
+char *qd_addrs, *sv_addrs, *log_addrs, *eplog_addrs, *runinfo_addrs, *simsave_addrs;
 
 FILE *qdict_txt_file, *statevisits_txt_file, *log_file, *epi_log_file,
-     *runinfo_file;
+     *runinfo_file, *save_file;
 
 struct tm runstart_tm, runend_tm;
 
@@ -99,6 +99,8 @@ void simsoft_init(void)
     log_addrs = malloc(sizeof(char)*120);
     eplog_addrs = malloc(sizeof(char)*120);
     runinfo_addrs = malloc(sizeof(char)*120);
+
+    simsave_addrs = malloc(sizeof(char)*100);
 
     runnum = 1;
     run_success = 1;
@@ -148,6 +150,9 @@ uint8_t rl_write_episode_log(void)
             sum_dQ,episode_rewards,ll_qdict->length,rl_eps,ep_success);
     fclose(log_file);
     printf("\n== EpisodeLogWritten ==\n");
+#ifdef VISRL_AP
+    save_sim_state();
+#endif
     return 0;
 }
 
@@ -273,7 +278,6 @@ uint8_t setup_sess_fold(void)
 
 uint8_t rl_resetrun(void)
 {
-    // rl_curmaxeps = rl_initmaxeps;
     rl_cur_episodes_limit = rl_cur_episodes_limit_change;
     md_free_list(ll_qdict);
     ll_qdict = md_init_linkedlist();
@@ -400,6 +404,79 @@ uint8_t save_run_metadata(void)
     fclose(runinfo_file);
 
     printf("\n==Run log written==\n");
+    return 0;
+}
+
+uint8_t save_sim_state(void)
+{
+    int count;
+    float gl_x,gl_y;
+    uint8_t save_headind;
+
+    printerror = sprintf(simsave_addrs,"%s%s",runfold,"save.txt");
+    if (snprint_fail(printerror)){ return 0; }
+
+    save_file = fopen(simsave_addrs,"w");
+    count = fprintf(save_file, "%d %d %d %d %d %d %d %s %s %f %f %d", rl_eps, rl_max_episodes_limit, rl_cur_episodes_limit_change, rl_cur_episodes_limit, rl_cur_epsilon_change, steps_taken, epinum, cur_sta, nxt_sta, gl_x, gl_y, save_headind);
+
+    print_qdict();
+
+    fclose(save_file);
+}
+
+uint8_t load_sim_state(void)
+{
+    printerror = sprintf(sessfold,"/home/default/LoadRun/");
+    if (snprint_fail(printerror)){ return 0; }
+    printerror = sprintf(runfold,"%sRunToLoad/",sessfold);
+    if (snprint_fail(printerror)){ return 0; }
+
+    runnum = 1;
+    endrun = 0;
+
+    printerror = sprintf(copy_location,"%s%s/",runfold,"__LastSaves");
+    if (snprint_fail(printerror)){ return 0; }
+    printerror = sprintf(qd_addrs,"%s%s",runfold,"qdict.txt");
+    if (snprint_fail(printerror)){ return 0; }
+    printerror = sprintf(sv_addrs,"%s%s",runfold,"statevisits.txt");
+    if (snprint_fail(printerror)){ return 0; }
+    printerror = sprintf(log_addrs,"%s%s",runfold,"log.txt");
+    if (snprint_fail(printerror)){ return 0; }
+    printerror = sprintf(eplog_addrs,"%s%s",runfold,"epi_log.txt");
+    if (snprint_fail(printerror)){ return 0; }
+
+
+    printf("\nLoaded Run:%s\n",runfold);
+
+    printerror = sprintf(simsave_addrs,"%s%s",runfold,"save.txt");
+    if (snprint_fail(printerror)){ return 0; }
+    save_file = fopen(simsave_addrs,"r");
+
+    int count;
+
+    float gl_x,gl_y;
+    uint8_t save_headind;
+
+    // Needed to use this as fscanf was not being able to write into uint16s
+    int a,b,c,d,e,f,g;
+    count = fscanf(save_file, "%d %d %d %d %d %d %d %s %s %f %f %d", &a, &b, &c, &d, &e, &f, &g, cur_sta, nxt_sta, &gl_x, &gl_y, &save_headind);
+    fclose(save_file);
+
+    rl_eps = a;
+    rl_max_episodes_limit = b;
+    rl_cur_episodes_limit_change = c;
+    rl_cur_episodes_limit = d;
+    rl_cur_epsilon_change = e;
+    steps_taken = f;
+    epinum = g;
+
+    ll_qdict = md_init_linkedlist();
+    load_qdict_fromtxt();
+
+    printf("This is what i read\n");
+    printf("%d %d %d %d %d %d %d %s %s %f %f %d\n", rl_eps, a, b, rl_cur_episodes_limit, rl_cur_epsilon_change, steps_taken, epinum, cur_sta, nxt_sta, gl_x, gl_y, save_headind);
+
+
     return 0;
 }
 

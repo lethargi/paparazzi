@@ -168,8 +168,9 @@
       <deroute block="SetupEpisode"/>
     </block>
     <block name="EndSession">
-      <call fun="simsoft_cleanup()"/>
       <stay wp="GOAL"/>
+      <!-- NO NEED TO CLEAN UP -->
+      <!-- <call fun="simsoft_cleanup()"/> -->
     </block>
     <block name="CopyTest">
       <call fun="copy_qdict()"/>
@@ -182,6 +183,16 @@
     <block name="ReadQDict_TXT">
       <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
       <call fun="load_qdict_fromtxt()"/>
+      <stay wp="STDBY"/>
+    </block>
+    <block name="SaveSim">
+      <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
+      <call fun="save_sim_state()"/>
+      <stay wp="STDBY"/>
+    </block>
+    <block name="LoadSim">
+      <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
+      <call fun="load_sim_state()"/>
       <stay wp="STDBY"/>
     </block>
     <block name="land here" strip_button="Land Here" strip_icon="land-right.png">
