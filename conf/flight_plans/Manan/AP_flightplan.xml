@@ -179,6 +179,16 @@
       <call fun="load_qdict_fromtxt()"/>
       <stay wp="STDBY"/>
     </block>
+    <block name="SaveSim">
+      <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
+      <call fun="save_sim_state()"/>
+      <stay wp="STDBY"/>
+    </block>
+    <block name="LoadSim">
+      <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
+      <call fun="load_sim_state()"/>
+      <stay wp="STDBY"/>
+    </block>
     <block name="land here" strip_button="Land Here" strip_icon="land-right.png">
       <call_once fun="NavSetWaypointHere(WP_TD)"/>
     </block>

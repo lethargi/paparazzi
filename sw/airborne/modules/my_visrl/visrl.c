@@ -343,7 +343,7 @@ uint8_t rl_init_ep(void)
     end_option = 1;
     opts_rew = 0;
 #endif
-    cur_act = 5         // Reset the action to sth arbitrary
+    cur_act = 25;         // Reset the action to sth arbitrary
     rl_isterminal = 0;
     steps_taken = 0;
     sum_dQ = 0;

@@ -53,7 +53,7 @@ char *runname, *sessname, *sessfold, *runfold, *copy_location;
 char *qd_addrs, *sv_addrs, *log_addrs, *eplog_addrs, *runinfo_addrs;
 
 FILE *qdict_txt_file, *statevisits_txt_file, *log_file, *epi_log_file,
-     *runinfo_file;
+     *runinfo_file, *save_file;
 
 struct tm runstart_tm, runend_tm;
 
@@ -99,6 +99,8 @@ void simsoft_init(void)
     log_addrs = malloc(sizeof(char)*120);
     eplog_addrs = malloc(sizeof(char)*120);
     runinfo_addrs = malloc(sizeof(char)*120);
+
+    simsave_addrs = malloc(sizeof(char)*100);
 
     runnum = 1;
     run_success = 1;
@@ -401,6 +403,103 @@ uint8_t save_run_metadata(void)
 
     printf("\n==Run log written==\n");
     return 0;
+}
+
+uint8_t save_sim_state(void)
+{
+    printerror = sprintf(simsave_addrs,"%s%s",runfold,"save.txt");
+    if (snprint_fail(printerror)){ return 0; }
+
+    save_file = fopen(simsave_addrs,"w");
+
+    count = fprintf(save_file, "%d\n", rl_eps);
+    count = fprintf(save_file, "%d\n", rl_max_episodes_limit);
+    count = fprintf(save_file, "%d\n", rl_cur_episodes_limit_change);
+    count = fprintf(save_file, "%d\n", rl_cur_episodes_limit);
+    count = fprintf(save_file, "%d\n", rl_cur_epsilon_change);
+    count = fprintf(save_file, "%d\n", steps_taken);
+    count = fprintf(save_file, "%d\n", epinum);
+    count = fprintf(save_file, "%s\n", cur_sta);
+    count = fprintf(save_file, "%s\n", nxt_sta);
+    count = fprintf(save_file, "%f\n", gl_x);
+    count = fprintf(save_file, "%f\n", gl_y);
+    count = fprintf(save_file, "%d\n", save_headind);
+
+    print_qdict();
+
+
+    fclose(save_file)
+
+
+}
+
+uint8_t load_sim_state(void)
+{
+    printerror = sprintf(sessfold,"/home/default/LoadRun/",save_location,sessname);
+    if (snprint_fail(printerror)){ return 0; }
+    printerror = sprintf(runfold,"%sRunToLoad/",sessfold);
+    if (snprint_fail(printerror)){ return 0; }
+
+    runnum = 1;
+
+    printerror = sprintf(copy_location,"%s%s/",runfold,"__LastSaves");
+    if (snprint_fail(printerror)){ return 0; }
+    printerror = sprintf(qd_addrs,"%s%s",runfold,"qdict.txt");
+    if (snprint_fail(printerror)){ return 0; }
+    printerror = sprintf(sv_addrs,"%s%s",runfold,"statevisits.txt");
+    if (snprint_fail(printerror)){ return 0; }
+    printerror = sprintf(log_addrs,"%s%s",runfold,"log.txt");
+    if (snprint_fail(printerror)){ return 0; }
+    printerror = sprintf(eplog_addrs,"%s%s",runfold,"epi_log.txt");
+    if (snprint_fail(printerror)){ return 0; }
+
+
+    printf("\nLoaded Run:%s\n",runfold);
+
+    printerror = sprintf(simsave_addrs,"%s%s",runfold,"save.txt");
+    if (snprint_fail(printerror)){ return 0; }
+    save_file = fopen(simsave_addrs,"w");
+
+//     char akey[VISRL_STATESIZE];
+//     float val[VISRL_ACTIONS];//, T;
+//     int vis[VISRL_ACTIONS];// T_v;
+    int count;
+    // while (!feof(save_file)) {
+
+    float gl_x,gl_y;
+    uint8_t save_headind;
+    
+    count = fscanf(save_file, "%d", rl_eps);
+    count = fscanf(save_file, "%d", rl_max_episodes_limit);
+    count = fscanf(save_file, "%d", rl_cur_episodes_limit_change);
+    count = fscanf(save_file, "%d", rl_cur_episodes_limit);
+    count = fscanf(save_file, "%d", rl_cur_epsilon_change);
+    count = fscanf(save_file, "%d", steps_taken);
+    count = fscanf(save_file, "%d", epinum);
+    count = fscanf(save_file, "%s", cur_sta);
+    count = fscanf(save_file, "%s", nxt_sta);
+    count = fscanf(save_file, "%f", gl_x);
+    count = fscanf(save_file, "%f", gl_y);
+    count = fscanf(save_file, "%d", save_headind);
+
+    fclose(save_file)
+
+// uint16_t rl_max_episodes_limit = 500;
+// int16_t rl_cur_episodes_limit_change = 50;
+// int8_t rl_cur_epsilon_change = 5;
+    // }
+
+    // NEED TO LOAD THIS INFO AND EPSILON VALUE AND STEP # & position & cur_sta
+    // and nxt_sta and location of goal waypoint
+     // = rl_cur_episodes_limit_change;
+    // md_free_list(ll_qdict);
+    ll_qdict = md_init_linkedlist();
+    load_qdict_fromtxt();
+
+
+    return 0;
+//     char sessfold[] = "/home/default/LoadRun/";
+//     char load_sess[] = ;
 }
 
 uint8_t simsoft_cleanup(void)
