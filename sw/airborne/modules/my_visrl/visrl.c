@@ -485,12 +485,6 @@ void rl_action_forward(void)
     }
     else {
         moveWaypointForwards(WP_GOAL,0.5);
-//         if (headatcompass == 1) {
-//             moveWaypointForwards(WP_GOAL,0.5);
-//         }
-//         else {
-//             moveWaypointForwards(WP_GOAL,0.70710678118);
-//         }
     }
 }
 
