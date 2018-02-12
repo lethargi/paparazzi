@@ -151,6 +151,7 @@ uint8_t rl_write_episode_log(void)
     fclose(log_file);
     printf("\n== EpisodeLogWritten ==\n");
 #ifdef VISRL_AP
+    print_qdict();
     save_sim_state();
 #endif
     return 0;
