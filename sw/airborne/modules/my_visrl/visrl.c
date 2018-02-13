@@ -28,6 +28,7 @@
 float headings_rad[16] = {0, M_PI/8., M_PI/4., 3*M_PI/8., M_PI/2., 5*M_PI/8.,
         3*M_PI/4., 7*M_PI/8., M_PI, 9*M_PI/8., 5*M_PI/4.,  11*M_PI/8, 3*M_PI/2. ,
         13*M_PI/8, 7*M_PI/4., 15*M_PI/8};
+
 uint8_t len_headings = 16;
 int8_t headind = 0;
 int8_t cur_targ_headind = 0;
@@ -103,6 +104,10 @@ void visrl_init(void)
     endsess = 0;
 #ifdef VISRL_AP
     vis_ap_init();
+    float czoo_offset = M_PI/15;
+    for (int i = 0; i < 16; i++) {
+        headings_rad[i] = headings_rad[i]+czoo_offset;
+    }
 #endif
     printf("\nmy_visrl intialized \n");
 }

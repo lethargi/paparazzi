@@ -41,15 +41,14 @@
         <!-- <define name="VISRL_TWOGOALS"/> -->
     </module>
 
+	<!--
     <module name="video_rtp_stream">
       <define name="VIEWVIDEO_CAMERA" value="front_camera"/>
       <define name="VIEWVIDEO_DOWNSIZE_FACTOR" value="4"/>
       <define name="VIEWVIDEO_QUALITY_FACTOR" value="60"/>
       <define name="VIEWVIDEO_FPS" value="5"/>
     </module>
-	<!--
 	-->
-
 
   </modules>
 
