@@ -53,13 +53,15 @@ uint8_t domcol_arr[3] = {0,0,0};
 
 // dont understand why i have to define again here when they are included in
 // visrl.h
-float red_thresh = 0.46;
-float blue_thresh = 0.46;
-uint16_t min_pix_thresh = 1500;
+float red_thresh = 0.48;  // had to be increased from 0.46 on accunt of new drone
+float blue_thresh = 0.46; //Threshold untuned
+uint16_t min_pix_thresh = 1700; //increased a little on account of new drone and camera
 
 uint8_t do_visrl_cv = 0;
 uint8_t visrl_cv_done = 0;
 
+uint8_t red_v_thresh = 161;
+uint8_t red_u_thresh = 128;
 
 uint8_t colmax(uint32_t colarr[2][3],uint8_t maxcolarr[3])
 {
@@ -132,6 +134,8 @@ void my_image_yuv422_colorcounter(struct image_t *input)
             f_red = red/pixcolsum;
             f_blue = blue/pixcolsum;
 
+            // printf("Source vals U:%d H:%d V:%d S:%d\n",source[0],source[1],source[2],source[3]);
+
             // setting column in output that should be appended
             if (x < w_first) {
                 coltoapp = 0;
@@ -148,9 +152,12 @@ void my_image_yuv422_colorcounter(struct image_t *input)
 //                 source[1] = 254;
 //                 source[3] = 254;
             }
-            else if (f_red > red_thresh) {
-//                 source[0] = 10;        // U
-//                 source[2] = 240;        // V
+            // else if (f_red > red_thresh) {
+            // else if ((source[0] < 64) && (source[2] > 192)) {
+            // else if ((source[0] < 128) && (source[2] > 128)) {
+            else if ((source[0] < red_u_thresh) && (source[2] > red_v_thresh)) {
+                source[0] = 10;        // U
+                source[2] = 240;        // V
                 redcount_arr[coltoapp]++;
             }
 #ifdef VISRL_TWOGOALS
@@ -215,7 +222,8 @@ struct image_t *visrl_cv_func(struct image_t *img)
 
 void vis_ap_init(void)
 {
-    cv_add_to_device_async(&VISRL_CAMERA, visrl_cv_func, 5, VISRL_FPS);
+    // cv_add_to_device_async(&VISRL_CAMERA, visrl_cv_func, 5, VISRL_FPS);
+    cv_add_to_device(&VISRL_CAMERA, visrl_cv_func, VISRL_FPS);
     fprintf(stderr, "[viewvideo] Added asynchronous video listener for CAMERA1 at %u FPS for VISRL \n", VISRL_FPS);
 }
 

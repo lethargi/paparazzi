@@ -45,4 +45,7 @@ extern uint8_t cv_3grids(void);
 extern void vis_ap_init(void);
 
 
+extern uint8_t red_v_thresh;
+extern uint8_t red_u_thresh;
+
 #endif /* VIS_AP_H */

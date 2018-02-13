@@ -210,7 +210,11 @@ uint8_t pick_action(char *mystate)
         step_wait_time = 1.0;
     }
     else {
+// #ifdef VISRL_NPS
         step_wait_time = 0.75;
+// #else
+        // step_wait_time = 1.0;
+// #endif
     }
 
 #ifdef VISRL_USEOPTIONS
