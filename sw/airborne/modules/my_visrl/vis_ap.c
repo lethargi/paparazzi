@@ -142,21 +142,21 @@ void my_image_yuv422_colorcounter(struct image_t *input)
             }
 
             if ((f_red > red_thresh) && (f_blue > blue_thresh)) {
-                source[0] = 240;        // U
-                source[2] = 240;        // V
+//                 source[0] = 240;        // U
+//                 source[2] = 240;        // V
                 whitecount++;
-                source[1] = 254;
-                source[3] = 254;
+//                 source[1] = 254;
+//                 source[3] = 254;
             }
             else if (f_red > red_thresh) {
-                source[0] = 10;        // U
-                source[2] = 240;        // V
+//                 source[0] = 10;        // U
+//                 source[2] = 240;        // V
                 redcount_arr[coltoapp]++;
             }
 #ifdef VISRL_TWOGOALS
             else if (f_blue > blue_thresh) {
-                source[0] = 240;        // U
-                source[2] = 10;        // V
+//                 source[0] = 240;        // U
+//                 source[2] = 10;        // V
                 bluecount_arr[coltoapp]++;
             }
 #endif
