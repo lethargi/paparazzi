@@ -28,6 +28,9 @@
 float headings_rad[16] = {0, M_PI/8., M_PI/4., 3*M_PI/8., M_PI/2., 5*M_PI/8.,
         3*M_PI/4., 7*M_PI/8., M_PI, 9*M_PI/8., 5*M_PI/4.,  11*M_PI/8, 3*M_PI/2. ,
         13*M_PI/8, 7*M_PI/4., 15*M_PI/8};
+#ifdef VISRL_AP
+float czoo_offset = M_PI/15;
+#endif
 
 uint8_t len_headings = 16;
 int8_t headind = 0;
@@ -104,7 +107,6 @@ void visrl_init(void)
     endsess = 0;
 #ifdef VISRL_AP
     vis_ap_init();
-    float czoo_offset = M_PI/15;
     for (int i = 0; i < 16; i++) {
         headings_rad[i] = headings_rad[i]+czoo_offset;
     }
@@ -295,7 +297,13 @@ void update_headind(void)
     // float hby2 = M_PI/8;
     float hby2 = M_PI/16;
     uint8_t bin_i = 0;
-    if ((myhead < hby2) || (myhead >= headings_rad[15] + hby2)) {
+//     float zero_offset = hby2;
+// #ifdef VISRL_AP
+//     myhead = myhead + czoo_offset;
+//     zero_offset = zero_offset + czoo_offset;
+// #endif
+    // if ((myhead < hby2 + czoo_offset) || (myhead >= headings_rad[15] + hby2)) {
+    if ((myhead < headings_rad[0] + hby2) || (myhead >= headings_rad[15] + hby2)) {
         headind = bin_i;
     }
     else {
@@ -306,6 +314,7 @@ void update_headind(void)
                 }
         }
     }
+    // printf("InUpdateHeadind Myheading:%f\n",myhead);
 }
 
 uint8_t rl_smooth_turn(uint8_t targhead_ind)
@@ -473,7 +482,6 @@ uint8_t rl_headind_normalize(int8_t inheadind)
 
 uint8_t rl_turn_to_targheadind(void)
 {
-    // printf("\n INSIDE TURN_TO_TARGHEADIND \n");
     if (headind == cur_targ_headind) {
         return FALSE;
     }
@@ -481,6 +489,7 @@ uint8_t rl_turn_to_targheadind(void)
     float targ_heading = headings_rad[cur_targ_headind];
     nav_set_heading_rad(targ_heading);
     update_headind();
+    // printf("\n INSIDE TURN_TO_TARGHEADIND Targ_heading:%f\n",targ_heading);
     return TRUE;
 }
 
