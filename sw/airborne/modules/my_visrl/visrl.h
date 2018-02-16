@@ -117,4 +117,11 @@ extern uint8_t rl_unentangle_tether(void);
 
 extern uint8_t rl_smooth_turn(uint8_t targhead_ind);
 
+//STUFF FOR DQN
+extern uint8_t pick_action_random(char *mystate);
+extern uint8_t rl_init_ep_dqn(void);
+extern uint8_t rl_set_cur_dqn(void);
+extern uint8_t rl_set_nxt_dqn(void);
+extern uint8_t rl_write_dqn_transition(void);
+
 #endif

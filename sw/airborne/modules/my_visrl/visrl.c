@@ -29,7 +29,8 @@ float headings_rad[16] = {0, M_PI/8., M_PI/4., 3*M_PI/8., M_PI/2., 5*M_PI/8.,
         3*M_PI/4., 7*M_PI/8., M_PI, 9*M_PI/8., 5*M_PI/4.,  11*M_PI/8, 3*M_PI/2. ,
         13*M_PI/8, 7*M_PI/4., 15*M_PI/8};
 #ifdef VISRL_AP
-float czoo_offset = M_PI/15;
+// float czoo_offset = M_PI/15;
+float czoo_offset = 0;
 #endif
 
 uint8_t len_headings = 16;
@@ -44,6 +45,9 @@ uint8_t cur_act = 0;
 uint8_t nxt_act = 0;
 char cur_sta[VISRL_STATESIZE], nxt_sta[VISRL_STATESIZE];
 float step_wait_time = 1.0;
+
+float cur_dqn_sta[3] = {0.0, 0.0, 0.0};
+float nxt_dqn_sta[3] = {0.0, 0.0, 0.0};
 
 #ifdef VISRL_USEOPTIONS
 uint8_t start_option = 0; //boolean to check if performing option
@@ -236,6 +240,63 @@ uint8_t pick_action(char *mystate)
     return picked_action;
 }
 
+uint8_t pick_action_random(char *mystate)
+{
+    uint8_t possible_actions = VISRL_ACTIONS;
+#ifdef VISRL_USEOPTIONS
+    // if performing option of turning till color, return option action
+    if (cur_act == 3) {
+        start_option = 0; //already performing option
+        end_option = 0;
+        uint8_t seeing_color = 0;
+        for (int i = 0; i < 3; i++) {
+            if (domcol_arr[i]) { // using the basic color array; maybe shud use the state info
+                seeing_color = 1;
+            }
+        }
+        if (!seeing_color) {
+            printf(" %d %d ",start_option, end_option);
+            return 3;
+        }
+        else {
+            end_option = 1;
+        }
+    }
+
+    // if seeing any color, do not use options
+    if ((*(mystate) != '0') || (*(mystate+2) != '0') || (*(mystate+4) != '0')) {
+        possible_actions = 3;
+    }
+#endif
+    uint8_t picked_action = 0;
+    total_state_visits++;
+    act_type = "R";
+    picked_action = rand() % possible_actions;
+
+    // set time to wait; if forward 1sec; if turn 0.15 sec
+    if ((picked_action == 0)) { // || (picked_action == 3)) {
+        step_wait_time = 1.0;
+    }
+    else {
+// #ifdef VISRL_NPS
+        step_wait_time = 0.75;
+// #else
+        // step_wait_time = 1.0;
+// #endif
+    }
+
+#ifdef VISRL_USEOPTIONS
+    // if picking option, set boolean to true;
+    if (picked_action == 3) {
+        start_option = 1;
+        end_option = 0;
+        opts_rew = 0;
+    }
+    printf(" %d %d ",start_option, end_option);
+#endif
+    return picked_action;
+}
+
 void get_state_ext(char *curstate)
 {
     uint8_t sta_cfrac;
@@ -362,6 +423,32 @@ uint8_t rl_init_ep(void)
     return 0;
 }
 
+uint8_t rl_init_ep_dqn(void)
+{
+    cv_3grids();        // function only used to get cv data during simulation
+#ifdef VISRL_USEOPTIONS
+    start_option = 0;
+    end_option = 1;
+    opts_rew = 0;
+#endif
+    cur_act = 25;         // Reset the action to sth arbitrary
+    rl_isterminal = 0;
+    steps_taken = 0;
+    sum_dQ = 0;
+    episode_rewards = 0;
+    cur_rew = 0;
+    goals_visited = 0;
+    ep_success = 1;
+    epinum++;
+    // headind = 0;
+    rl_set_nxt();
+    update_headind();
+    printf("\n Episode initialized \n");
+    printf(" TotVis:%u \n", total_state_visits);
+    printf("Ep Steps Options Rew :: cur_sta cur_act nxt_sta nxt_act : Qcur Qnxt Qcur1 ::\n");
+    return 0;
+}
+
 uint8_t rl_set_cur(void)
 {
     strcpy(cur_sta,nxt_sta);
@@ -372,6 +459,16 @@ uint8_t rl_set_cur(void)
         strcpy(option_start_sta,cur_sta);
     }
 #endif
+    return 0;
+}
+
+uint8_t rl_set_cur_dqn(void)
+{
+    for (int i = 0; i<3 ; i++) {
+        cur_dqn_sta[i] = nxt_dqn_sta[i];
+    }
+    strcpy(cur_sta,nxt_sta);
+    cur_act = nxt_act;
     return 0;
 }
 
@@ -426,27 +523,6 @@ uint8_t rl_get_reward(void)
     if (*(cur_sta+8) != *(nxt_sta+8)) {
         cur_rew += 100;
     }
-    // if (() || (*(mystate+2) != '0') || (*(mystate+4) != '0')) {
-    // if we are selecting an option include extra penalty
-
-    /* Feb 5th 2018; getting rid of opts_rew logic and updating options every
-     * step
-#ifdef VISRL_USEOPTIONS
-    if (cur_act == 3) {
-        // opts_rew += cur_rew;
-        opts_rew = cur_rew + rl_gamma*opts_rew;
-        printf(" OptsRew:%.1f ", opts_rew);
-        cur_rew = opts_rew;
-        // cur_rew -= 20;
-    }
-
-    if (nxt_act != 3) {
-        episode_rewards += cur_rew;
-    }
-#else
-    episode_rewards += cur_rew;
-#endif
-    */
     episode_rewards += cur_rew;
     printf(" %03.1f ",cur_rew);
     return 0;
@@ -454,14 +530,30 @@ uint8_t rl_get_reward(void)
 
 uint8_t rl_set_nxt(void)
 {
-//     state_buffer = get_state_ext();
-//     strcpy(nxt_sta,state_buffer);
     get_state_ext(nxt_sta);
     nxt_act = pick_action(nxt_sta);
     rl_get_reward();
     rl_write_step_log();
-    // free(state_buffer);
+    return 0;
+}
 
+uint8_t rl_set_nxt_dqn(void)
+{
+    get_state_ext(nxt_sta);
+    for (int i = 0; i<3; i++) {
+        nxt_dqn_sta[i] = dqn_red_fracs[i];
+    }
+    nxt_act = pick_action_random(nxt_sta);
+    rl_get_reward();
+    rl_write_step_log();
+    return 0;
+}
+
+uint8_t rl_write_dqn_transition(void)
+{
+    printf("DQNTransition: (%1.2f,%1.2f,%1.2f) %d :", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], cur_act);
+    printf(" (%1.2f,%1.2f,%1.2f) %d :", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], nxt_act);
+    printf(" %d\n", rl_isterminal);
     return 0;
 }
 

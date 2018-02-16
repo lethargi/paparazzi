@@ -21,26 +21,14 @@
 
 #include <curl/curl.h>
 
-// imports for jpeg; dont know the relevance of all of them
-// #include <fcntl.h> //this one used to write to ppmfile
-
 #include <jpeglib.h>
-
-// #include "generated/flight_plan.h"
 
 #include "visrl.h" //Contains the defined variables that stores CV output
 
-
-// uint16_t heading_ind = 0;
-// uint32_t redsatheading[36];
-// uint32_t curredcount;
-// struct BmpStruct curbmp;
-// uint32_t redcount_arr[3] = {0,0,0};
-// uint32_t bluecount_arr[3] = {0,0,0};
-// uint32_t greencount_arr[3] = {0,0,0};
 uint32_t count_arr[2][3] = {{0}};
 uint32_t sumcount_arr[2] = {0,0};
 uint8_t domcol_arr[3] = {0,0,0};
+float dqn_red_fracs[3] = {0.0,0.0,0.0};
 
 // dont understand why i have to define again here when they are included in
 // visrl.h
@@ -279,6 +267,46 @@ uint8_t count_pixels_in_three_grids(struct BmpStruct *bmpstructPtr)
     return 0;
 }
 
+uint8_t dqn_red_frac_count(struct BmpStruct *bmpstructPtr)
+{
+    unsigned char *curpx, *pxr, *pxg, *pxb;
+    // uint8_t yval, uval, vval;
+    uint16_t height = bmpstructPtr->height;
+    uint16_t width = bmpstructPtr->width;
+    uint16_t width1 = width/3;
+    uint16_t width2 = 2*width/3;
+
+    uint32_t sum_red[3] = {0,0,0};
+    float tot_col_val = 254*width1*height;
+    float cur_red_frac;
+
+    unsigned char *bmp_buffer = bmpstructPtr->buffer;
+
+    uint8_t arrtoapp;
+    // Iterate over all pixels
+    for(int rowi = 0; rowi < height; rowi++) {
+        for(int coli = 0; coli < width; coli++) {
+            // arrtoapp = 100;
+            curpx = get_pointertopix(bmp_buffer, rowi, coli, width);
+            pxr = curpx;
+
+
+            if (coli < width1) { arrtoapp = 0; }
+            else if (coli < width2) { arrtoapp = 1; }
+            else { arrtoapp = 2; }
+
+            sum_red[arrtoapp] += pxr;
+        }
+    }
+
+    for (int i = 0; i < 3; i++) {
+        cur_red_frac = (float)sum_red[i]/tot_col_val;
+        dqn_red_fracs[i] = cur_red_frac;
+    }
+
+    return 0;
+}
+
 uint8_t cv_3grids(void)
 {
     struct MemoryStruct chunk; // structure holding download data
@@ -297,6 +325,7 @@ uint8_t cv_3grids(void)
     free(chunk.memory);
 
     count_pixels_in_three_grids(&bmp);
+    dqn_red_frac_count(&bmp);
 
     // free up memory of the bmp
     free(bmp.buffer);
