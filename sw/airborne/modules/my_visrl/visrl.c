@@ -46,8 +46,11 @@ uint8_t nxt_act = 0;
 char cur_sta[VISRL_STATESIZE], nxt_sta[VISRL_STATESIZE];
 float step_wait_time = 1.0;
 
-float cur_dqn_sta[3] = {0.0, 0.0, 0.0};
-float nxt_dqn_sta[3] = {0.0, 0.0, 0.0};
+// float cur_dqn_sta[3] = {0.0, 0.0, 0.0};
+// float nxt_dqn_sta[3] = {0.0, 0.0, 0.0};
+
+uint32_t cur_dqn_sta[3] = {0.0, 0.0, 0.0};
+uint32_t nxt_dqn_sta[3] = {0.0, 0.0, 0.0};
 
 #ifdef VISRL_USEOPTIONS
 uint8_t start_option = 0; //boolean to check if performing option
@@ -441,7 +444,7 @@ uint8_t rl_init_ep_dqn(void)
     ep_success = 1;
     epinum++;
     // headind = 0;
-    rl_set_nxt();
+    rl_set_nxt_dqn();
     update_headind();
     printf("\n Episode initialized \n");
     printf(" TotVis:%u \n", total_state_visits);
@@ -541,7 +544,7 @@ uint8_t rl_set_nxt_dqn(void)
 {
     get_state_ext(nxt_sta);
     for (int i = 0; i<3; i++) {
-        nxt_dqn_sta[i] = dqn_red_fracs[i];
+        nxt_dqn_sta[i] = count_arr[0][i];
     }
     nxt_act = pick_action_random(nxt_sta);
     rl_get_reward();

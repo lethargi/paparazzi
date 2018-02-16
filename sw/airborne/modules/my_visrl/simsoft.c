@@ -505,15 +505,19 @@ uint8_t simsoft_cleanup(void)
 
 uint8_t rl_write_dqn_transition(void)
 {
-    printf("DQNTransition: (%1.2f,%1.2f,%1.2f) %d :", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], cur_act);
+    // printf("DQNTransition: (%1.2f,%1.2f,%1.2f) %d :", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], cur_act);
+    printf("DQNTransition: (%d,%d,%d) %d :", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], cur_act);
     printf(" %.2f :", cur_rew);
-    printf(" (%1.2f,%1.2f,%1.2f) %d :", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], nxt_act);
+    // printf(" (%1.2f,%1.2f,%1.2f) %d :", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], nxt_act);
+    printf(" (%d,%d,%d) %d :", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], nxt_act);
     printf(" %d\n", rl_isterminal);
 
     dqn_file = fopen(dqn_addrs,"a");
-    fprintf(dqn_file,"(%1.2f,%1.2f,%1.2f) %d ", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], cur_act);
+    // fprintf(dqn_file,"(%1.2f,%1.2f,%1.2f) %d ", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], cur_act);
+    fprintf(dqn_file,"(%d,%d,%d) %d ", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], cur_act);
     fprintf(dqn_file,"%1.2f ", cur_rew);
-    fprintf(dqn_file,"(%1.2f,%1.2f,%1.2f) %d ", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], rl_isterminal);
+    // fprintf(dqn_file,"(%1.2f,%1.2f,%1.2f) %d ", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], rl_isterminal);
+    fprintf(dqn_file,"(%d,%d,%d) %d", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], rl_isterminal);
     fprintf(dqn_file,"\n");
     fclose(dqn_file);
     return 0;
