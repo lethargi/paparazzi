@@ -46,5 +46,6 @@ extern uint8_t cv_3grids(void);
 
 uint8_t dqn_red_frac_count(struct BmpStruct *bmpstructPtr);
 extern float dqn_red_fracs[3];
+extern uint32_t count_arr[2][3];
 
 #endif
