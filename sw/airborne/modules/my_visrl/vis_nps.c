@@ -277,29 +277,36 @@ uint8_t dqn_red_frac_count(struct BmpStruct *bmpstructPtr)
     uint16_t width2 = 2*width/3;
 
     uint32_t sum_red[3] = {0,0,0};
+    uint64_t sum_tot[3] = {0,0,0};
     float tot_col_val = 254*width1*height;
     float cur_red_frac;
 
     unsigned char *bmp_buffer = bmpstructPtr->buffer;
 
     uint8_t arrtoapp;
+    int colvalsum;
     // Iterate over all pixels
     for(int rowi = 0; rowi < height; rowi++) {
         for(int coli = 0; coli < width; coli++) {
             // arrtoapp = 100;
             curpx = get_pointertopix(bmp_buffer, rowi, coli, width);
             pxr = curpx;
-
+            pxg = curpx + 1;
+            pxb = curpx + 2;
+            colvalsum = *pxr + *pxg + *pxb;
 
             if (coli < width1) { arrtoapp = 0; }
             else if (coli < width2) { arrtoapp = 1; }
             else { arrtoapp = 2; }
 
-            sum_red[arrtoapp] += pxr;
+            sum_red[arrtoapp] += *pxr;
+            sum_tot[arrtoapp] += colvalsum;
         }
     }
 
+    printf("\n Tot_col_val %d; sumred1:%d; 2:%d; 3:%d\n",sum_tot[0],sum_red[0],sum_red[1],sum_red[2]);
     for (int i = 0; i < 3; i++) {
+        // cur_red_frac = (float)sum_red[i]/(float)sum_tot[i];
         cur_red_frac = (float)sum_red[i]/tot_col_val;
         dqn_red_fracs[i] = cur_red_frac;
     }

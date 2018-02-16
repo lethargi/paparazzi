@@ -549,13 +549,6 @@ uint8_t rl_set_nxt_dqn(void)
     return 0;
 }
 
-uint8_t rl_write_dqn_transition(void)
-{
-    printf("DQNTransition: (%1.2f,%1.2f,%1.2f) %d :", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], cur_act);
-    printf(" (%1.2f,%1.2f,%1.2f) %d :", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], nxt_act);
-    printf(" %d\n", rl_isterminal);
-    return 0;
-}
 
 uint8_t rl_headind_normalize(int8_t inheadind)
 {

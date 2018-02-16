@@ -108,7 +108,12 @@
       </while>
     </block>
     <block name="EndEp">
+	  <exception cond="endrun" deroute="EndRun"/>
+	  <exception cond="stop_after_episode" deroute="StopAfterEpi"/>
       <deroute block="SetupEpisode"/>
+    </block>
+    <block name="EndRun">
+      <stay wp="GOAL"/>
     </block>
     <block name="land here" strip_button="Land Here" strip_icon="land-right.png">
       <call_once fun="NavSetWaypointHere(WP_TD)"/>

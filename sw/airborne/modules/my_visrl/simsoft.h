@@ -53,8 +53,9 @@ extern uint8_t endrun, endsess;
 extern uint8_t rl_maxruns;
 extern uint8_t rl_addruncounter(void);
 
-
 extern uint8_t save_sim_state(void);
 extern uint8_t load_sim_state(void);
+
+extern uint8_t rl_write_dqn_transition(void);
 
 #endif

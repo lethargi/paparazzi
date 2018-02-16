@@ -50,10 +50,11 @@ uint8_t rl_maxruns = 50;
 int8_t printerror;
 
 char *runname, *sessname, *sessfold, *runfold, *copy_location;
-char *qd_addrs, *sv_addrs, *log_addrs, *eplog_addrs, *runinfo_addrs, *simsave_addrs;
+char *qd_addrs, *sv_addrs, *log_addrs, *eplog_addrs, *runinfo_addrs,
+     *simsave_addrs, *dqn_addrs;
 
 FILE *qdict_txt_file, *statevisits_txt_file, *log_file, *epi_log_file,
-     *runinfo_file, *save_file;
+     *runinfo_file, *save_file, *dqn_file;
 
 struct tm runstart_tm, runend_tm;
 
@@ -101,6 +102,7 @@ void simsoft_init(void)
     runinfo_addrs = malloc(sizeof(char)*120);
 
     simsave_addrs = malloc(sizeof(char)*100);
+    dqn_addrs = malloc(sizeof(char)*100);
 
     runnum = 1;
     run_success = 1;
@@ -285,8 +287,10 @@ uint8_t rl_resetrun(void)
 
     log_file = fopen(log_addrs,"w"); //create or reset logfile
     epi_log_file = fopen(eplog_addrs,"w"); //create or reset epi logfile
+    dqn_file = fopen(dqn_addrs,"w");
     fclose(log_file);
     fclose(epi_log_file);
+    fclose(dqn_file);
 
     failed_episodes_count = 0;
     sequential_failed_episodes = 0;
@@ -339,6 +343,8 @@ uint8_t setup_run_fold(void)
     printerror = sprintf(log_addrs,"%s%s",runfold,"log.txt");
     if (snprint_fail(printerror)){ return 0; }
     printerror = sprintf(eplog_addrs,"%s%s",runfold,"epi_log.txt");
+    if (snprint_fail(printerror)){ return 0; }
+    printerror = sprintf(dqn_addrs,"%s%s",runfold,"dqn.txt");
     if (snprint_fail(printerror)){ return 0; }
 
     printf("\nRun:%d :: SavedAt:%s\n",runnum,runfold);
@@ -494,5 +500,21 @@ uint8_t simsoft_cleanup(void)
     free(log_addrs);
     free(eplog_addrs);
 
+    return 0;
+}
+
+uint8_t rl_write_dqn_transition(void)
+{
+    printf("DQNTransition: (%1.2f,%1.2f,%1.2f) %d :", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], cur_act);
+    printf(" %.2f :", cur_rew);
+    printf(" (%1.2f,%1.2f,%1.2f) %d :", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], nxt_act);
+    printf(" %d\n", rl_isterminal);
+
+    dqn_file = fopen(dqn_addrs,"a");
+    fprintf(dqn_file,"(%1.2f,%1.2f,%1.2f) %d ", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], cur_act);
+    fprintf(dqn_file,"%1.2f ", cur_rew);
+    fprintf(dqn_file,"(%1.2f,%1.2f,%1.2f) %d ", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], rl_isterminal);
+    fprintf(dqn_file,"\n");
+    fclose(dqn_file);
     return 0;
 }
