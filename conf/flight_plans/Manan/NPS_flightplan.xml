@@ -145,9 +145,9 @@
       <call fun="rl_write_episode_log()"/>
     </block>
     <block name="EndEp">
+	  <exception cond="epinum > rl_cur_episodes_limit-1" deroute="LogQdicts"/>
 	  <exception cond="epinum%20 == 0" deroute="LogQdicts"/>
 	  <exception cond="endrun" deroute="LogQdicts"/>
-	  <exception cond="epinum > rl_cur_episodes_limit-1" deroute="LogQdicts"/>
 	  <exception cond="stop_after_episode" deroute="StopAfterEpi"/>
       <!-- <exception cond="episodes_simulated > rl_maxepochs" deroute="EndRl"/> -->
       <!-- <stay wp="GOAL" until="stage_time > 1"/> -->
