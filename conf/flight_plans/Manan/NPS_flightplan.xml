@@ -73,20 +73,22 @@
       <call fun="cv_3grids()"/>
       <stay wp="GOAL"/>
     </block>
-    <!--
     <block name="RL_FOR">
       <call_once fun="rl_action_forward()"/>
       <stay wp="GOAL"/>
     </block>
     <block name="RL_LEF">
-      <call_once fun="rl_action_left()"/>
+      <call_once fun="rl_left2()"/>
+      <call fun="rl_turn_to_targheadind()"/>
       <stay wp="GOAL"/>
     </block>
     <block name="RL_RIG">
-      <call_once fun="rl_action_right()"/>
+      <call_once fun="rl_right2()"/>
+      <call fun="rl_turn_to_targheadind()"/>
       <stay wp="GOAL"/>
     </block>
--->
+    <!--
+    -->
     <block name="GOTOSET">
       <call_once fun="set_loc_and_att(WP_TESTWP)"/>
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
