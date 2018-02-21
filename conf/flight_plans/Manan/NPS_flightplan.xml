@@ -75,16 +75,22 @@
     </block>
     <block name="RL_FOR">
       <call_once fun="rl_action_forward()"/>
+      <stay until="stage_time>1.00" wp="GOAL"/>
+      <call fun="cv_3grids()"/>
       <stay wp="GOAL"/>
     </block>
     <block name="RL_LEF">
       <call_once fun="rl_left2()"/>
       <call fun="rl_turn_to_targheadind()"/>
+      <stay until="stage_time>0.75" wp="GOAL"/>
+      <call fun="cv_3grids()"/>
       <stay wp="GOAL"/>
     </block>
     <block name="RL_RIG">
       <call_once fun="rl_right2()"/>
       <call fun="rl_turn_to_targheadind()"/>
+      <stay until="stage_time>0.75" wp="GOAL"/>
+      <call fun="cv_3grids()"/>
       <stay wp="GOAL"/>
     </block>
     <!--
