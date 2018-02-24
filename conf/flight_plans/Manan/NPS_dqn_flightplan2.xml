@@ -106,6 +106,7 @@
         <call fun="rl_check_terminal()"/>
         <call fun="rl_write_dqn_transition()"/>
       </while>
+      <call fun="rl_write_episode_log()"/>
     </block>
     <block name="EndEp">
 	  <exception cond="epinum > rl_cur_episodes_limit-1" deroute="LogQdicts"/>
