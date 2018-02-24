@@ -139,7 +139,8 @@ uint8_t rl_init_uav(void)
     init_cords[1] = waypoints[WP_StartPos].enu_f.y;
 
 #ifdef VISRL_NPS
-    init_headind = 0; //dont understan why these are these values
+    // init_headind = 0; //dont understan why these are these values
+    init_headind = 8; //dont understan why these are these values
 #else
     init_headind = 10; // will need to check for real implement
 #endif
@@ -406,6 +407,9 @@ uint8_t rl_get_reward(void)
     // (CAN MAYBE MAKE THESE GLOBAL)
     float rew_factor = 2;
     float same_goal_pen_factor = 2;
+    // Only reward seeing red for 2 goal task
+    cur_rew += (countfracs[0])*rew_factor;
+    /*
     if (goals_visited == 0) {
         cur_rew += (countfracs[0]+countfracs[1])*rew_factor;
     }
@@ -421,9 +425,12 @@ uint8_t rl_get_reward(void)
             cur_rew -= (countfracs[1])*same_goal_pen_factor + 10; //deduct for blue
         }
     }
+    */
 
     // Big reward if just visited a new goal
-    if (*(cur_sta+8) != *(nxt_sta+8)) {
+    if ((*(cur_sta+8) != '0') &&  (*(cur_sta+8) != '2')) {
+        printf("\n%c\n", *(cur_sta+8));
+        printf("\n=======\nRED GOAL VISITED\n==========\n");
         cur_rew += 100;
     }
     // if (() || (*(mystate+2) != '0') || (*(mystate+4) != '0')) {
@@ -498,7 +505,8 @@ void rl_action_forward(void)
     NavSetWaypointHere(WP_BoundaryChecker);
     moveWaypointForwards(WP_BoundaryChecker,0.6);
     // logic for detecting hitting wall
-    if (!InsideMyWorld(WaypointX(WP_BoundaryChecker),WaypointY(WP_BoundaryChecker))) {
+    if ((!InsideCorr1(WaypointX(WP_BoundaryChecker),WaypointY(WP_BoundaryChecker))) &&
+        (!InsideCorr2(WaypointX(WP_BoundaryChecker),WaypointY(WP_BoundaryChecker)))) {
         hitwall = 1;
     }
     else {
@@ -638,7 +646,9 @@ uint8_t rl_check_terminal(void)
     if (runnum > rl_maxruns-1) { endsess = 1; }
 
 #ifdef VISRL_TWOGOALS
-    if (goals_visited == 3) {
+    // if (goals_visited == 3) {
+    // Terminal condition for corridor task; only terminal for red visited
+    if ((goals_visited == 1) || (goals_visited == 3)) {
 #else
     if (goals_visited == 1) {
 #endif
