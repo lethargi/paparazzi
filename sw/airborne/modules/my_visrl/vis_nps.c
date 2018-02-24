@@ -29,7 +29,7 @@ uint32_t count_arr[2][3] = {{0}};
 uint32_t sumcount_arr[2] = {0,0};
 uint8_t domcol_arr[3] = {0,0,0};
 float dqn_red_fracs[3] = {0.0,0.0,0.0};
-float tot_col_val = 30000;
+float tot_col_val = 20000;
 
 // dont understand why i have to define again here when they are included in
 // visrl.h
