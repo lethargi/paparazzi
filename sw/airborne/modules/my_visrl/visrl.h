@@ -122,7 +122,7 @@ extern uint8_t pick_action_random(char *mystate);
 extern uint8_t rl_init_ep_dqn(void);
 extern uint8_t rl_set_cur_dqn(void);
 extern uint8_t rl_set_nxt_dqn(void);
-extern uint32_t cur_dqn_sta[3];
-extern uint32_t nxt_dqn_sta[3];
+extern float cur_dqn_sta[4];
+extern float nxt_dqn_sta[4];
 
 #endif

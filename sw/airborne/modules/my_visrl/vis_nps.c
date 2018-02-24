@@ -29,6 +29,7 @@ uint32_t count_arr[2][3] = {{0}};
 uint32_t sumcount_arr[2] = {0,0};
 uint8_t domcol_arr[3] = {0,0,0};
 float dqn_red_fracs[3] = {0.0,0.0,0.0};
+float tot_col_val = 30000;
 
 // dont understand why i have to define again here when they are included in
 // visrl.h
@@ -60,6 +61,7 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 
   return realsize;
 }
+
 
 void curl2mem(struct MemoryStruct *chunk)
 {
@@ -214,10 +216,14 @@ uint8_t count_pixels_in_three_grids(struct BmpStruct *bmpstructPtr)
     uint16_t width = bmpstructPtr->width;
     uint16_t width1 = width/3;
     uint16_t width2 = 2*width/3;
+    // float tot_col_val = 254*width1*height;
     // Reset everything to 0
     for (int i = 0; i < 2; i++) {
         for (int j = 0; j < 3; j++) {
             count_arr[i][j] = 0;
+            // if (i == 0) {
+            dqn_red_fracs[j] = 0.0;
+            // }
         }
         sumcount_arr[i] = 0;
         domcol_arr[i] = 0;
@@ -257,10 +263,16 @@ uint8_t count_pixels_in_three_grids(struct BmpStruct *bmpstructPtr)
     for (int i = 0; i < 2; i++) {
         uint32_t sumpix = 0;
         for (int j = 0; j < 3; j++) {
+            if (i == 0) {
+                dqn_red_fracs[j] = count_arr[i][j]/tot_col_val;
+                // printf("%d %
+                // printf("\n%d %f %f\n",count_arr[i][j],dqn_red_fracs[j], tot_col_val);
+            }
             sumpix += count_arr[i][j];
         }
         sumcount_arr[i] = sumpix;
     }
+    // printf("  %f %f %f   ", dqn_red_fracs[0], dqn_red_fracs[1], dqn_red_fracs[2]);
 
     colmax(count_arr,domcol_arr);
 
@@ -304,7 +316,7 @@ uint8_t dqn_red_frac_count(struct BmpStruct *bmpstructPtr)
         }
     }
 
-    printf("\n Tot_col_val %d; sumred1:%d; 2:%d; 3:%d\n",sum_tot[0],sum_red[0],sum_red[1],sum_red[2]);
+    // printf("\n Tot_col_val %d; sumred1:%d; 2:%d; 3:%d\n",sum_tot[0],sum_red[0],sum_red[1],sum_red[2]);
     for (int i = 0; i < 3; i++) {
         // cur_red_frac = (float)sum_red[i]/(float)sum_tot[i];
         cur_red_frac = (float)sum_red[i]/tot_col_val;
@@ -332,7 +344,7 @@ uint8_t cv_3grids(void)
     free(chunk.memory);
 
     count_pixels_in_three_grids(&bmp);
-    dqn_red_frac_count(&bmp);
+    // dqn_red_frac_count(&bmp);
 
     // free up memory of the bmp
     free(bmp.buffer);

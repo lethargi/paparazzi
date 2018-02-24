@@ -417,18 +417,23 @@ uint8_t save_run_metadata(void)
 uint8_t save_sim_state(void)
 {
     int count;
-    float gl_x,gl_y;
-    uint8_t save_headind;
+    // float gl_x,gl_y;
+    // uint8_t save_headind;
 
     printerror = sprintf(simsave_addrs,"%s%s",runfold,"save.txt");
     if (snprint_fail(printerror)){ return 0; }
 
     save_file = fopen(simsave_addrs,"w");
-    count = fprintf(save_file, "%d %d %d %d %d %d %d %s %s %f %f %d", rl_eps, rl_max_episodes_limit, rl_cur_episodes_limit_change, rl_cur_episodes_limit, rl_cur_epsilon_change, steps_taken, epinum, cur_sta, nxt_sta, gl_x, gl_y, save_headind);
-
-    print_qdict();
-
+    count = fprintf(save_file, "%d %d %d %d %d %d %d %s %s", rl_eps, rl_max_episodes_limit, rl_cur_episodes_limit_change, rl_cur_episodes_limit, rl_cur_epsilon_change, steps_taken, epinum, cur_sta, nxt_sta);//, gl_x, gl_y);//, save_headind);
+    if (count < 0) {
+        printf("\n ERROR: Couldnt Save sim\n ");
+    }
+    else {
+        print_qdict();
+    }
     fclose(save_file);
+
+    return 0;
 }
 
 uint8_t load_sim_state(void)
@@ -461,13 +466,16 @@ uint8_t load_sim_state(void)
 
     int count;
 
-    float gl_x,gl_y;
-    uint8_t save_headind;
+    // float gl_x,gl_y;
+    // uint8_t save_headind;
 
     // Needed to use this as fscanf was not being able to write into uint16s
     int a,b,c,d,e,f,g;
-    count = fscanf(save_file, "%d %d %d %d %d %d %d %s %s %f %f %d", &a, &b, &c, &d, &e, &f, &g, cur_sta, nxt_sta, &gl_x, &gl_y, &save_headind);
+    count = fscanf(save_file, "%d %d %d %d %d %d %d %s %s", &a, &b, &c, &d, &e, &f, &g, cur_sta, nxt_sta);//, &gl_x, &gl_y);//, &((int)save_headind));
     fclose(save_file);
+    if (count < 0) {
+        printf("\n ERROR: Couldnt Save sim\n ");
+    }
 
     rl_eps = a;
     rl_max_episodes_limit = b;
@@ -481,7 +489,7 @@ uint8_t load_sim_state(void)
     load_qdict_fromtxt();
 
     printf("This is what i read\n");
-    printf("%d %d %d %d %d %d %d %s %s %f %f %d\n", rl_eps, a, b, rl_cur_episodes_limit, rl_cur_epsilon_change, steps_taken, epinum, cur_sta, nxt_sta, gl_x, gl_y, save_headind);
+    printf("%d %d %d %d %d %d %d %s %s\n", rl_eps, a, b, rl_cur_episodes_limit, rl_cur_epsilon_change, steps_taken, epinum, cur_sta, nxt_sta);//, gl_x, gl_y);//, save_headind);
 
 
     return 0;
@@ -506,18 +514,13 @@ uint8_t simsoft_cleanup(void)
 uint8_t rl_write_dqn_transition(void)
 {
     // printf("DQNTransition: (%1.2f,%1.2f,%1.2f) %d :", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], cur_act);
-    printf("DQNTransition: (%d,%d,%d) %d :", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], cur_act);
-    printf(" %.2f :", cur_rew);
-    // printf(" (%1.2f,%1.2f,%1.2f) %d :", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], nxt_act);
-    printf(" (%d,%d,%d) %d :", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], nxt_act);
-    printf(" %d\n", rl_isterminal);
 
     dqn_file = fopen(dqn_addrs,"a");
     // fprintf(dqn_file,"(%1.2f,%1.2f,%1.2f) %d ", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], cur_act);
-    fprintf(dqn_file,"(%d,%d,%d) %d ", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], cur_act);
+    fprintf(dqn_file,"(%01.3f,%01.3f,%01.3f,%d) %d ", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], (int) cur_dqn_sta[3], cur_act);
     fprintf(dqn_file,"%1.2f ", cur_rew);
     // fprintf(dqn_file,"(%1.2f,%1.2f,%1.2f) %d ", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], rl_isterminal);
-    fprintf(dqn_file,"(%d,%d,%d) %d", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], rl_isterminal);
+    fprintf(dqn_file,"(%01.3f,%01.3f,%01.3f,%d) %d", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], (int) nxt_dqn_sta[3], rl_isterminal);
     fprintf(dqn_file,"\n");
     fclose(dqn_file);
     return 0;

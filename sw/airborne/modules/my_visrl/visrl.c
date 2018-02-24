@@ -49,8 +49,8 @@ float step_wait_time = 1.0;
 // float cur_dqn_sta[3] = {0.0, 0.0, 0.0};
 // float nxt_dqn_sta[3] = {0.0, 0.0, 0.0};
 
-uint32_t cur_dqn_sta[3] = {0.0, 0.0, 0.0};
-uint32_t nxt_dqn_sta[3] = {0.0, 0.0, 0.0};
+float cur_dqn_sta[4] = {0.0, 0.0, 0.0, 0.0};
+float nxt_dqn_sta[4] = {0.0, 0.0, 0.0, 0.0};
 
 #ifdef VISRL_USEOPTIONS
 uint8_t start_option = 0; //boolean to check if performing option
@@ -276,6 +276,16 @@ uint8_t pick_action_random(char *mystate)
     act_type = "R";
     picked_action = rand() % possible_actions;
 
+    md_node *curnode;
+    curnode = md_search(ll_qdict,mystate);
+
+    if (curnode == NULL) {
+        printf(" NewState ");
+        curnode = md_prepend_list(ll_qdict,mystate);
+        picked_action = rand() % possible_actions;
+        act_type = "R";
+    }
+
     // set time to wait; if forward 1sec; if turn 0.15 sec
     if ((picked_action == 0)) { // || (picked_action == 3)) {
         step_wait_time = 1.0;
@@ -470,6 +480,7 @@ uint8_t rl_set_cur_dqn(void)
     for (int i = 0; i<3 ; i++) {
         cur_dqn_sta[i] = nxt_dqn_sta[i];
     }
+    cur_dqn_sta[3] = nxt_dqn_sta[3];
     strcpy(cur_sta,nxt_sta);
     cur_act = nxt_act;
     return 0;
@@ -544,8 +555,11 @@ uint8_t rl_set_nxt_dqn(void)
 {
     get_state_ext(nxt_sta);
     for (int i = 0; i<3; i++) {
-        nxt_dqn_sta[i] = count_arr[0][i];
+        // nxt_dqn_sta[i] = count_arr[0][i];
+        nxt_dqn_sta[i] = dqn_red_fracs[i];
+
     }
+    nxt_dqn_sta[3] = hitwall;
     nxt_act = pick_action_random(nxt_sta);
     rl_get_reward();
     rl_write_step_log();
@@ -702,7 +716,14 @@ uint8_t rl_update_qdict(void)
     Qcur1 = Qcur + rl_alp*(cur_rew + rl_gamma*Qnxt - Qcur);
     qtab_curnode->values[cur_act] = Qcur1;
     sum_dQ += abs(Qcur1 - Qcur);
-    printf("%03.1f %03.1f %03.1f :: \n", Qcur, Qnxt, Qcur1);
+    printf("%03.2f %03.2f %03.2f :::: ", Qcur, Qnxt, Qcur1);
+
+    // PRINT DQN STUFFS
+    printf("(%01.3f %01.3f %01.3f,%d) %d :", cur_dqn_sta[0], cur_dqn_sta[1], cur_dqn_sta[2], (int) cur_dqn_sta[3], cur_act);
+    // printf(" %.2f :", cur_rew);
+    // printf(" (%1.2f,%1.2f,%1.2f) %d :", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], nxt_act);
+    printf(" (%01.3f %01.3f %01.3f,%d) :", nxt_dqn_sta[0], nxt_dqn_sta[1], nxt_dqn_sta[2], (int) nxt_dqn_sta[3]);
+    printf(" %d\n", rl_isterminal);
     return 0;
 }
 
