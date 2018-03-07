@@ -32,6 +32,28 @@ float headings_rad[16] = {0, M_PI/8., M_PI/4., 3*M_PI/8., M_PI/2., 5*M_PI/8.,
 float czoo_offset = M_PI/15;
 #endif
 
+uint8_t policy_nowallhit[7][4] ={{1,1,1,1}, // L
+                                {0,0,0,0},     // C
+                                {2,2,2,2},     // R
+                                {0,0,0,0},     // LC
+                                {0,0,0,0},     // RC
+                                {0,0,0,0},     // LCR
+                                {3,3,3,3}}     // N
+
+uint8_t policy_wallhit[7][4] ={{2,2,2,2}, // L
+                                {2,2,2,2},     // C
+                                {1,1,1,1},     // R
+                                {2,2,2,2},     // LC
+                                {1,1,1,1},     // RC
+                                {2,2,2,2},     // LCR
+                                {3,3,3,3}}     // N
+
+char new_state[7][4] = {"L","C","R","LC","RC","LCR","N"}
+char new_state_map[7][6] = {"1,0,0","0,1,0","0,0,1","1,1,0","0,1,1","1,1,1","0,0,0"}
+char new_state_map_int[7][3] = {{1,0,0},{0,1,0},{0,0,1},{1,1,0},{0,1,1},{1,1,1},{0,0,0}}
+
+uint8_t new_vis_state = 0;
+
 uint8_t len_headings = 16;
 int8_t headind = 0;
 int8_t cur_targ_headind = 0;
@@ -43,6 +65,7 @@ char *act_type = "R";
 uint8_t cur_act = 0;
 uint8_t nxt_act = 0;
 char cur_sta[VISRL_STATESIZE], nxt_sta[VISRL_STATESIZE];
+uint8_t new_cur_sta, new_nxt_sta, cur_cfrac, nxt_cfrac;
 float step_wait_time = 1.0;
 
 #ifdef VISRL_USEOPTIONS
@@ -236,6 +259,95 @@ uint8_t pick_action(char *mystate)
     return picked_action;
 }
 
+uint8_t pick_action_hardcoded(char *mystate, uint8_t cur_state, uint8_t cur_cfrac)
+{
+    uint8_t possible_actions = VISRL_ACTIONS;
+#ifdef VISRL_USEOPTIONS
+    // if performing option of turning till color, return option action
+    if (cur_act == 3) {
+        start_option = 0; //already performing option
+        end_option = 0;
+        uint8_t seeing_color = 0;
+        for (int i = 0; i < 3; i++) {
+            if (domcol_arr[i]) { // using the basic color array; maybe shud use the state info
+                seeing_color = 1;
+            }
+        }
+        if (!seeing_color) {
+            printf(" %d %d ",start_option, end_option);
+            return 3;
+        }
+        else {
+            end_option = 1;
+        }
+    }
+
+    // if seeing any color, do not use options
+    if ((*(mystate) != '0') || (*(mystate+2) != '0') || (*(mystate+4) != '0')) {
+        possible_actions = 3;
+    }
+#endif
+    // uint8_t picked_action = 0;
+    uint8_t picked_action = 0;
+    total_state_visits++;
+
+    if (!hitwall) {
+        picked_action = policy_nowallhit[cur_state][cur_cfrac]
+    }
+    else {
+        picked_action = policy_wallhit[cur_state][cur_cfrac]
+    }
+    act_type = "G";
+
+//     md_node *curnode;
+//     curnode = md_search(ll_qdict,mystate);
+// 
+//     if (curnode == NULL) {
+//         printf(" NewState ");
+//         curnode = md_prepend_list(ll_qdict,mystate);
+//         picked_action = rand() % possible_actions;
+//         act_type = "R";
+//     }
+//     else {
+//         uint8_t policy_roll = rand() % 100;
+//         if (policy_roll < rl_eps) {
+//             // do greedy
+//             act_type = "G";
+//             md_node_best_action(curnode);
+//             picked_action = curnode->best_action;
+//         }
+//         else {
+//             // do random
+//             act_type = "R";
+//             picked_action = rand() % possible_actions;
+//         }
+//     }
+//     curnode->visits[picked_action]++;
+
+    // set time to wait; if forward 1sec; if turn 0.15 sec
+    if ((picked_action == 0)) { // || (picked_action == 3)) {
+        step_wait_time = 1.0;
+    }
+    else {
+// #ifdef VISRL_NPS
+        step_wait_time = 0.75;
+// #else
+        // step_wait_time = 1.0;
+// #endif
+    }
+
+#ifdef VISRL_USEOPTIONS
+    // if picking option, set boolean to true;
+    if (picked_action == 3) {
+        start_option = 1;
+        end_option = 0;
+        opts_rew = 0;
+    }
+    printf(" %d %d ",start_option, end_option);
+#endif
+    return picked_action;
+}
+
 void get_state_ext(char *curstate)
 {
     uint8_t sta_cfrac;
@@ -279,6 +391,72 @@ void get_state_ext(char *curstate)
             // countfracs[0],countfracs[1],//countfracs[2],
             // goals_visited,hitwall,headind); // with headindex
             goals_visited,hitwall);      // without headingindex
+
+
+    printf("%3d %4d",epinum,steps_taken);
+}
+
+void new_get_state_ext(uint8_t *cur_state, uint8_t *cur_cfrac)
+{
+    uint8_t sta_cfrac;
+    cv_3grids();        // function only used to get cv data during simulation
+    for (int i = 0; i < 2; i++) {
+        countfracs[i] = (float)sumcount_arr[i]/(float)5000;
+    }
+
+    /// STUFF FOR NEW STATE
+    *cur_cfrac = countfracs[0];
+    uint8_t state_found = 0;
+    for(int i; i < 7; i++) {
+        uint8_t cur_check_state[3] = new_policy_map_int[i]
+        state_found = 1;
+        for(int j; j < 3; j++) {
+            if (cur_check_state[j] != domcol_arr[j]) {
+                state_found = 0;
+                break;
+            }
+        }
+        if (state_found) {
+            *cur_state = j;
+            break;
+        }
+    }
+
+    //check for goals visited
+    if (goals_visited == 0) {
+        if (countfracs[0] > red_goal_reach_thresh) {
+            goals_visited = 1;
+        }
+#ifdef VISRL_TWOGOALS
+        if (countfracs[1] > blue_goal_reach_thresh) {
+            goals_visited = 2;
+        }
+    }
+    else if (goals_visited == 1) {
+        if (countfracs[1] > blue_goal_reach_thresh) {
+            goals_visited = 3;
+        }
+    }
+    else if (goals_visited == 2) {
+        if (countfracs[0] > red_goal_reach_thresh) {
+            goals_visited = 3;
+        }
+    }
+    sta_cfrac = ((int) floor(countfracs[0]+countfracs[1]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0]+countfracs[1] ;
+#else
+    }
+    sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
+#endif
+
+    // Alternate versions of state commented out
+    // uint8_t sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
+    // sprintf(curstate,"%d,%d,%d;%d;%d",
+//     sprintf(curstate,"%d,%d,%d;%d;%d;%d",
+//             domcol_arr[0],domcol_arr[1],domcol_arr[2],
+//             sta_cfrac,
+//             // countfracs[0],countfracs[1],//countfracs[2],
+//             // goals_visited,hitwall,headind); // with headindex
+//             goals_visited,hitwall);      // without headingindex
 
 
     printf("%3d %4d",epinum,steps_taken);
@@ -375,6 +553,22 @@ uint8_t rl_set_cur(void)
     return 0;
 }
 
+uint8_t rl_new_set_cur(void)
+{
+    strcpy(cur_sta,nxt_sta);
+    cur_act = nxt_act;
+
+    new_cur_sta = new_nxt_sta;
+    cur_cfrac = new_cfrac;
+    // If starting an options copy the starting state into a buffer
+#ifdef VISRL_USEOPTIONS
+    if (start_option) {
+        strcpy(option_start_sta,cur_sta);
+    }
+#endif
+    return 0;
+}
+
 uint8_t rl_get_reward(void)
 {
     // Increased penalty if going forward while not seeing color
@@ -458,6 +652,20 @@ uint8_t rl_set_nxt(void)
 //     strcpy(nxt_sta,state_buffer);
     get_state_ext(nxt_sta);
     nxt_act = pick_action(nxt_sta);
+    rl_get_reward();
+    rl_write_step_log();
+    // free(state_buffer);
+
+    return 0;
+}
+
+uint8_t rl_new_set_nxt(void)
+{
+//     state_buffer = get_state_ext();
+//     strcpy(nxt_sta,state_buffer);
+    get_state_ext(nxt_sta);
+    nxt_act = pick_action_hardcoded(nxt_sta, new_nxt_sta, new_cfrac);
+    get_state_ext_new(&new_nxt_sta,&new_cfrac);
     rl_get_reward();
     rl_write_step_log();
     // free(state_buffer);
