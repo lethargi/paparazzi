@@ -38,7 +38,7 @@ uint8_t policy_nowallhit[7][4] ={{1,1,1,1}, // L
                                 {0,0,0,0},     // LC
                                 {0,0,0,0},     // RC
                                 {0,0,0,0},     // LCR
-                                {3,3,3,3}}     // N
+                                {3,3,3,3}};     // N
 
 uint8_t policy_wallhit[7][4] ={{2,2,2,2}, // L
                                 {2,2,2,2},     // C
@@ -46,11 +46,11 @@ uint8_t policy_wallhit[7][4] ={{2,2,2,2}, // L
                                 {2,2,2,2},     // LC
                                 {1,1,1,1},     // RC
                                 {2,2,2,2},     // LCR
-                                {3,3,3,3}}     // N
+                                {3,3,3,3}};     // N
 
-char new_state[7][4] = {"L","C","R","LC","RC","LCR","N"}
-char new_state_map[7][6] = {"1,0,0","0,1,0","0,0,1","1,1,0","0,1,1","1,1,1","0,0,0"}
-char new_state_map_int[7][3] = {{1,0,0},{0,1,0},{0,0,1},{1,1,0},{0,1,1},{1,1,1},{0,0,0}}
+char new_state[7][4] = {"L","C","R","LC","RC","LCR","N"};
+char new_state_map[7][6] = {"1,0,0","0,1,0","0,0,1","1,1,0","0,1,1","1,1,1","0,0,0"};
+char new_state_map_int[7][3] = {{1,0,0},{0,1,0},{0,0,1},{1,1,0},{0,1,1},{1,1,1},{0,0,0}};
 
 uint8_t new_vis_state = 0;
 
@@ -292,10 +292,10 @@ uint8_t pick_action_hardcoded(char *mystate, uint8_t cur_state, uint8_t cur_cfra
     total_state_visits++;
 
     if (!hitwall) {
-        picked_action = policy_nowallhit[cur_state][cur_cfrac]
+        picked_action = policy_nowallhit[cur_state][cur_cfrac];
     }
     else {
-        picked_action = policy_wallhit[cur_state][cur_cfrac]
+        picked_action = policy_wallhit[cur_state][cur_cfrac];
     }
     act_type = "G";
 
@@ -407,17 +407,17 @@ void new_get_state_ext(uint8_t *cur_state, uint8_t *cur_cfrac)
     /// STUFF FOR NEW STATE
     *cur_cfrac = countfracs[0];
     uint8_t state_found = 0;
-    for(int i; i < 7; i++) {
-        uint8_t cur_check_state[3] = new_policy_map_int[i]
+    for(int i = 0; i < 7; i++) {
+        uint8_t *cur_check_state = new_state_map_int[i];
         state_found = 1;
-        for(int j; j < 3; j++) {
-            if (cur_check_state[j] != domcol_arr[j]) {
+        for(int j = 0; j < 3; j++) {
+            if (*(cur_check_state+j) != domcol_arr[j]) {
                 state_found = 0;
                 break;
             }
         }
         if (state_found) {
-            *cur_state = j;
+            *cur_state = i;
             break;
         }
     }
@@ -559,7 +559,7 @@ uint8_t rl_new_set_cur(void)
     cur_act = nxt_act;
 
     new_cur_sta = new_nxt_sta;
-    cur_cfrac = new_cfrac;
+    cur_cfrac = nxt_cfrac;
     // If starting an options copy the starting state into a buffer
 #ifdef VISRL_USEOPTIONS
     if (start_option) {
@@ -664,8 +664,8 @@ uint8_t rl_new_set_nxt(void)
 //     state_buffer = get_state_ext();
 //     strcpy(nxt_sta,state_buffer);
     get_state_ext(nxt_sta);
-    nxt_act = pick_action_hardcoded(nxt_sta, new_nxt_sta, new_cfrac);
-    get_state_ext_new(&new_nxt_sta,&new_cfrac);
+    nxt_act = pick_action_hardcoded(nxt_sta, new_nxt_sta, nxt_cfrac);
+    new_get_state_ext(&new_nxt_sta,&nxt_cfrac);
     rl_get_reward();
     rl_write_step_log();
     // free(state_buffer);
