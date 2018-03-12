@@ -106,7 +106,7 @@ extern uint8_t rl_print_qtab(void);
 extern md_linkedlist *ll_qdict;
 
 void get_state_ext(char *curstate);
-void new_get_state_ext(uint8_t *cur_state, uint8_t *cur_cfrac);
+void new_get_state_ext(char *curstate, uint8_t *cur_state, uint8_t *cur_cfrac);
 float get_myheading(void);
 void update_headind(void);
 

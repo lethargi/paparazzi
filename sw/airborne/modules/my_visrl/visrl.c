@@ -396,7 +396,7 @@ void get_state_ext(char *curstate)
     printf("%3d %4d",epinum,steps_taken);
 }
 
-void new_get_state_ext(uint8_t *cur_state, uint8_t *cur_cfrac)
+void new_get_state_ext(char *curstate, uint8_t *cur_state, uint8_t *cur_cfrac)
 {
     uint8_t sta_cfrac;
     cv_3grids();        // function only used to get cv data during simulation
@@ -451,12 +451,12 @@ void new_get_state_ext(uint8_t *cur_state, uint8_t *cur_cfrac)
     // Alternate versions of state commented out
     // uint8_t sta_cfrac = ((int) floor(countfracs[0]) > red_goal_reach_thresh) ? red_goal_reach_thresh: countfracs[0] ;
     // sprintf(curstate,"%d,%d,%d;%d;%d",
-//     sprintf(curstate,"%d,%d,%d;%d;%d;%d",
-//             domcol_arr[0],domcol_arr[1],domcol_arr[2],
-//             sta_cfrac,
+    sprintf(curstate,"%d,%d,%d;%d;%d;%d",
+            domcol_arr[0],domcol_arr[1],domcol_arr[2],
+            sta_cfrac,
 //             // countfracs[0],countfracs[1],//countfracs[2],
 //             // goals_visited,hitwall,headind); // with headindex
-//             goals_visited,hitwall);      // without headingindex
+            goals_visited,hitwall);      // without headingindex
 
 
     printf("%3d %4d",epinum,steps_taken);
@@ -664,8 +664,8 @@ uint8_t rl_new_set_nxt(void)
 {
 //     state_buffer = get_state_ext();
 //     strcpy(nxt_sta,state_buffer);
-    get_state_ext(nxt_sta);
-    new_get_state_ext(&new_nxt_sta,&nxt_cfrac);
+    // get_state_ext(nxt_sta);
+    new_get_state_ext(nxt_sta, &new_nxt_sta,&nxt_cfrac);
     nxt_act = pick_action_hardcoded(nxt_sta, new_nxt_sta, nxt_cfrac);
     rl_get_reward();
     rl_write_step_log();
