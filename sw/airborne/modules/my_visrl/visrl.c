@@ -304,13 +304,46 @@ uint8_t pick_action_hardcoded(char *mystate, uint8_t cur_state, uint8_t cur_cfra
     // uint8_t picked_action = 0;
     uint8_t picked_action = 0;
     total_state_visits++;
+    uint8_t track_to_goal = 0;
 
-    if (!hitwall) {
-        picked_action = policy_nowallhit[cur_state][cur_cfrac];
+#ifdef VISRL_TWOGOALS
+    if (glseen == 0) {
+        picked_action = 3;
     }
     else {
-        picked_action = policy_wallhit[cur_state][cur_cfrac];
+        if (goals_visited == 0) {
+            track_to_goal = 1;
+        }
+        else if (goals_visited == 1) {
+            if (glseen == 1) {
+                picked_action = 2;
+            }
+            else if (glseen == 2) {
+                track_to_goal = 1;
+            }
+        }
+        else if (goals_visited == 2) {
+            if (glseen == 2) {
+                picked_action = 2;
+            }
+            else if (glseen == 1) {
+                track_to_goal = 1;
+            }
+        }
     }
+#else
+    track_to_goal = 1;
+#endif
+
+    if (track_to_goal) {
+        if (!hitwall) {
+            picked_action = policy_nowallhit[cur_state][cur_cfrac];
+        }
+        else {
+            picked_action = policy_wallhit[cur_state][cur_cfrac];
+        }
+    }
+
     act_type = "G";
 
 //     md_node *curnode;
