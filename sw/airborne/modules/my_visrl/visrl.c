@@ -287,6 +287,20 @@ uint8_t pick_action_hardcoded(char *mystate, uint8_t cur_state, uint8_t cur_cfra
         possible_actions = 3;
     }
 #endif
+
+    uint8_t glseen = 0;
+    uint8_t domcol_pos[3] = {0,2,4};
+    for (int i = 0; i < 3; i++) {
+        if (*(mystate+domcol_pos[i]) == '1') {
+            glseen = 1;
+            break;
+        }
+        else if (*(mystate+domcol_pos[i]) == '2') {
+            glseen = 2;
+            break;
+        }
+    }
+
     // uint8_t picked_action = 0;
     uint8_t picked_action = 0;
     total_state_visits++;
