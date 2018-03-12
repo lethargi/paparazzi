@@ -21,6 +21,8 @@
 
 #define NAV_C
 #include "generated/flight_plan.h"
+// #define MODULES_H
+#include "generated/modules.h"
 
 #include "subsystems/datalink/telemetry.h"
 
@@ -112,6 +114,21 @@ void visrl_init(void)
     }
 #endif
     printf("\nmy_visrl intialized \n");
+}
+
+void myvisrl_periodic_pid(void)
+{
+    printf("The Train is comming!\n");
+}
+
+void rl_turn_period_off(void)
+{
+    my_visrl_myvisrl_periodic_pid_status = MODULES_STOP;
+}
+
+void rl_turn_period_on(void)
+{
+    my_visrl_myvisrl_periodic_pid_status = MODULES_START;
 }
 
 void rl_get_random_cords(float *cords)

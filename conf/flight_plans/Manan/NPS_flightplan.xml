@@ -66,6 +66,14 @@
     <block name="Standby" strip_button="Standby" strip_icon="home.png">
       <stay wp="STDBY"/>
     </block>
+    <block name="StopPeriodic">
+      <call_once fun="rl_turn_period_off()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="StartPeriodic">
+      <call_once fun="rl_turn_period_on()"/>
+      <stay wp="GOAL"/>
+    </block>
     <block name="WaitOnGoal">
       <stay wp="GOAL"/>
     </block>

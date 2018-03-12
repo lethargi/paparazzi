@@ -76,6 +76,10 @@ extern float cur_rew;
 
 extern void visrl_init(void);
 
+void myvisrl_periodic_pid(void);
+extern void rl_turn_period_off(void);
+extern void rl_turn_period_on(void);
+
 extern int8_t stop_after_episode;
 
 

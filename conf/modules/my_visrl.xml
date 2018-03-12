@@ -55,7 +55,7 @@
   </header>
 
   <init fun="visrl_init()"/>
-  <!--<periodic fun="a" freq="0.5" autorun="TRUE"/>-->
+  <periodic fun="myvisrl_periodic_pid()" freq="2" autorun="TRUE"/>
   <makefile target="ap">
     <define name="VISRL_AP"/>
     <file name="vis_ap.c" dir="modules/my_visrl/"/>
