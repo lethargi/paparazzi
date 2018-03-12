@@ -32,9 +32,9 @@ float headings_rad[16] = {0, M_PI/8., M_PI/4., 3*M_PI/8., M_PI/2., 5*M_PI/8.,
 float czoo_offset = M_PI/15;
 #endif
 
-uint8_t policy_nowallhit[7][4] ={{0,1,1,1}, // L
+uint8_t policy_nowallhit[7][4] ={{1,1,0,0}, // L
                                 {0,0,0,0},     // C
-                                {0,2,2,2},     // R
+                                {2,2,0,0},     // R
                                 {0,0,0,0},     // LC
                                 {0,0,0,0},     // RC
                                 {0,0,0,0},     // LCR
@@ -667,7 +667,6 @@ uint8_t rl_new_set_nxt(void)
     get_state_ext(nxt_sta);
     new_get_state_ext(&new_nxt_sta,&nxt_cfrac);
     nxt_act = pick_action_hardcoded(nxt_sta, new_nxt_sta, nxt_cfrac);
-    printf("\nNxtAct:%d\n",nxt_act);
     rl_get_reward();
     rl_write_step_log();
     // free(state_buffer);
