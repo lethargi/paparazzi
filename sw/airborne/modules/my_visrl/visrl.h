@@ -84,8 +84,11 @@ extern uint8_t rl_init_ep(void);
 
 extern uint8_t rl_set_cur(void);
 extern uint8_t rl_set_nxt(void);
+extern uint8_t rl_new_set_cur(void);
+extern uint8_t rl_new_set_nxt(void);
 
 uint8_t pick_action(char *state);
+uint8_t pick_action_hardcoded(char *mystate, uint8_t cur_state, uint8_t cur_cfrac);
 uint8_t rl_get_reward(void);
 
 /* Functions defining the actions */
@@ -103,6 +106,7 @@ extern uint8_t rl_print_qtab(void);
 extern md_linkedlist *ll_qdict;
 
 void get_state_ext(char *curstate);
+void new_get_state_ext(uint8_t *cur_state, uint8_t *cur_cfrac);
 float get_myheading(void);
 void update_headind(void);
 

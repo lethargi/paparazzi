@@ -32,9 +32,9 @@ float headings_rad[16] = {0, M_PI/8., M_PI/4., 3*M_PI/8., M_PI/2., 5*M_PI/8.,
 float czoo_offset = M_PI/15;
 #endif
 
-uint8_t policy_nowallhit[7][4] ={{1,1,1,1}, // L
+uint8_t policy_nowallhit[7][4] ={{0,1,1,1}, // L
                                 {0,0,0,0},     // C
-                                {2,2,2,2},     // R
+                                {0,2,2,2},     // R
                                 {0,0,0,0},     // LC
                                 {0,0,0,0},     // RC
                                 {0,0,0,0},     // LCR
@@ -533,6 +533,7 @@ uint8_t rl_init_ep(void)
     epinum++;
     // headind = 0;
     rl_set_nxt();
+    rl_new_set_nxt();
     update_headind();
     printf("\n Episode initialized \n");
     printf(" TotVis:%u \n", total_state_visits);
@@ -664,8 +665,9 @@ uint8_t rl_new_set_nxt(void)
 //     state_buffer = get_state_ext();
 //     strcpy(nxt_sta,state_buffer);
     get_state_ext(nxt_sta);
-    nxt_act = pick_action_hardcoded(nxt_sta, new_nxt_sta, nxt_cfrac);
     new_get_state_ext(&new_nxt_sta,&nxt_cfrac);
+    nxt_act = pick_action_hardcoded(nxt_sta, new_nxt_sta, nxt_cfrac);
+    printf("\nNxtAct:%d\n",nxt_act);
     rl_get_reward();
     rl_write_step_log();
     // free(state_buffer);
@@ -841,6 +843,8 @@ uint8_t rl_check_terminal(void)
     }
     */
 
+    printf(":: %s %u  %s %u :", cur_sta, cur_act, nxt_sta, nxt_act);
+    printf("::NewCur %u %s  NewNext %u %s :\n", new_cur_sta, new_state[new_cur_sta], new_nxt_sta, new_state[new_nxt_sta]);
     // check for end of run and session
     if (epinum > rl_max_episodes_limit-1) { endrun = 1; }
     if (runnum > rl_maxruns-1) { endsess = 1; }
