@@ -266,6 +266,84 @@ uint8_t pick_action(char *mystate)
     return picked_action;
 }
 
+uint8_t pick_action_pid(char *mystate)
+{
+    uint8_t possible_actions = VISRL_ACTIONS;
+#ifdef VISRL_USEOPTIONS
+    // if performing option of turning till color, return option action
+    if (cur_act == 3) {
+        start_option = 0; //already performing option
+        end_option = 0;
+        uint8_t seeing_color = 0;
+        for (int i = 0; i < 3; i++) {
+            if (domcol_arr[i]) { // using the basic color array; maybe shud use the state info
+                seeing_color = 1;
+            }
+        }
+        if (!seeing_color) {
+            printf(" %d %d ",start_option, end_option);
+            return 3;
+        }
+        else {
+            end_option = 1;
+        }
+    }
+
+    // if seeing any color, do not use options
+    if ((*(mystate) != '0') || (*(mystate+2) != '0') || (*(mystate+4) != '0')) {
+        possible_actions = 3;
+    }
+#endif
+    uint8_t picked_action = 0;
+    total_state_visits++;
+
+    md_node *curnode;
+    curnode = md_search(ll_qdict,mystate);
+
+    if (curnode == NULL) {
+        printf(" NewState ");
+        curnode = md_prepend_list(ll_qdict,mystate);
+        picked_action = rand() % possible_actions;
+        act_type = "R";
+    }
+    else {
+        uint8_t policy_roll = rand() % 100;
+        if (policy_roll < rl_eps) {
+            // do greedy
+            act_type = "G";
+            md_node_best_action(curnode);
+            picked_action = curnode->best_action;
+        }
+        else {
+            // do random
+            act_type = "R";
+            picked_action = rand() % possible_actions;
+        }
+    }
+    curnode->visits[picked_action]++;
+
+    // implementation of pid picked action
+
+    // set time to wait; if forward 1sec; if turn 0.15 sec
+    if ((picked_action == 0)) { // || (picked_action == 3)) {
+        step_wait_time = 1.0;
+    }
+    else {
+        step_wait_time = 0.75;
+    }
+
+#ifdef VISRL_USEOPTIONS
+    // if picking option, set boolean to true;
+    if (picked_action == 3) {
+        start_option = 1;
+        end_option = 0;
+        opts_rew = 0;
+    }
+    printf(" %d %d ",start_option, end_option);
+#endif
+    return picked_action;
+}
+
 void get_state_ext(char *curstate)
 {
     uint8_t sta_cfrac;
