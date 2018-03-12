@@ -143,7 +143,7 @@ uint8_t md_import_from_text(md_linkedlist *mylist, char* qdict_filename,
     char akey[VISRL_STATESIZE];
     float val[VISRL_ACTIONS];//, T;
     int vis[VISRL_ACTIONS];// T_v;
-    while (!feof(qdict_txt_file)) {
+    while (1) {
 
         // read values from file and store in cache variable
 #ifdef VISRL_USEOPTIONS
@@ -157,6 +157,8 @@ uint8_t md_import_from_text(md_linkedlist *mylist, char* qdict_filename,
         count = fscanf(statevisits_txt_file, "%s\t%d\t%d\t%d", akey, &vis[0], &vis[1], &vis[2]);
         if (fscanf_check(count)) {return 0;}
 #endif
+        // break loop if reached the end of file
+        if (feof(qdict_txt_file)) { break; }
 
         // create new list element with key
         cursor = md_prepend_list(mylist,strdup(akey));

@@ -82,7 +82,7 @@ let float_attrib = fun xml a ->
   try
     float_of_string (Xml.attrib xml a)
   with
-      Failure "float_of_string" ->
+      Failure _ ->
         failwith (sprintf "Float expected in attribute '%s' from %s" a (Xml.to_string_fmt xml))
 let name_of = fun wp -> ExtXml.attrib wp "name"
 
@@ -205,7 +205,7 @@ let pprz_throttle = fun s ->
       if g < 0. || g > 1. then
         failwith "throttle must be > 0 and < 1"
     with
-        Failure "float_of_string" -> () (* No possible check on expression *)
+        Failure _ -> () (* No possible check on expression *)
   end;
   sprintf "9600*(%s)" s
 
@@ -213,7 +213,7 @@ let pprz_throttle = fun s ->
 (********************* Vertical control ********************************************)
 let output_vmode = fun stage_xml wp last_wp ->
   let pitch = try Xml.attrib stage_xml "pitch" with _ -> "0.0" in
-  if String.lowercase (Xml.tag stage_xml) <> "manual"
+  if Compat.lowercase_ascii (Xml.tag stage_xml) <> "manual"
   then begin
     if pitch = "auto"
     then begin
@@ -237,7 +237,7 @@ let output_vmode = fun stage_xml wp last_wp ->
                 check_altitude (float_of_string a) stage_xml
               with
         (* Impossible to check the altitude on an expression: *)
-                  Failure "float_of_string" -> ()
+                  Failure _ -> ()
             end;
             a
           with _ ->
@@ -248,7 +248,7 @@ let output_vmode = fun stage_xml wp last_wp ->
                   check_altitude ((float_of_string h) +. !ground_alt) stage_xml
                 with
           (* Impossible to check the altitude on an expression: *)
-                    Failure "float_of_string" -> ()
+                    Failure _ -> ()
               end;
               sprintf "Height(%s)" h
             with _ ->
@@ -316,7 +316,7 @@ let rec index_stage = fun x ->
   end
 
 
-let inside_function = fun name -> "Inside" ^ String.capitalize name
+let inside_function = fun name -> "Inside" ^ Compat.capitalize_ascii name
 
 (* pre call utility function *)
 let fp_pre_call = fun x ->
@@ -342,7 +342,7 @@ let stage_until = fun x ->
 let rec print_stage = fun index_of_waypoints x ->
   let stage () = incr stage;lprintf "Stage(%d)\n" !stage; right () in
   begin
-    match String.lowercase (Xml.tag x) with
+    match Compat.lowercase_ascii (Xml.tag x) with
       | "return" ->
         stage ();
         lprintf "Return(%s);\n" (ExtXml.attrib_or_default x "reset_stage" "0");
@@ -355,6 +355,7 @@ let rec print_stage = fun index_of_waypoints x ->
         lprintf "GotoBlock(%d);\n" (get_index_block (ExtXml.attrib x "block"));
         lprintf "break;\n"
       | "exit_block" ->
+        lprintf "/* Falls through. */\n";
         lprintf "default:\n";
         stage ();
         lprintf "NextBlock();\n";
@@ -383,6 +384,7 @@ let rec print_stage = fun index_of_waypoints x ->
         stage ();
         lprintf "%s = %s - 1;\n" v from_;
         lprintf "%s = %s;\n" to_var to_expr;
+        lprintf "INTENTIONAL_FALLTHRU\n";
         left ();
 
         output_label f;
@@ -546,9 +548,9 @@ let rec print_stage = fun index_of_waypoints x ->
         let statement = ExtXml.attrib  x "fun" in
         (* by default, function is called while returning TRUE *)
         (* otherwise, function is called once and returned value is ignored *)
-        let loop = String.uppercase (ExtXml.attrib_or_default x "loop" "TRUE") in
+        let loop = Compat.uppercase_ascii (ExtXml.attrib_or_default x "loop" "TRUE") in
         (* be default, go to next stage immediately *)
-        let break = String.uppercase (ExtXml.attrib_or_default x "break" "FALSE") in
+        let break = Compat.uppercase_ascii (ExtXml.attrib_or_default x "break" "FALSE") in
         begin match loop with
         | "TRUE" ->
             lprintf "if (! (%s)) {\n" statement;
@@ -581,7 +583,7 @@ let rec print_stage = fun index_of_waypoints x ->
         stage ();
         let statement = ExtXml.attrib  x "fun" in
         (* by default, go to next stage immediately *)
-        let break = String.uppercase (ExtXml.attrib_or_default x "break" "FALSE") in
+        let break = Compat.uppercase_ascii (ExtXml.attrib_or_default x "break" "FALSE") in
         lprintf "%s;\n" statement;
         begin match break with
         | "TRUE" -> lprintf "NextStageAndBreak();\n";
@@ -818,7 +820,7 @@ let parse_wpt_sector = fun indexes waypoints xml ->
 
 
 (** FP variables and ABI auto bindings *)
-type fp_var = FP_var of (string * string * string) | FP_binding of (string * string list * string)
+type fp_var = FP_var of (string * string * string) | FP_binding of (string * string list option * string * string option)
 
 (* get a Hashtbl of ABI messages (name, field_types) *)
 let extract_abi_msg = fun filename class_ ->
@@ -836,6 +838,9 @@ let extract_abi_msg = fun filename class_ ->
         Not_found -> failwith (sprintf "No msg_class '%s' found" class_)
 
 let parse_variables = fun xml ->
+  let some_attrib_or_none = fun v n cb ->
+    try Some (cb (ExtXml.attrib v n)) with _ -> None
+  in
   List.map (fun var ->
     match Xml.tag var with
     | "variable" ->
@@ -845,10 +850,13 @@ let parse_variables = fun xml ->
         FP_var (v, t, i)
     | "abi_binding" ->
         let n = ExtXml.attrib var "name"
-        and vs = ExtXml.attrib var "vars"
-        and i = ExtXml.attrib_or_default var "id" "ABI_BROADCAST" in
-        let vs = Str.split (Str.regexp "[ ]*,[ ]*") vs in
-        FP_binding (n, vs, i)
+        and vs = some_attrib_or_none var "vars" (fun x -> Str.split (Str.regexp "[ ]*,[ ]*") x)
+        and i = ExtXml.attrib_or_default var "id" "ABI_BROADCAST"
+        and h = some_attrib_or_none var "handler" (fun x -> x) in
+        begin match vs, h with
+        | Some _, Some _ | None, None -> failwith "Gen_flight_plan: either 'vars' or 'handler' should be defined, not both"
+        | _, _ -> FP_binding (n, vs, i, h)
+        end
     | _ -> failwith "Gen_flight_plan: unexpected variables tag"
   ) xml
 
@@ -858,14 +866,17 @@ let print_var_decl abi_msgs = function
 
 let print_var_impl abi_msgs = function
   | FP_var (v, t, i) -> printf "%s %s = %s;\n" t v i
-  | FP_binding (n, vs, _) ->
+  | FP_binding (n, Some vs, _, None) ->
       printf "static abi_event FP_%s_ev;\n" n;
       let field_types = Hashtbl.find abi_msgs n in
       List.iter2 (fun abi_t user -> if not (user = "_") then printf "static %s %s;\n" abi_t user) field_types vs
+  | FP_binding (n, None, _, Some _) ->
+      printf "static abi_event FP_%s_ev;\n" n
+  | _ -> ()
 
 let print_auto_init_bindings = fun abi_msgs variables ->
   let print_cb = function
-    | FP_binding (n, vs, _) ->
+    | FP_binding (n, Some vs, _, None) ->
         let field_types = Hashtbl.find abi_msgs n in
         printf "static void FP_%s_cb(uint8_t sender_id __attribute__((unused))" n;
         List.iteri (fun i v ->
@@ -880,8 +891,10 @@ let print_auto_init_bindings = fun abi_msgs variables ->
     | _ -> ()
   in
   let print_bindings = function
-    | FP_binding (n, _, i) ->
+    | FP_binding (n, _, i, None) ->
         printf "  AbiBindMsg%s(%s, &FP_%s_ev, FP_%s_cb);\n" n i n n
+    | FP_binding (n, _, i, Some h) ->
+        printf "  AbiBindMsg%s(%s, &FP_%s_ev, %s);\n" n i n h
     | _ -> ()
   in
   List.iter print_cb variables;
@@ -978,12 +991,12 @@ let () =
       printf "#include \"std.h\"\n";
       printf "#include \"generated/modules.h\"\n";
       printf "#include \"subsystems/abi.h\"\n";
-      printf "#include \"autopilot.h\"\n";
+      printf "#include \"autopilot.h\"\n\n";
 
       begin
         try
           let header = ExtXml.child (ExtXml.child xml "header") "0" in
-          printf "%s\n" (Xml.pcdata header)
+          printf "%s\n\n" (Xml.pcdata header)
         with _ -> ()
       end;
 
@@ -1025,10 +1038,9 @@ let () =
 
       Xml2h.define "QFU" (sprintf "%.1f" qfu);
 
-      let waypoints = dummy_waypoint :: waypoints in
-
       let (hx, hy) = home waypoints in
       List.iter (check_distance (hx, hy) mdfh) waypoints;
+      let waypoints = dummy_waypoint :: waypoints in
       define_waypoints_indices waypoints;
 
       Xml2h.define "WAYPOINTS_UTM" "{ \\";
@@ -1132,7 +1144,7 @@ let () =
         List.map (fun w -> incr i; (name_of w, !i)) waypoints in
 
       let sectors_element = try ExtXml.child xml "sectors" with Not_found -> Xml.Element ("", [], []) in
-      let sectors = List.filter (fun x -> String.lowercase (Xml.tag x) = "sector") (Xml.children sectors_element) in
+      let sectors = List.filter (fun x -> Compat.lowercase_ascii (Xml.tag x) = "sector") (Xml.children sectors_element) in
       let sectors_type = List.map (fun x -> match ExtXml.attrib_or_default x "type" "static" with "dynamic" -> DynamicSector | _ -> StaticSector) sectors in
       let sectors = List.map (parse_wpt_sector index_of_waypoints waypoints) sectors in
       List.iter2 print_inside_sector sectors_type sectors;

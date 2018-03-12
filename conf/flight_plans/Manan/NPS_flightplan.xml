@@ -73,20 +73,28 @@
       <call fun="cv_3grids()"/>
       <stay wp="GOAL"/>
     </block>
-    <!--
     <block name="RL_FOR">
       <call_once fun="rl_action_forward()"/>
+      <stay until="stage_time>1.00" wp="GOAL"/>
+      <call fun="cv_3grids()"/>
       <stay wp="GOAL"/>
     </block>
     <block name="RL_LEF">
-      <call_once fun="rl_action_left()"/>
+      <call_once fun="rl_left2()"/>
+      <call fun="rl_turn_to_targheadind()"/>
+      <stay until="stage_time>0.75" wp="GOAL"/>
+      <call fun="cv_3grids()"/>
       <stay wp="GOAL"/>
     </block>
     <block name="RL_RIG">
-      <call_once fun="rl_action_right()"/>
+      <call_once fun="rl_right2()"/>
+      <call fun="rl_turn_to_targheadind()"/>
+      <stay until="stage_time>0.75" wp="GOAL"/>
+      <call fun="cv_3grids()"/>
       <stay wp="GOAL"/>
     </block>
--->
+    <!--
+    -->
     <block name="GOTOSET">
       <call_once fun="set_loc_and_att(WP_TESTWP)"/>
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
@@ -145,6 +153,7 @@
       <call fun="rl_write_episode_log()"/>
     </block>
     <block name="EndEp">
+	  <exception cond="epinum > rl_cur_episodes_limit-1" deroute="LogQdicts"/>
 	  <exception cond="epinum%20 == 0" deroute="LogQdicts"/>
 	  <exception cond="endrun" deroute="LogQdicts"/>
 	  <exception cond="stop_after_episode" deroute="StopAfterEpi"/>
