@@ -289,7 +289,11 @@ uint8_t pick_action(char *mystate)
     return picked_action;
 }
 
+<<<<<<< HEAD
+uint8_t pick_action_pid(char *mystate)
+=======
 uint8_t pick_action_hardcoded(char *mystate, uint8_t cur_state, uint8_t cur_cfrac)
+>>>>>>> visrl_hardcoded
 {
     uint8_t possible_actions = VISRL_ACTIONS;
 #ifdef VISRL_USEOPTIONS
@@ -317,6 +321,37 @@ uint8_t pick_action_hardcoded(char *mystate, uint8_t cur_state, uint8_t cur_cfra
         possible_actions = 3;
     }
 #endif
+<<<<<<< HEAD
+    uint8_t picked_action = 0;
+    total_state_visits++;
+
+    md_node *curnode;
+    curnode = md_search(ll_qdict,mystate);
+
+    if (curnode == NULL) {
+        printf(" NewState ");
+        curnode = md_prepend_list(ll_qdict,mystate);
+        picked_action = rand() % possible_actions;
+        act_type = "R";
+    }
+    else {
+        uint8_t policy_roll = rand() % 100;
+        if (policy_roll < rl_eps) {
+            // do greedy
+            act_type = "G";
+            md_node_best_action(curnode);
+            picked_action = curnode->best_action;
+        }
+        else {
+            // do random
+            act_type = "R";
+            picked_action = rand() % possible_actions;
+        }
+    }
+    curnode->visits[picked_action]++;
+
+    // implementation of pid picked action
+=======
 
     uint8_t glseen = 0;
     uint8_t domcol_pos[3] = {0,2,4};
@@ -400,17 +435,22 @@ uint8_t pick_action_hardcoded(char *mystate, uint8_t cur_state, uint8_t cur_cfra
 //         }
 //     }
 //     curnode->visits[picked_action]++;
+>>>>>>> visrl_hardcoded
 
     // set time to wait; if forward 1sec; if turn 0.15 sec
     if ((picked_action == 0)) { // || (picked_action == 3)) {
         step_wait_time = 1.0;
     }
     else {
+<<<<<<< HEAD
+        step_wait_time = 0.75;
+=======
 // #ifdef VISRL_NPS
         step_wait_time = 0.75;
 // #else
         // step_wait_time = 1.0;
 // #endif
+>>>>>>> visrl_hardcoded
     }
 
 #ifdef VISRL_USEOPTIONS
@@ -609,6 +649,7 @@ uint8_t rl_init_ep(void)
     ep_success = 1;
     epinum++;
     // headind = 0;
+    rl_set_nxt();
     rl_new_set_nxt();
     update_headind();
     printf("\n Episode initialized \n");
@@ -631,6 +672,12 @@ uint8_t rl_new_set_cur(void)
 
     new_cur_sta = new_nxt_sta;
     cur_cfrac = nxt_cfrac;
+    // If starting an options copy the starting state into a buffer
+#ifdef VISRL_USEOPTIONS
+    if (start_option) {
+        strcpy(option_start_sta,cur_sta);
+    }
+#endif
     return 0;
 }
 
