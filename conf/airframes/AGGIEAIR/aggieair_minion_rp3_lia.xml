@@ -7,12 +7,12 @@ AggieAir RP3 Minion
 <airframe name="Minion PR3">
 
   <firmware name="fixedwing">
-    <target name="ap" board="lisa_mx_2.1_chibios">
+    <target name="ap" board="lisa_mx_2.1">
       <module name="radio_control" type="sbus">
         <configure name="SBUS_PORT" value="UART5"/>
       </module>
-      <configure name="HAS_LUFTBOOT" value="1"/>
-      <configure name="FLASH_MODE" value="DFU"/>
+      <configure name="HAS_LUFTBOOT" value="0"/>
+      <configure name="FLASH_MODE" value="JTAG"/>
     </target>
 
     <!-- NOTE: if you want to use extra_dl module for HITL
@@ -60,6 +60,8 @@ AggieAir RP3 Minion
     <module name="nav" type="survey_poly_osam"/>
     <module name="nav" type="launcher"/>
     <module name="nav" type="skid_landing"/>
+    <module name="rng"/>
+    <module name="haclc"/>
     <module name="sys_mon"/>
     <module name="copilot"/>
     <module name="extra_dl">
