@@ -118,7 +118,20 @@ void visrl_init(void)
 
 void myvisrl_periodic_pid(void)
 {
-    printf("The Train is comming!\n");
+    /*
+    rl_set_cur()
+    rl_take_cur_action_pid()
+    ///<stay until="stage_time>step_wait_time" wp="GOAL"/>
+    rl_set_nxt()
+    rl_check_terminal()
+    if (rl_isterminal) {
+        // use exception on rl_isterminal in flightplan to end an episode
+        // MAYBE will end up using stay until rl_isterminal in flight plan;
+        // that will be easier
+        rl_turn_period_off()
+    }
+    // printf("The Train is comming!\n");
+    */
 }
 
 void rl_turn_period_off(void)
@@ -383,12 +396,6 @@ uint8_t rl_set_cur(void)
 {
     strcpy(cur_sta,nxt_sta);
     cur_act = nxt_act;
-    // If starting an options copy the starting state into a buffer
-#ifdef VISRL_USEOPTIONS
-    if (start_option) {
-        strcpy(option_start_sta,cur_sta);
-    }
-#endif
     return 0;
 }
 
