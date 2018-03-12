@@ -49,7 +49,7 @@ uint8_t policy_wallhit[7][4] ={{2,2,2,2}, // L
                                 {3,3,3,3}};     // N
 
 char new_state[7][4] = {"L","C","R","LC","RC","LCR","N"};
-char new_state_map[7][6] = {"1,0,0","0,1,0","0,0,1","1,1,0","0,1,1","1,1,1","0,0,0"};
+// char new_state_map[7][6] = {"1,0,0","0,1,0","0,0,1","1,1,0","0,1,1","1,1,1","0,0,0"};
 char new_state_map_int[7][3] = {{1,0,0},{0,1,0},{0,0,1},{1,1,0},{0,1,1},{1,1,1},{0,0,0}};
 
 uint8_t new_vis_state = 0;
@@ -411,7 +411,7 @@ void new_get_state_ext(char *curstate, uint8_t *cur_state, uint8_t *cur_cfrac)
         uint8_t *cur_check_state = new_state_map_int[i];
         state_found = 1;
         for(int j = 0; j < 3; j++) {
-            if (*(cur_check_state+j) != domcol_arr[j]) {
+            if (((*(cur_check_state+j) != 0) && (domcol_arr[j] == 0)) || ((*(cur_check_state+j) == 0) && (domcol_arr[j] != 0))) {
                 state_found = 0;
                 break;
             }
