@@ -7,7 +7,7 @@ float toset_xloc = 0;
 float toset_yloc = 0;
 float toset_head = 0;
 
-//Increases the NAV heading. Assumes heading is an INT32_ANGLE. It is bound in this function.
+//Increases the NAV heading. Assumes heading is an degrees
 uint8_t increase_nav_heading(float increment)
 {
   nav_heading += ANGLE_BFP_OF_REAL(RadOfDeg(increment));

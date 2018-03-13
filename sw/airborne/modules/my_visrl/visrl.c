@@ -31,7 +31,8 @@ float headings_rad[16] = {0, M_PI/8., M_PI/4., 3*M_PI/8., M_PI/2., 5*M_PI/8.,
         3*M_PI/4., 7*M_PI/8., M_PI, 9*M_PI/8., 5*M_PI/4.,  11*M_PI/8, 3*M_PI/2. ,
         13*M_PI/8, 7*M_PI/4., 15*M_PI/8};
 #ifdef VISRL_AP
-float czoo_offset = M_PI/15;
+// float czoo_offset = M_PI/15;
+float czoo_offset = 0;
 #endif
 
 uint8_t policy_nowallhit[7][4] ={{1,1,0,0}, // L
@@ -155,6 +156,7 @@ void myvisrl_periodic_pid(void)
     }
     // printf("The Train is comming!\n");
     */
+    cv_3grids();        // function only used to get cv data during simulation
 }
 
 void rl_turn_period_off(void)

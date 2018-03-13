@@ -24,7 +24,8 @@
     <waypoint name="CURPOS" x="3" y="3.5"/>
     <waypoint name="TESTWP" x="3" y="4"/>
     <waypoint name="STDBY" x="0" y="0"/>
-    <waypoint name="VISITED_GOAL" x="-0.0" y="-2.3"/>
+    <waypoint name="VISITED_GOAL1" x="2.8" y="-1.1"/>
+    <waypoint name="VISITED_GOAL2" x="-3.0" y="1.4"/>
     <waypoint name="GOAL" x="0" y="0"/>
     <waypoint name="HeightRef" x="3" y="7"/>
     <waypoint name="SZ1" x="-3.9" y="4"/>
@@ -64,6 +65,36 @@
     <block name="Standby" strip_button="Standby" strip_icon="home.png">
       <stay wp="STDBY"/>
     </block>
+    <block name="RL_FOR">
+      <call_once fun="rl_action_forward()"/>
+      <stay until="stage_time>1.00" wp="GOAL"/>
+      <call fun="cv_3grids()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="RL_LEF">
+      <call_once fun="rl_left2()"/>
+      <call fun="rl_turn_to_targheadind()"/>
+      <stay until="stage_time>0.75" wp="GOAL"/>
+      <call fun="cv_3grids()"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="LEFT_BY_5">
+      <call_once fun="NavSetWaypointHere(WP_GOAL)"/>
+      <call_once fun="increase_nav_heading(-5)"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="RIGHT_BY_5">
+      <call_once fun="NavSetWaypointHere(WP_GOAL)"/>
+      <call_once fun="increase_nav_heading(5)"/>
+      <stay wp="GOAL"/>
+    </block>
+    <block name="RL_RIG">
+      <call_once fun="rl_right2()"/>
+      <call fun="rl_turn_to_targheadind()"/>
+      <stay until="stage_time>0.75" wp="GOAL"/>
+      <call fun="cv_3grids()"/>
+      <stay wp="GOAL"/>
+    </block>
     <block name="StopPeriodic">
       <call_once fun="NavSetWaypointHere(WP_GOAL)"/>
       <call_once fun="rl_turn_period_off()"/>
@@ -74,22 +105,29 @@
       <call_once fun="rl_turn_period_on()"/>
       <stay wp="GOAL"/>
     </block>
+    <block name="StayVisGl1">
+      <stay wp="VISITED_GOAL1"/>
+    </block>
+    <block name="StayVisGl2">
+      <stay wp="VISITED_GOAL2"/>
+    </block>
     <block name="SetupEpisode">
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
-      <call fun="rl_init_uav()"/> <!-- Not Made -->
+      <call fun="rl_init_uav()"/>
       <call fun="rl_smooth_turn(init_headind)"/>
-      <go from="CURPOS" wp="GOAL" hmode="route" approaching_time="0"/>
-      <stay wp="GOAL" until="stage_time>2"/>
+      <go approaching_time="0" from="CURPOS" hmode="route" wp="GOAL"/>
+      <stay wp="GOAL"/>
     </block>
     <block name="GotoVisionGoalMarker">
       <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
-      <call fun="rl_smooth_turn(8)"/>
-      <!-- <call_once fun="nav_set_heading_towards_waypoint(WP_VISITED_GOAL)"/>
-           -->
-      <!-- <stay wp="CURPOS" until="stage_time>4"/> -->
-      <go from="CURPOS" wp="VISITED_GOAL" hmode="route" approaching_time="0"/>
-      <!-- <stay wp="VISITED_GOAL" until="stage_time>4"/> -->
-      <stay wp="VISITED_GOAL"/>
+      <call fun="rl_smooth_turn(5)"/>
+      <call_once fun="nav_set_heading_towards_waypoint(WP_VISITED_GOAL1)"/>
+      <go approaching_time="0" from="CURPOS" hmode="route" wp="VISITED_GOAL1"/>
+      <stay until="stage_time > 2" wp="VISITED_GOAL1"/>
+      <call fun="rl_smooth_turn(11)"/>
+      <call_once fun="nav_set_heading_towards_waypoint(WP_VISITED_GOAL2)"/>
+      <go approaching_time="0" from="VISITED_GOAL1" hmode="route" wp="VISITED_GOAL2"/>
+      <stay wp="VISITED_GOAL2"/>
     </block>
     <block name="land here" strip_button="Land Here" strip_icon="land-right.png">
       <call_once fun="NavSetWaypointHere(WP_TD)"/>
