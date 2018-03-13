@@ -1,0 +1,90 @@
+<!DOCTYPE flight_plan SYSTEM "../flight_plan.dtd">
+
+<flight_plan alt="2" ground_alt="1.18" lat0="42.3489323" lon0="-71.0083311" max_dist_from_home="80" name="Rotorcraft Basic (Enac)" security_height="0.5">
+  <header>
+	#include "autopilot.h"
+    #include "subsystems/ahrs.h"
+    #include "subsystems/electrical.h"
+    #include "subsystems/datalink/datalink.h"
+    #ifdef VISRL_NPS
+    #include "modules/my_visrl/vis_nps.h"
+    #endif
+    #ifdef VISRL_AP
+	#include "modules/my_visrl/vis_ap.h"
+    #endif
+	#include "modules/my_visrl/simsoft.h"
+	#include "modules/my_visrl/visrl.h"
+	#include "modules/my_visrl/mynavfuncs.h"
+</header>
+  <waypoints>
+    <waypoint name="HOME" x="0.0" y="0.0"/>
+    <waypoint lat="42.3489323" lon="-71.0083311" name="StartPos"/>
+    <waypoint name="CLIMB" x="0.0" y="2.5"/>
+    <waypoint name="TEMP" x="3" y="3"/>
+    <waypoint name="CURPOS" x="3" y="3.5"/>
+    <waypoint name="TESTWP" x="3" y="4"/>
+    <waypoint name="STDBY" x="0" y="0"/>
+    <waypoint name="VISITED_GOAL" x="-0.0" y="-2.3"/>
+    <waypoint name="GOAL" x="0" y="0"/>
+    <waypoint name="HeightRef" x="3" y="7"/>
+    <waypoint name="SZ1" x="-3.9" y="4"/>
+    <waypoint name="SZ2" x="3.9" y="4"/>
+    <waypoint name="SZ3" x="3.9" y="-4"/>
+    <waypoint name="SZ4" x="-3.9" y="-4"/>
+    <waypoint name="BoundaryChecker" x="0.25" y="0.25"/>
+    <waypoint name="TD" x="5" y="-5"/>
+  </waypoints>
+  <sectors>
+    <sector color="green" name="MyWorld">
+      <corner name="SZ1"/>
+      <corner name="SZ2"/>
+      <corner name="SZ3"/>
+      <corner name="SZ4"/>
+    </sector>
+  </sectors>
+  <blocks>
+    <block name="Wait GPS">
+      <call_once fun="NavKillThrottle()"/>
+      <while cond="!GpsFixValid()"/>
+    </block>
+    <block name="Geo init">
+      <while cond="LessThan(NavBlockTime(), 10)"/>
+    </block>
+    <block name="Holding point">
+      <call_once fun="NavKillThrottle()"/>
+      <attitude pitch="0" roll="0" throttle="0" until="FALSE" vmode="throttle"/>
+    </block>
+    <block name="MyTakeoff">
+      <call_once fun="NavResurrect()"/>
+      <exception cond="stateGetPositionEnu_f()->z > 2.0" deroute="Standby"/>
+      <call_once fun="NavSetWaypointHere(WP_CLIMB)"/>
+      <stay climb="nav_climb_vspeed" vmode="climb" wp="CLIMB"/>
+      <deroute block="Standby"/>
+    </block>
+    <block name="Standby" strip_button="Standby" strip_icon="home.png">
+      <stay wp="STDBY"/>
+    </block>
+    <block name="GotoVisionGoalMarker">
+      <call_once fun="NavSetWaypointHere(WP_CURPOS)"/>
+      <call_once fun="nav_set_heading_towards_waypoint(WP_VISITED_GOAL)"/>
+      <stay wp="CURPOS" until="stage_time>4"/>
+      <go from="CURPOS" wp="VISITED_GOAL" hmode="route" approaching_time="0"/>
+      <stay wp="VISITED_GOAL" until="stage_time>4"/>
+    </block>
+    <block name="land here" strip_button="Land Here" strip_icon="land-right.png">
+      <call_once fun="NavSetWaypointHere(WP_TD)"/>
+    </block>
+    <block name="land">
+      <go wp="TD"/>
+    </block>
+    <block name="flare">
+      <exception cond="NavDetectGround()" deroute="Holding point"/>
+      <exception cond="!nav_is_in_flight()" deroute="landed"/>
+      <call fun="NavStartDetectGround()"/>
+      <stay climb="nav_descend_vspeed" vmode="climb" wp="TD"/>
+    </block>
+    <block name="landed">
+      <attitude pitch="0" roll="0" throttle="0" until="FALSE" vmode="throttle"/>
+    </block>
+  </blocks>
+</flight_plan>
