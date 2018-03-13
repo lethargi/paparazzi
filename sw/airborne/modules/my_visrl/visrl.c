@@ -366,11 +366,31 @@ uint8_t pick_action_hardcoded(char *mystate, uint8_t cur_state, uint8_t cur_cfra
 #endif
 
     if (track_to_goal) {
-        if (!hitwall) {
-            picked_action = policy_nowallhit[cur_state][cur_cfrac];
+        if (glseen == 0) {
+            picked_action = 3;
         }
         else {
-            picked_action = policy_wallhit[cur_state][cur_cfrac];
+            if (!hitwall) {
+                if (cur_cfrac < 3) {
+                    if ((cur_state == 0) || (cur_state == 3)) {
+                        picked_action = 1;
+                    }
+                    else if ((cur_state == 2) || (cur_state == 4)) {
+                        picked_action = 2;
+                    }
+                    else {
+                        picked_action = 0;
+                    }
+                }
+                else {
+                    picked_action = 0;
+                }
+                // picked_action = policy_nowallhit[cur_state][cur_cfrac];
+            }
+            else {
+                picked_action = 2;
+                // picked_action = policy_wallhit[cur_state][cur_cfrac];
+            }
         }
     }
 
